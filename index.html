@@ -331,7 +331,7 @@ footer .adm-link:hover{color:var(--accent)}
       <a href="#niveles">Niveles</a>
       <a href="#precio">Precio</a>
     </div>
-    <a class="btn btn-primary" href="app.html">Entrar a la app</a>
+    <a class="btn btn-primary" href="app.html#login">Entrar a la app</a>
   </div>
 </nav>
 
@@ -413,21 +413,21 @@ footer .adm-link:hover{color:var(--accent)}
     <div class="weeks">
       <div class="week rv"><span class="wk">Semana 1</span>
         <ol>
-          <li><i class="dot d-s"></i><span><small>Lunes</small>Por qué sufrimos y qué podemos hacer</span></li>
-          <li><i class="dot d-m"></i><span><small>Miércoles</small>Págate primero a ti</span></li>
-          <li><i class="dot d-v"></i><span><small>Viernes</small>Agua y luz al despertar</span></li>
+          <li><i class="dot d-s"></i><span><small>Espíritu</small>Por qué sufrimos y qué podemos hacer</span></li>
+          <li><i class="dot d-m"></i><span><small>Prosperidad</small>Págate primero a ti</span></li>
+          <li><i class="dot d-v"></i><span><small>Vitalidad</small>Agua y luz al despertar</span></li>
         </ol></div>
       <div class="week rv"><span class="wk">Semana 2</span>
         <ol>
-          <li><i class="dot d-s"></i><span><small>Lunes</small>Vivir sabiendo que el tiempo es limitado</span></li>
-          <li><i class="dot d-m"></i><span><small>Miércoles</small>Lo que suma y lo que resta a tu patrimonio</span></li>
-          <li><i class="dot d-v"></i><span><small>Viernes</small>Caminar como medicina</span></li>
+          <li><i class="dot d-s"></i><span><small>Espíritu</small>Vivir sabiendo que el tiempo es limitado</span></li>
+          <li><i class="dot d-m"></i><span><small>Prosperidad</small>Lo que suma y lo que resta a tu patrimonio</span></li>
+          <li><i class="dot d-v"></i><span><small>Vitalidad</small>Caminar como medicina</span></li>
         </ol></div>
       <div class="week rv"><span class="wk">Semana 3</span>
         <ol>
-          <li><i class="dot d-s"></i><span><small>Lunes</small>Fluir en lugar de forzar</span></li>
-          <li><i class="dot d-m"></i><span><small>Miércoles</small>Las creencias que frenan tu economía</span></li>
-          <li><i class="dot d-v"></i><span><small>Viernes</small>Volver a la comida real</span></li>
+          <li><i class="dot d-s"></i><span><small>Espíritu</small>Fluir en lugar de forzar</span></li>
+          <li><i class="dot d-m"></i><span><small>Prosperidad</small>Las creencias que frenan tu economía</span></li>
+          <li><i class="dot d-v"></i><span><small>Vitalidad</small>Volver a la comida real</span></li>
         </ol></div>
       <div class="week next rv"><b>Y la ruta continúa</b><span>13, 26 o 52 semanas, según la duración que elijas. Cada vuelta se apoya en la anterior.</span></div>
     </div>
@@ -494,7 +494,7 @@ footer .adm-link:hover{color:var(--accent)}
       <ul>
         <li><span class="dot d-s" style="margin-top:9px"></span><span><b>Tu Rueda de la Vida.</b> Ocho áreas de tu vida en un gráfico: cómo estás hoy y dónde poner atención primero.</span></li>
         <li><span class="dot d-m" style="margin-top:9px"></span><span><b>Ruta a tu medida.</b> 3, 6 o 12 meses según tu disponibilidad.</span></li>
-        <li><span class="dot d-v" style="margin-top:9px"></span><span><b>Acompañamiento semanal.</b> Lunes, miércoles y viernes, una nueva cápsula.</span></li>
+        <li><span class="dot d-v" style="margin-top:9px"></span><span><b>Acompañamiento semanal.</b> Tres cápsulas por semana, en los días que tú elijas.</span></li>
       </ul>
     </div>
     <figure class="botmock rv" aria-label="Vista del mentor dentro de la app Áurea">
@@ -550,7 +550,7 @@ footer .adm-link:hover{color:var(--accent)}
         <div class="amt">$<span data-price-a>79</span> <small>USD / año</small></div>
         <ul>
           <li>Todo lo del plan mensual</li>
-          <li>Equivale a $<span data-price-am>6,58</span> al mes</li>
+          <li><span>Equivale a $<span data-price-am>6,58</span> al mes</span></li>
           <li>Pensado para la ruta de 12 meses</li>
           <li>Acceso anticipado a nuevas rutas</li>
         </ul>
@@ -684,7 +684,7 @@ footer .adm-link:hover{color:var(--accent)}
     function orb(){
       ot+=.016; var d=Math.min(window.devicePixelRatio||1,2), W=oc.clientWidth, H=oc.clientHeight;
       if(W){ if(oc.width!==W*d){oc.width=W*d;oc.height=H*d;} var x=oc.getContext('2d'); x.setTransform(d,0,0,d,0,0); x.clearRect(0,0,W,H);
-        var cx=W/2, cy=H/2, R=W*.46, br=1+.04*Math.sin(ot*1.4), turns=3.2, b=Math.log((R*.9)/2)/(turns*2*Math.PI), rot=-ot*.9;
+        var cx=W/2, cy=H/2, R=W*.46, br=1+.04*Math.sin(ot*1.4), turns=3.2, b=Math.log((R*.9)/2)/(turns*2*Math.PI), rot=ot*.9;
         var g=x.createRadialGradient(cx,cy,0,cx,cy,R*br); g.addColorStop(0,pal.a); g.addColorStop(1,'transparent'); x.globalAlpha=.16; x.fillStyle=g; x.beginPath(); x.arc(cx,cy,R*br,0,7); x.fill();
         x.globalAlpha=.9; x.strokeStyle=pal.a; x.lineWidth=1.5; x.beginPath();
         for(var t=0;t<=turns*2*Math.PI;t+=.05){var r=2*Math.exp(b*t)*br, px=cx+r*Math.cos(t+rot), py=cy+r*Math.sin(t+rot); t?x.lineTo(px,py):x.moveTo(px,py);} x.stroke();
@@ -722,7 +722,7 @@ footer .adm-link:hover{color:var(--accent)}
 </script>
 <script>
 /* Días de prueba y precios definidos en el panel de administración de la app (mismo sitio) */
-(function(){
+(function(){ function applyCfg(){
   var c=null; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'null'); }catch(e){}
   if(!c) return;
   function fmt(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
@@ -735,6 +735,12 @@ footer .adm-link:hover{color:var(--accent)}
   all('[data-trial-faq]',function(e){ e.textContent=mes?'¿Qué ocurre al terminar el mes gratuito?':'¿Qué ocurre al terminar la prueba gratuita?'; });
   if(c.priceM>0) all('[data-price-m]',function(e){ e.textContent=fmt(c.priceM); });
   if(c.priceA>0){ all('[data-price-a]',function(e){ e.textContent=fmt(c.priceA); }); all('[data-price-am]',function(e){ e.textContent=fmt(Math.round(c.priceA/12*100)/100); }); }
+  }
+  applyCfg();
+  /* al volver desde la app (botón Atrás) o con la app abierta en otra pestaña */
+  window.addEventListener('pageshow',applyCfg);
+  window.addEventListener('storage',function(e){ if(e.key==='aurea-config') applyCfg(); });
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) applyCfg(); });
 })();
 </script>
 

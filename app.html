@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<style>html,body{margin:0;padding:0;height:100%}</style>
+<style>html,body{margin:0;padding:0;height:100%}#root{height:100%}</style>
 </head>
 <body>
 <title>Áurea App</title>
@@ -1132,7 +1132,7 @@ function drawOrbs(){
     var g=x.createRadialGradient(cx,cy,0,cx,cy,R*breathe); g.addColorStop(0,a); g.addColorStop(1,'transparent');
     x.globalAlpha=.16; x.fillStyle=g; x.beginPath(); x.arc(cx,cy,R*breathe,0,7); x.fill();
     x.globalAlpha=.9; x.strokeStyle=a; x.lineWidth=1.6; x.beginPath();
-    var turns=3.2, b=Math.log((R*.9)/2)/(turns*2*Math.PI), rot=-ot*.9;
+    var turns=3.2, b=Math.log((R*.9)/2)/(turns*2*Math.PI), rot=ot*.9;
     for(var t=0;t<=turns*2*Math.PI;t+=.05){var r=2*Math.exp(b*t)*breathe;var px=cx+r*Math.cos(t+rot),py=cy+r*Math.sin(t+rot);t?x.lineTo(px,py):x.moveTo(px,py);} x.stroke();
     for(var k=1;k<=Math.floor(turns*3);k++){var t2=k*2*Math.PI/3,r2=2*Math.exp(b*t2)*breathe;x.fillStyle=cols[(k-1)%3];x.globalAlpha=.95;x.beginPath();x.arc(cx+r2*Math.cos(t2+rot),cy+r2*Math.sin(t2+rot),1.4+k*.32,0,7);x.fill();}
     x.globalAlpha=1;
@@ -1192,6 +1192,7 @@ function runSteps(cfg){
     var bars=''; for(var k=0;k<cfg.steps.length;k++) bars+='<i class="'+(k===i?'on':(k<i?'done':''))+'"></i>';
     dots.innerHTML='<div class="bar">'+bars+'</div><span>Pregunta '+(i+1)+' de '+cfg.steps.length+'</span>';
     back.disabled=(i===0 && !cfg.onBackFirst);
+    if(i===0 && cfg.firstBackLabel){ back.textContent=cfg.firstBackLabel; back.classList.add('back-login'); }
     back.onclick=function(){ if(i>0){ i--; show(); } else if(cfg.onBackFirst) cfg.onBackFirst(); };
     var value=cfg.store[st.key];
     var err=document.createElement('p'); err.className='err';
@@ -1346,8 +1347,8 @@ function loginScreen(){
 function createPwScreen(){
   runSteps({phase:'Seguridad',steps:[{key:'pw',type:'password',q:'Protege tu cuenta, '+S.reg.name+'. Crea una contraseña.',hint:'La usarás junto con tu correo para iniciar sesión.',validate:REG.filter(function(x){return x.key==='pw';})[0].validate}],store:S.reg,single:true,onDone:function(){ setAuth(true); boot(); }});
 }
-function startReg(){ S.stage='reg'; save(); runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary});
-  var top=root.querySelector('.bot-top'); if(top && Object.keys(users()).length){ var b=document.createElement('button'); b.type='button'; b.className='toplink'; b.textContent='Ya tengo cuenta'; b.onclick=function(){ loginScreen(); }; top.appendChild(b); } }
+function startReg(){ S.stage='reg'; save(); runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary,onBackFirst:function(){ loginScreen(); },firstBackLabel:'Ya tengo cuenta'});
+  var top=root.querySelector('.bot-top'); if(top){ var b=document.createElement('button'); b.type='button'; b.className='toplink'; b.textContent='Iniciar sesión'; b.onclick=function(){ loginScreen(); }; top.appendChild(b); } }
 function admLink(el){ var top=el.querySelector('.bot-top'); var b=document.createElement('button'); b.type='button'; b.className='toplink'; b.textContent='Administración'; b.onclick=adminEntry; top.appendChild(b); }
 var ICONS={
   name:'<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"/>',
@@ -1962,6 +1963,8 @@ drawOrbs();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ if(reduce) drawOrbs(); });
 function boot(){
   if(/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
+  if(/^#login/.test(location.hash)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+    if(!(S.reg && S.reg.registeredAt && S.reg.pw && isAuth())){ loginScreen(); return; } }
   if(S.reg && S.reg.registeredAt && S.reg.email && !users()[mailKey(S.reg.email)]) save();
   if(S.stage!=='reg' && S.reg && S.reg.registeredAt){
     if(!S.reg.pw){ createPwScreen(); return; }
