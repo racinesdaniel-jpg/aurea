@@ -401,6 +401,10 @@ p{margin:0}
 .pday.on{border:1px solid var(--accent);background:var(--accent-soft);color:var(--fg)}.pday.on span{color:var(--accent)}
 .prow{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);align-items:baseline}
 .prow:last-child{border-bottom:0}.prow b{font-weight:500;text-align:right;overflow-wrap:anywhere}
+.an-row{display:grid;gap:8px}.an-row span{display:flex;justify-content:space-between;gap:12px;font-size:.92rem}.an-row b{font-weight:600;color:var(--accent);white-space:nowrap}
+.an-row input[type=range]{width:100%;accent-color:var(--accent)}
+.an-prev{justify-items:center;text-align:center}.an-orb{width:110px;height:130px}.an-orb .orb{width:110px;height:110px}
+.an-q{font-family:var(--f-display);font-size:1.35rem;line-height:1.3;min-height:3.4em;margin:0}.an-h{font-size:.8rem;letter-spacing:.06em;color:var(--muted);min-height:2.6em;margin:0}
 .pcard.pdata{gap:0}.pcard.pdata h2{margin-bottom:10px}
 .psub{grid-template-columns:1fr auto;align-items:center}
 .psub p{margin:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--muted)}
@@ -746,6 +750,11 @@ function jget(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d
 function jset(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function users(){ if(typeof cloud==='function' && cloud()) return admCache||{}; return jget(UKEY,{}); }
 function mailKey(m){ return String(m||'').trim().toLowerCase(); }
+/* Ritmo de animaciones (configurable en Administración → Animaciones) */
+var ANIM_DEF={typeSpeed:100,qhPause:0.35,paraPause:1.2,spinSpeed:100};
+var ANIM_KEYS=['typeSpeed','qhPause','paraPause','spinSpeed'];
+function anim(){ var c=jget(CKEY,{}), r={}; ANIM_KEYS.forEach(function(k){ var v=+c[k]; r[k]=(c[k]!=null && v>=0 && isFinite(v))?v:ANIM_DEF[k]; }); if(!(r.typeSpeed>0)) r.typeSpeed=100; return r; }
+var AN=null; function animNow(){ return AN||(AN=anim()); }
 function cfg(){ var c=jget(CKEY,{}); return {trialDays:c.trialDays>0?c.trialDays:30, priceM:c.priceM>0?c.priceM:9.99, priceA:c.priceA>0?c.priceA:79, admin:c.admin||null}; }
 function fmtP(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -1126,7 +1135,7 @@ function makeOrb(){
 var ot=0;
 function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 function drawOrbs(){
-  ot+=0.016*orbState.speed;
+  ot+=0.016*orbState.speed*animNow().spinSpeed/100;
   orbCanvases=orbCanvases.filter(function(c){return c.isConnected;});
   var a=tok('--accent'), cols=[tok('--spirit'),tok('--matter'),tok('--vital')];
   orbCanvases.forEach(function(c){
@@ -1150,7 +1159,7 @@ var typingJob=null;
 function typeText(el,text,speed,done){
   /* El texto completo se coloca desde el inicio (la parte pendiente invisible), así cada letra aparece en su lugar final y nada se mueve. */
   if(typingJob) typingJob.cancel();
-  speed=Math.round(speed*1.8);
+  speed=Math.max(1,Math.round(speed*1.8*100/animNow().typeSpeed));
   el.innerHTML='';
   var shown=document.createElement('span'), caret=document.createElement('span'), rest=document.createElement('span');
   caret.className='caret'; rest.className='ghost'; rest.textContent=text;
@@ -1168,7 +1177,7 @@ function typeQA(q,qt,hint,ht,done){
   hint.innerHTML=ht?'<span class="ghost">'+esc(up(ht))+'</span>':'';
   typeText(q,qt,34,function(){
     if(!ht){ done&&done(); return; }
-    setTimeout(function(){ typeText(hint,up(ht),16,done); }, reduce?0:350);
+    setTimeout(function(){ typeText(hint,up(ht),16,done); }, reduce?0:animNow().qhPause*1000);
   });
 }
 
@@ -1556,7 +1565,7 @@ function routeIntro(){
     typeText(q,msgs[k],36,function(){
       k++; if(k>=msgs.length){ nextMsg(); return; }
       // pausa de lectura proporcional al largo del mensaje; tocar el texto avanza
-      var t=setTimeout(go, reduce?0:1800+len*40);
+      var t=setTimeout(go, reduce?0:animNow().paraPause*1000);
       function go(){ clearTimeout(t); q.onclick=null; nextMsg(); }
       q.onclick=go;
     }); }
@@ -1890,9 +1899,9 @@ function adminPanel(t,cached){
   adminMode=true; var TAB=t||'resumen';
   if(cloud() && !cached){ root.innerHTML='<div class="boot-load" role="status"><span></span>Cargando usuarios…</div>';
     cloudLoadAll().then(function(){ adminPanel(TAB,true); }).catch(function(e){ root.innerHTML='<div class="boot-load">'+esc(fbErr(e))+' <button class="btn btn-ghost" type="button" id="aBack">Volver</button></div>'; root.querySelector('#aBack').onclick=leaveAdmin; }); return; }
-  root.innerHTML='';
+  root.innerHTML=''; AN=null;
   var el=document.createElement('div'); el.className='adm';
-  var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración']];
+  var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración'],['anim','Animaciones']];
   el.innerHTML='<header class="adm-top"><div class="adm-in gutter"><div class="brand">'+logo(22)+'Áurea <span class="adm-tag">Administración</span></div>'+
     '<nav class="adm-tabs" aria-label="Secciones">'+TABS.map(function(x){return '<button type="button" data-a="'+x[0]+'"'+(x[0]===TAB?' aria-current="page"':'')+'>'+x[1]+'</button>';}).join('')+'</nav>'+
     '<button type="button" class="adm-out" id="aout">Salir</button></div></header><main class="adm-main gutter" id="amain"></main>';
@@ -1900,7 +1909,7 @@ function adminPanel(t,cached){
   el.querySelectorAll('[data-a]').forEach(function(b){ b.onclick=function(){ adminPanel(b.dataset.a); window.scrollTo(0,0); }; });
   el.querySelector('#aout').onclick=leaveAdmin;
   var m=el.querySelector('#amain');
-  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else admConfig(m);
+  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else admConfig(m);
 }
 function admSummary(m){
   var L=uList(), c=cfg(), st={trial:0,sub:0,end:0,'':0}, ruta={3:0,6:0,12:0}, foc={s:0,m:0,v:0}, ctry={};
@@ -1964,6 +1973,33 @@ function userDetail(key){
     ov.querySelector('#adDel').onclick=function(){ if(!confirm('¿Eliminar a '+tc(r.name)+'? Se borrarán su cuenta, sus respuestas y su progreso. Esta acción no se puede deshacer.')) return;
       var all=users(); delete all[key]; jset(UKEY,all); if(mailKey(S.reg.email)===key){ S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} setAuth(false); } close(); adminPanel('usuarios'); toast('Usuario eliminado.'); };
   });
+}
+function admAnim(m){
+  var a=anim(), saved=AN;
+  var F=[
+    ['typeSpeed','Velocidad de escritura del texto','%',25,300,5,'100 % es la velocidad normal. Más alto escribe más rápido.'],
+    ['qhPause','Pausa entre la pregunta y su explicación','s',0,3,0.05,'Tiempo que espera antes de escribir el texto pequeño bajo cada pregunta.'],
+    ['paraPause','Pausa entre párrafos','s',0,6,0.1,'Tiempo que espera antes de escribir el siguiente párrafo, por ejemplo al presentar la ruta.'],
+    ['spinSpeed','Velocidad de giro de la espiral','%',0,300,5,'100 % es la velocidad normal. 0 la deja quieta. También se aplica en la landing.']];
+  function show(k,v){ var f=F.filter(function(x){return x[0]===k;})[0]; return f[2]==='%'?Math.round(v)+' %':String(Math.round(v*100)/100).replace('.',',')+' s'; }
+  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Animaciones</h1></div></div>'+
+   '<div class="agrid ag2"><section class="pcard"><h2>Ritmo de textos y espiral</h2><form class="login mform" id="an1" novalidate>'+
+   F.map(function(f){ return '<label class="an-row"><span>'+f[1]+' <b id="v-'+f[0]+'">'+show(f[0],a[f[0]])+'</b></span><input type="range" id="an-'+f[0]+'" min="'+f[3]+'" max="'+f[4]+'" step="'+f[5]+'" value="'+a[f[0]]+'"><small class="m-note">'+f[6]+'</small></label>'; }).join('')+
+   '<p class="err" id="an1e"></p><div class="m-act"><button class="btn btn-ghost" type="button" id="anDef">Valores originales</button><button class="btn btn-primary" type="submit">Guardar</button></div></form></section>'+
+   '<section class="pcard an-prev"><h2>Vista previa</h2><div class="an-orb" id="anOrb"></div><p class="an-q" id="anQ"></p><p class="an-h" id="anH"></p><div class="m-act"><button class="btn btn-ghost" type="button" id="anTry">Probar</button></div><p class="m-note">La vista previa usa los valores que tienes en pantalla, aunque todavía no los hayas guardado.</p></section></div>';
+  m.querySelector('#anOrb').appendChild(makeOrb()); if(!reduce) requestAnimationFrame(drawOrbs);
+  function cur(){ var r={}; ANIM_KEYS.forEach(function(k){ r[k]=+m.querySelector('#an-'+k).value; }); return r; }
+  ANIM_KEYS.forEach(function(k){ m.querySelector('#an-'+k).oninput=function(){ m.querySelector('#v-'+k).textContent=show(k,+this.value); AN=cur(); }; });
+  AN=cur();
+  m.querySelector('#anDef').onclick=function(){ ANIM_KEYS.forEach(function(k){ var i=m.querySelector('#an-'+k); i.value=ANIM_DEF[k]; m.querySelector('#v-'+k).textContent=show(k,ANIM_DEF[k]); }); AN=cur(); };
+  var demo=['Serán 6 meses en espiral: 26 semanas, tres cápsulas por semana.','Las áreas que más atención necesitan son Finanzas y Descanso.'], run=0;
+  m.querySelector('#anTry').onclick=function(){ var my=++run, q=m.querySelector('#anQ'), h=m.querySelector('#anH'); h.textContent='';
+    typeQA(q,demo[0],h,'Piensa en cómo te sientes hoy, con lo primero que te venga a la mente.',function(){ if(my!==run) return;
+      setTimeout(function(){ if(my!==run||!q.isConnected) return; h.textContent=''; typeText(q,demo[1],36,function(){}); }, animNow().paraPause*1000); }); };
+  m.querySelector('#an1').onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#an1e'), v=cur();
+    function ok(){ var cc=jget(CKEY,{}); ANIM_KEYS.forEach(function(k){ cc[k]=v[k]; }); jset(CKEY,cc); AN=anim(); er.textContent=''; toast(cloud()?'Animaciones guardadas para todos.':'Animaciones guardadas.'); }
+    if(cloud()){ var d={updatedAt:Date.now()}; ANIM_KEYS.forEach(function(k){ d[k]=v[k]; }); FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),d,{merge:true}).then(ok).catch(function(e2){ er.textContent=fbErr(e2); }); return; }
+    ok(); };
 }
 function admConfig(m){
   var c=cfg();
@@ -2029,7 +2065,7 @@ function loadMine(){
 }
 function loadSettings(){
   return FB.f.getDoc(FB.f.doc(FB.db,'settings','app')).then(function(d){ if(!d.exists()) return; var v=d.data(), cc=jget(CKEY,{});
-    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); jset(CKEY,cc); }).catch(function(){});
+    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); ANIM_KEYS.forEach(function(k){ if(v[k]!=null && +v[k]>=0) cc[k]=+v[k]; }); jset(CKEY,cc); AN=null; }).catch(function(){});
 }
 function cloudInit(){
   if(!FBC) return Promise.resolve();

@@ -601,7 +601,7 @@ footer .adm-link:hover{color:var(--accent)}
 
   /* ---------- Espiral áurea del hero ---------- */
   var cv = document.getElementById('spiral'), ctx = cv.getContext('2d');
-  var W,H,dpr,t=0,pal={};
+  var W,H,dpr,t=0,rt=0,pal={};
   function readPal(){ pal={a:tok('--accent'),s:tok('--spirit'),m:tok('--matter'),v:tok('--vital'),star:tok('--star'),bg:tok('--bg')}; }
   function size(){ dpr=Math.min(window.devicePixelRatio||1,2); W=cv.clientWidth; H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
   var stars=[]; for(var i=0;i<90;i++) stars.push([Math.random(),Math.random(),Math.random()*1.1+.2,Math.random()*6]);
@@ -610,7 +610,7 @@ footer .adm-link:hover{color:var(--accent)}
     if(pal.star && pal.star!=='transparent'){ ctx.fillStyle=pal.star; for(var i=0;i<stars.length;i++){var s=stars[i];ctx.globalAlpha=.12+.25*Math.abs(Math.sin(t*.5+s[3]));ctx.beginPath();ctx.arc(s[0]*W,s[1]*H,s[2],0,7);ctx.fill();} }
     var wide=W>900, cx = wide ? W*.72 : W*.5, cy = wide ? H*.5 : H*.2;
     var maxR = wide ? Math.min(Math.max(W,H)*.5, 640) : Math.min(W*.5, 260);
-    var turns=4.6, b=Math.log(maxR/5)/(turns*2*Math.PI), rot=t*.06;
+    var turns=4.6, b=Math.log(maxR/5)/(turns*2*Math.PI), rot=rt*.06;
     ctx.globalAlpha=wide?.55:.4; ctx.lineWidth=1.4; ctx.strokeStyle=pal.a; ctx.beginPath();
     for(var a=0;a<=turns*2*Math.PI;a+=.03){var r=5*Math.exp(b*a);var x=cx+r*Math.cos(a+rot),y=cy+r*Math.sin(a+rot);a?ctx.lineTo(x,y):ctx.moveTo(x,y);}
     ctx.stroke();
@@ -643,7 +643,7 @@ footer .adm-link:hover{color:var(--accent)}
   }
   var rng=document.createRange();
   var occluders=[].slice.call(document.querySelectorAll('.hero .eyebrow, .hero h1, .hero .lead, .pillars-inline span, .hero-cta .btn, .hero-note'));
-  function loop(){ t+=.016; draw(); if(!reduce) requestAnimationFrame(loop); }
+  function loop(){ t+=.016; rt+=.016*(window.__aureaSpin||1); draw(); if(!reduce) requestAnimationFrame(loop); }
   readPal(); size();
   window.addEventListener('resize',function(){size(); if(reduce) draw();});
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){readPal(); if(reduce) draw();});
@@ -683,7 +683,7 @@ footer .adm-link:hover{color:var(--accent)}
     if('IntersectionObserver' in window){ new IntersectionObserver(function(es,o){ es.forEach(function(e){ if(e.isIntersecting){ startMock(); o.disconnect(); } }); },{threshold:.3}).observe(q); } else startMock();
     var ot=0;
     function orb(){
-      ot+=.016; var d=Math.min(window.devicePixelRatio||1,2), W=oc.clientWidth, H=oc.clientHeight;
+      ot+=.016*(window.__aureaSpin||1); var d=Math.min(window.devicePixelRatio||1,2), W=oc.clientWidth, H=oc.clientHeight;
       if(W){ if(oc.width!==W*d){oc.width=W*d;oc.height=H*d;} var x=oc.getContext('2d'); x.setTransform(d,0,0,d,0,0); x.clearRect(0,0,W,H);
         var cx=W/2, cy=H/2, R=W*.46, br=1+.04*Math.sin(ot*1.4), turns=3.2, b=Math.log((R*.9)/2)/(turns*2*Math.PI), rot=ot*.9;
         var g=x.createRadialGradient(cx,cy,0,cx,cy,R*br); g.addColorStop(0,pal.a); g.addColorStop(1,'transparent'); x.globalAlpha=.16; x.fillStyle=g; x.beginPath(); x.arc(cx,cy,R*br,0,7); x.fill();
@@ -726,6 +726,7 @@ footer .adm-link:hover{color:var(--accent)}
 (function(){ function applyCfg(){
   var c=null; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'null'); }catch(e){} if(!c) c=window.__aureaCfg||null;
   if(!c) return;
+  window.__aureaSpin=c.spinSpeed>0?c.spinSpeed/100:1;
   function fmt(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
   function all(sel,fn){ [].forEach.call(document.querySelectorAll(sel),fn); }
   var d=c.trialDays>0?Math.round(c.trialDays):30, mes=(d===30);
@@ -745,7 +746,7 @@ footer .adm-link:hover{color:var(--accent)}
       .then(function(r){ return r.ok?r.json():null; }).then(function(j){ if(!j||!j.fields) return;
         function n(f){ return f?+(f.integerValue!=null?f.integerValue:f.doubleValue):0; }
         var c={}; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'{}')||{}; }catch(e){}
-        ['trialDays','priceM','priceA'].forEach(function(k){ var v=n(j.fields[k]); if(v>0) c[k]=v; });
+        ['trialDays','priceM','priceA','spinSpeed'].forEach(function(k){ var v=n(j.fields[k]); if(v>0) c[k]=v; });
         try{ localStorage.setItem('aurea-config',JSON.stringify(c)); }catch(e){}
         window.__aureaCfg=c; applyCfg(); }).catch(function(){});
   }
