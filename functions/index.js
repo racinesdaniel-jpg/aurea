@@ -18,7 +18,7 @@ const DEF = {
   aiModel: "claude-haiku-5-5",
   aiMaxTokens: 1500,
   aiTrialDay: 5,
-  aiTrialMonth: 40,
+  aiTrialMonth: 40, // en la prueba gratuita es el total de toda la prueba, no por mes
   aiPaidDay: 20,
   aiPaidMonth: 300,
 };
@@ -75,10 +75,12 @@ exports.mentor = onCall(
       const u = (await t.get(usageRef)).data() || {};
       const dayN = u.day === day ? u.dayN || 0 : 0;
       const monN = u.month === month ? u.monN || 0 : 0;
+      const totN = u.totN || 0; // total acumulado: en la prueba el límite es para toda la prueba
+      const capN = paid ? monN : totN;
       if (dayN >= lim[0]) throw new HttpsError("resource-exhausted", paid ? "Llegaste a tus consultas de hoy. Mañana podrás seguir conversando." : "Llegaste a las consultas de hoy de tu prueba gratuita. Mañana podrás seguir conversando.", { scope: "day" });
-      if (monN >= lim[1]) throw new HttpsError("resource-exhausted", "Llegaste a tus consultas de este mes.", { scope: "month" });
-      used = { dayN: dayN + 1, monN: monN + 1 };
-      t.set(usageRef, { day, dayN: dayN + 1, month, monN: monN + 1, plan: paid ? "pago" : "prueba", updatedAt: Date.now() }, { merge: true });
+      if (capN >= lim[1]) throw new HttpsError("resource-exhausted", paid ? "Llegaste a tus consultas de este mes." : "Ya usaste todas las conversaciones de tu prueba gratuita. Con la suscripción podrás seguir conversando con Áurea.", { scope: paid ? "month" : "trial" });
+      used = { dayN: dayN + 1, capN: capN + 1 };
+      t.set(usageRef, { day, dayN: dayN + 1, month, monN: monN + 1, totN: totN + 1, plan: paid ? "pago" : "prueba", updatedAt: Date.now() }, { merge: true });
     });
 
     // Contexto de la persona (lo lee el servidor de su propio documento; las cápsulas de la semana las envía la app)
@@ -123,7 +125,7 @@ exports.mentor = onCall(
       });
     } catch (e) {
       // Devolver la consulta reservada si la IA no respondió
-      await usageRef.set({ dayN: FieldValue.increment(-1), monN: FieldValue.increment(-1) }, { merge: true }).catch(() => {});
+      await usageRef.set({ dayN: FieldValue.increment(-1), monN: FieldValue.increment(-1), totN: FieldValue.increment(-1) }, { merge: true }).catch(() => {});
       console.error("Anthropic error", e && e.status, e && e.message);
       if (e instanceof Anthropic.RateLimitError) throw new HttpsError("unavailable", "Áurea está recibiendo muchas consultas. Intenta de nuevo en un momento.");
       throw new HttpsError("internal", "Áurea no pudo responder ahora. Intenta de nuevo en un momento.");
@@ -148,6 +150,6 @@ exports.mentor = onCall(
       },
     }, { merge: true }).catch(() => {});
 
-    return { text, left: { day: Math.max(0, lim[0] - used.dayN), month: Math.max(0, lim[1] - used.monN) } };
+    return { text, left: { day: Math.max(0, lim[0] - used.dayN), month: Math.max(0, lim[1] - used.capN), trial: !paid } };
   }
 );

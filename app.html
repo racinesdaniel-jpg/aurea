@@ -2050,7 +2050,9 @@ function viewMentor(main){
       {l:'Conversa con Áurea',tag:aiTag(),main:true,go:ask}]);
   }
   /* Conversación libre con la IA: la pregunta y la respuesta se escriben en su lugar, sin ventana de chat */
-  function leftTxt(){ var L=aiLim(); return AI_LEFT?'Te quedan '+AI_LEFT.day+' de '+L[0]+' conversaciones hoy · '+AI_LEFT.month+' este mes':'Tu plan incluye '+L[0]+' conversaciones al día y '+L[1]+' al mes.'; }
+  function leftTxt(){ var L=aiLim(), tr=!S.subscribed;
+    if(AI_LEFT) return 'Te quedan '+AI_LEFT.day+' de '+L[0]+' conversaciones hoy · '+AI_LEFT.month+(tr?' en tu prueba gratuita':' este mes');
+    return tr?'Tu prueba gratuita de '+cfg().trialDays+' días incluye '+L[0]+' conversaciones al día y '+L[1]+' en total.':'Tu plan incluye '+L[0]+' conversaciones al día y '+L[1]+' al mes.'; }
   function ask(){
     if(!aiOn()){ say('Mentor · Conversa con Áurea',['Muy pronto podrás conversar conmigo libremente, '+n+'.','Tu plan incluirá '+aiLim()[0]+' conversaciones al día. Mientras tanto, explora los temas que preparé para ti.'],null,[BACK]); return; }
     if(!AI_LEFT){ aiLeftLoad().then(function(){ if(my===mentorRun && !C.hidden){ var sm=C.querySelector('.mt-ai-r small'); if(sm) sm.textContent=leftTxt(); } }); }
@@ -2551,7 +2553,7 @@ function admIA(m){
    '<div class="ia-sw"><input type="checkbox" id="ia-on"'+(a.aiEnabled?' checked':'')+'><label for="ia-on">Activar «Conversa con Áurea» en la pestaña Mentor</label></div>'+
    '<label><span>Modelo</span><select class="lfield" id="ia-model">'+AI_MODELS.map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===a.aiModel?' selected':'')+'>'+esc(x[1])+' · '+x[2]+' por 1.000 consultas</option>'; }).join('')+'</select></label>'+
    nf('ia-tok','Largo máximo de cada respuesta (tokens, 400 a 4.000)',a.aiMaxTokens,4000)+
-   '<h3 class="ia-h">Mes de prueba gratuita</h3><div class="m2">'+nf('ia-td','Consultas por día',a.aiTrialDay,1000)+nf('ia-tm','Consultas por mes',a.aiTrialMonth,10000)+'</div>'+
+   '<h3 class="ia-h">Prueba gratuita ('+cfg().trialDays+' días)</h3><div class="m2">'+nf('ia-td','Consultas por día',a.aiTrialDay,1000)+nf('ia-tm','Consultas en toda la prueba',a.aiTrialMonth,10000)+'</div>'+
    '<h3 class="ia-h">Suscripción de pago</h3><div class="m2">'+nf('ia-pd','Consultas por día',a.aiPaidDay,1000)+nf('ia-pm','Consultas por mes',a.aiPaidMonth,10000)+'</div>'+
    '<p class="m-note">0 consultas bloquea el mentor con IA para ese plan. El costo aproximado incluye una pregunta y una respuesta de largo normal.</p><p class="err" id="ia1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar</button></div></form></section>'+
    '<section class="pcard"><h2>Uso de este mes</h2><div id="iaUse"><p class="muted">'+(cloud()?'Cargando…':'Disponible cuando la aplicación está conectada a Firebase.')+'</p></div>'+
@@ -2619,7 +2621,7 @@ function aiLim(){ var a=aiCfg(), paid=!!S.subscribed; return paid?[+a.aiPaidDay,
 function aiTag(){ var a=aiCfg(); if(!a.aiEnabled||!cloud()) return 'muy pronto'; if(AI_LEFT) return 'te quedan '+AI_LEFT.day+' hoy'; return aiLim()[0]+' conversaciones al día'; }
 function aiLeftLoad(){ if(!cloud()||!fbUser) return Promise.resolve();
   return FB.f.getDoc(FB.f.doc(FB.db,'users',fbUser.uid,'ia','uso')).then(function(d){ var u=d.exists()?d.data():{}, L=aiLim(), day=new Date().toLocaleDateString('en-CA',{timeZone:'America/Guayaquil'}), mo=day.slice(0,7);
-    var dn=u.day===day?(u.dayN||0):0, mn=u.month===mo?(u.monN||0):0; AI_LEFT={day:Math.max(0,L[0]-dn),month:Math.max(0,L[1]-mn)}; }).catch(function(){}); }
+    var dn=u.day===day?(u.dayN||0):0, mn=S.subscribed?(u.month===mo?(u.monN||0):0):(u.totN||0); AI_LEFT={day:Math.max(0,L[0]-dn),month:Math.max(0,L[1]-mn)}; }).catch(function(){}); }
 function weekTitles(){ if(!S.route) return []; var w=S.route[currentWeek()]||[]; return w.map(function(id){ var c=CAP[id]; return c?c.title:''; }).filter(Boolean); }
 
 /* ================= NUBE (Firebase: cuentas y datos compartidos) =================
