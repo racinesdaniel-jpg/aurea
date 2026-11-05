@@ -31,6 +31,12 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
 
+    // Suscripciones válidas: solo el administrador (o el servidor de pagos) las escribe; el usuario solo lee la suya
+    match /subs/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+
     // Días de prueba y precios: cualquiera los lee (la landing los muestra), solo el administrador los cambia
     match /settings/{doc} {
       allow read: if true;

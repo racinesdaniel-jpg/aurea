@@ -61,7 +61,9 @@ exports.mentor = onCall(
     const userSnap = await db.doc(`users/${uid}`).get();
     let state = {};
     try { state = JSON.parse((userSnap.data() || {}).state || "{}"); } catch (e) { state = {}; }
-    const paid = !!state.subscribed;
+    // El plan de pago se toma de subs/{uid}, que el usuario no puede escribir (no de su propio documento)
+    const subSnap = await db.doc(`subs/${uid}`).get();
+    const paid = !!(subSnap.exists && subSnap.data().active === true);
     const lim = paid ? [c.aiPaidDay, c.aiPaidMonth] : [c.aiTrialDay, c.aiTrialMonth];
 
     // Reservar la consulta antes de llamar a la IA, para que nadie supere el límite con varias pestañas a la vez.
