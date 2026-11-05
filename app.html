@@ -1850,7 +1850,7 @@ function wireUserMenu(el){
 var AKEY='aurea-admin-sesion', admMem=false;
 function isAdm(){ try{ return sessionStorage.getItem(AKEY)==='1'; }catch(e){ return admMem; } }
 function setAdm(on){ admMem=on; try{ if(on) sessionStorage.setItem(AKEY,'1'); else sessionStorage.removeItem(AKEY); }catch(e){} }
-function leaveAdmin(){ if(cloud()){ adminMode=false; admCache=null; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} location.reload(); return; } setAdm(false); try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} adminMode=false; window.scrollTo(0,0); boot(); }
+function leaveAdmin(){ if(cloud()){ adminMode=false; admCache=null; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} var out=(fbUser&&!(S.reg&&S.reg.registeredAt))?FB.a.signOut(FB.auth).catch(function(){}):Promise.resolve(); out.then(function(){ location.reload(); }); return; } setAdm(false); try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} adminMode=false; window.scrollTo(0,0); boot(); }
 var adminMode=false;
 function adminEntry(){ adminMode=true; if(cloud()){ if(cloudAdminOk()) adminPanel('resumen'); else adminLoginCloud(); return; } if(isAdm()) adminPanel('resumen'); else adminLogin(); }
 function adminLogin(){
@@ -2097,6 +2097,7 @@ drawOrbs();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ if(reduce) drawOrbs(); });
 function boot(){
   if(/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
+  if(cloud() && fbUser && isAdmEmail(fbUser.email) && !(S.reg && S.reg.registeredAt)){ adminEntry(); return; }
   if(/^#login/.test(location.hash)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
     if(!(S.reg && S.reg.registeredAt && (cloud()||S.reg.pw) && isAuth())){ loginScreen(); return; } }
   if(!cloud() && S.reg && S.reg.registeredAt && S.reg.email && !users()[mailKey(S.reg.email)]) save();
