@@ -1493,7 +1493,7 @@ function DIAG(){ var n=S.reg.name; return [
 ].concat(wheelSteps(),[
  {key:'_i2',type:'info',sec:'ruta',phase:'Tu ruta',q:'Tu rueda está completa, '+n+'.',hint:'Ahora, dos preguntas para armar tu ruta: qué días y cuánto tiempo puedes dedicarle, y qué te gustaría lograr. Con eso defino la duración de tu ruta y el ritmo de tus cápsulas.',cta:'Continuar'},
  {key:'avail',type:'schedule',sec:'ruta',phase:'Tu ruta',q:'¿Qué días y cuánto tiempo puedes dedicar a tu ruta?',hint:'Toca los días que eliges y ajusta los minutos de cada uno.',validate:function(v){ return (!v||!Object.keys(v).length)?'Elige al menos un día.':''; }},
- {key:'goal',type:'text',sec:'ruta',phase:'Tu ruta',q:'Imagina que pasó un año y tu vida cambió. ¿Qué es lo primero que notarías?',hint:'Escríbelo en pocas palabras. Lo recordaré durante tu ruta.',ph:'Por ejemplo: vivo con calma y sin deudas',max:90,validate:function(v){ return String(v).trim().length<4?'Escribe al menos unas palabras.':''; }}
+ {key:'goal',type:'text',sec:'ruta',phase:'Tu ruta',q:'¿Cuál es la meta más importante que quieres lograr con tu ruta?',hint:'Escríbela en pocas palabras, como algo que quieres alcanzar. La tendré presente durante tu ruta.',ph:'Por ejemplo: vivir con calma y sin deudas',max:90,validate:function(v){ return String(v).trim().length<4?'Escribe al menos unas palabras.':''; }}
 ]); }
 function welcomeDiag(){ S.stage='diag'; save(); runSteps({phase:'Diagnóstico',steps:DIAG(),store:S.diag,onDone:buildRoute}); }
 
