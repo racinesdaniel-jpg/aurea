@@ -37,6 +37,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Pagos: solo el servidor los escribe; el administrador los consulta
+    match /pagos/{id} {
+      allow read: if isAdmin();
+    }
+
     // Días de prueba y precios: cualquiera los lee (la landing los muestra), solo el administrador los cambia
     match /settings/{doc} {
       allow read: if true;

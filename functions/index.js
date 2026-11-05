@@ -1,4 +1,5 @@
-/* Mentor con IA de Áurea.
+/* Funciones de Áurea: Mentor con IA y pagos (ver pagos.js).
+   Mentor con IA de Áurea.
    La clave de Anthropic vive solo aquí, como secreto de Firebase (ANTHROPIC_API_KEY); nunca llega al navegador.
    Cada consulta se cuenta en users/{uid}/ia/uso y se frena según los límites que el administrador fija en settings/app. */
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -63,7 +64,8 @@ exports.mentor = onCall(
     try { state = JSON.parse((userSnap.data() || {}).state || "{}"); } catch (e) { state = {}; }
     // El plan de pago se toma de subs/{uid}, que el usuario no puede escribir (no de su propio documento)
     const subSnap = await db.doc(`subs/${uid}`).get();
-    const paid = !!(subSnap.exists && subSnap.data().active === true);
+    const sd = subSnap.exists ? subSnap.data() : {};
+    const paid = sd.active === true && !(sd.currentPeriodEnd && sd.currentPeriodEnd < Date.now());
     const lim = paid ? [c.aiPaidDay, c.aiPaidMonth] : [c.aiTrialDay, c.aiTrialMonth];
 
     // Reservar la consulta antes de llamar a la IA, para que nadie supere el límite con varias pestañas a la vez.
@@ -153,3 +155,9 @@ exports.mentor = onCall(
     return { text, left: { day: Math.max(0, lim[0] - used.dayN), month: Math.max(0, lim[1] - used.capN), trial: !paid } };
   }
 );
+
+// Pagos con tarjeta (Payphone)
+const pagos = require("./pagos");
+exports.payphoneStart = pagos.payphoneStart;
+exports.payphoneReturn = pagos.payphoneReturn;
+exports.subsDaily = pagos.subsDaily;

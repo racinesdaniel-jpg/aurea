@@ -1,7 +1,7 @@
 {
   "name": "aurea-functions",
   "private": true,
-  "description": "Funciones de Firebase de Áurea: Mentor con IA",
+  "description": "Funciones de Firebase de Áurea: Mentor con IA y pagos",
   "main": "index.js",
   "engines": { "node": "22" },
   "dependencies": {
