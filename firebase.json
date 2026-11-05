@@ -10,7 +10,8 @@
       ".git/**",
       "**/.git/**",
       ".firebase/**",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "functions/**"
     ],
     "cleanUrls": false
   },
@@ -21,5 +22,17 @@
     "providers": {
       "emailPassword": true
     }
-  }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs22",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.log"
+      ]
+    }
+  ]
 }

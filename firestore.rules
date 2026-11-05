@@ -18,6 +18,17 @@ service cloud.firestore {
       match /diario/{dia} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
+
+      // Consultas al Mentor con IA: la persona ve cuántas usó; solo el servidor las escribe
+      match /ia/{doc} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow read: if isAdmin();
+      }
+    }
+
+    // Consumo del Mentor con IA: solo el administrador lo lee; lo escribe el servidor
+    match /admin/{doc} {
+      allow read: if isAdmin();
     }
 
     // Días de prueba y precios: cualquiera los lee (la landing los muestra), solo el administrador los cambia

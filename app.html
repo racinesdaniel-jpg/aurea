@@ -768,6 +768,9 @@ body{background:var(--bg)}
 .mt-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:720px}
 .mt-op{display:grid;gap:2px;justify-items:center;padding:12px 18px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-weight:600;cursor:pointer;opacity:0;transform:translateY(8px);animation:mtIn .4s ease forwards;animation-delay:calc(var(--i)*60ms);transition:border-color .15s,background .15s}
 .mt-op small{font-weight:400;font-size:.75rem;color:var(--muted)}
+.mt-ai{display:grid;gap:10px}.mt-ai textarea{width:100%;min-height:96px;resize:vertical;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;line-height:1.5}.mt-ai textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.mt-ai-r{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.mt-ai-r small,.mt-ai-l{color:var(--muted);font-size:.8rem}.mt-ans p{white-space:pre-line;line-height:1.6;margin:0 0 10px}.mt-ans .mt-ai-l{display:block}
+.ia-sw{display:flex;gap:10px;align-items:center;font-weight:600}.login .ia-sw label{display:block;cursor:pointer}.akpis.ia-k{grid-template-columns:1fr 1fr}.ia-k .akpi b{font-size:2rem}.ia-sw input{width:18px;height:18px;accent-color:var(--accent)}.ia-h{font-size:.9rem;margin:6px 0 -4px;color:var(--muted);font-weight:600}
 .mt-op:hover{border-color:var(--accent);background:var(--accent-soft)}
 .mt-op.main{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}.mt-op.main small{color:rgba(255,255,255,.85)}
 @keyframes mtIn{to{opacity:1;transform:none}}
@@ -825,6 +828,7 @@ body{background:var(--bg)}
 .dia-priv{margin:0;font-size:.82rem;color:var(--muted);text-align:center}
 .dia-read{display:grid;gap:6px}.dia-read h4{margin:10px 0 0;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.dia-read p{margin:0;line-height:1.6;white-space:pre-wrap}
 .dia-read blockquote{margin:0;padding:8px 12px;border-left:3px solid var(--accent);font-family:var(--f-display);font-style:italic}
+.tw-f{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}.cap-f{margin:-4px 0 6px;font-size:.9rem;color:var(--muted)}.cap-f b{color:var(--fg)}
 </style>
 
 <div id="root"></div>
@@ -1563,7 +1567,7 @@ function reorderRoute(w){
   var cw=currentWeek(), tags=tagsByNeed(w), used={};
   for(var i=0;i<=cw;i++) if(S.route[i]) S.route[i].forEach(function(id){ used[id]=1; });
   var ord={s:[],m:[],v:[]};
-  ['s','m','v'].forEach(function(p){ ord[p]=orderPillar(p,tags).filter(function(id){ return !used[id]; }); });
+  ['s','m','v'].forEach(function(p){ ord[p]=orderPillarW(p,w).filter(function(id){ return !used[id]; }); });
   for(var j=cw+1;j<S.route.length;j++){ if(!S.route[j]) continue; S.route[j]=[ord.s.shift(),ord.m.shift(),ord.v.shift()].map(function(x,k){ return x||S.route[j][k]; }); }
 }
 function wheelCard(){
@@ -1604,6 +1608,20 @@ function DIAG(){ var n=S.reg.name; return [
 function welcomeDiag(){ S.stage='diag'; save(); runSteps({phase:'Diagnóstico',steps:DIAG(),store:S.diag,onDone:buildRoute}); }
 
 /* ================= 3. CREAR RUTA ================= */
+/* Ruta a la medida: dentro de cada pilar, las áreas con puntaje más bajo reciben más cápsulas y más temprano.
+   Peso de un área = (11 − puntaje)²: un 3 pesa 64 y un 8 pesa 9, así que el área baja aparece unas siete veces más seguido. */
+function capAreas(c){ return AREAS.filter(function(a){ return a.p===c.p && a.tags.some(function(t){ return c.t.indexOf(t)>=0; }); }); }
+function capFocus(id){ var c=CAP[id], w=wheelNow().w, ca=capAreas(c).sort(function(x,y){ return w[x.k]-w[y.k]; }); return ca[0]?{a:ca[0],v:w[ca[0].k]}:null; }
+function orderPillarW(p,w){
+  var list=CAPS.filter(function(c){return c.p===p;}), areas=AREAS.filter(function(a){return a.p===p;}), pools={}, extra=[];
+  areas.forEach(function(a){ pools[a.k]=[]; });
+  list.forEach(function(c){ var ca=capAreas(c).sort(function(x,y){ return (w[x.k]||5)-(w[y.k]||5); }); if(ca.length) pools[ca[0].k].push(c); else extra.push(c); });
+  var wt={}, cur={}, out=[]; areas.forEach(function(a){ wt[a.k]=Math.pow(11-(w[a.k]||5),2); cur[a.k]=0; });
+  while(true){ var live=areas.filter(function(a){ return pools[a.k].length; }); if(!live.length) break;
+    var tot=0, best=null; live.forEach(function(a){ cur[a.k]+=wt[a.k]; tot+=wt[a.k]; if(!best||cur[a.k]>cur[best.k]||(cur[a.k]===cur[best.k]&&(w[a.k]||5)<(w[best.k]||5))) best=a; });
+    cur[best.k]-=tot; out.push(pools[best.k].shift()); }
+  return out.concat(extra).map(function(c){ return c.id; });
+}
 function orderPillar(p,ch){
   var chs=Array.isArray(ch)?ch:(ch?[ch]:[]);
   var list=CAPS.filter(function(c){return c.p===p;});
@@ -1621,10 +1639,10 @@ function orderPillar(p,ch){
 function buildRoute(){
   var d=S.diag, weeks=WEEKS[d.months]||13;
   if(d['w_'+AREAS[0].k]!=null){ applyWheel(d,wheelFrom(d)); d.wheelAt=Date.now()+S.dayOffset*86400000; }
-  var s=orderPillar('s',d.sCh), m=orderPillar('m',d.mCh), v=orderPillar('v',d.vCh);
+  var W0=d.wheel||wheelFrom(d), s=orderPillarW('s',W0), m=orderPillarW('m',W0), v=orderPillarW('v',W0);
   var route=[];
   for(var w=0;w<weeks;w++){ route.push(w<13?[s[w],m[w],v[w]]:null); }
-  S.route=route; S.routeAt=Date.now(); S.stage='building'; save();
+  S.route=route; S.routeAt=Date.now(); S.routeV2=1; S.stage='building'; save();
   buildingScreen();
 }
 function buildingScreen(){
@@ -1744,7 +1762,7 @@ function viewRoute(main){
   if(wk){
     var waitNext=doneIn===3 && cw+1<total && cw>=calWeek();
     html+='<div class="thisweek"><div class="tw-head"><h2>Esta semana</h2><span>'+doneIn+' de 3</span></div><div class="tw-bar"><i style="width:'+(doneIn/3*100)+'%"></i></div>'+(waitNext?'<p class="tw-lock">¡Completaste tu vuelta! La siguiente se abre el '+esc(fmtOpen(nextOpenDate()))+'. Mientras tanto, aplica tus prácticas y escribe en tu diario.</p>':'')+'<div class="tw-list">'+
-      wk.map(function(id){ var c=CAP[id], st=capState(id,cw); return '<button type="button" class="tw-cap '+PILLARS[c.p].cls+(st==='done'?' done':'')+'" data-id="'+id+'"><span class="tw-dot"></span><span class="tw-tx"><span class="tw-k">'+PILLARS[c.p].name+' · '+dayFor(c.p)+'</span><span class="tw-t">'+esc(c.title)+'</span></span><span class="tw-st">'+(st==='done'?'Completada':capMin(c)+' min')+'</span><span class="tw-go" aria-hidden="true">'+(st==='done'?'✓':'→')+'</span></button>'; }).join('')+
+      wk.map(function(id){ var c=CAP[id], st=capState(id,cw); return '<button type="button" class="tw-cap '+PILLARS[c.p].cls+(st==='done'?' done':'')+'" data-id="'+id+'"><span class="tw-dot"></span><span class="tw-tx"><span class="tw-k">'+PILLARS[c.p].name+' · '+dayFor(c.p)+'</span><span class="tw-t">'+esc(c.title)+'</span>'+(function(f){ return f?'<span class="tw-f">Para subir tu área de '+esc(f.a.n)+' · hoy en '+f.v+'/10</span>':''; })(capFocus(id))+'</span><span class="tw-st">'+(st==='done'?'Completada':capMin(c)+' min')+'</span><span class="tw-go" aria-hidden="true">'+(st==='done'?'✓':'→')+'</span></button>'; }).join('')+
       '</div></div>'+
       '<div class="practs"><div class="tw-head"><h2>Tus prácticas</h2><span>'+wk.filter(function(id){return S.practice[id];}).length+' de 3 asumidas</span></div>'+
       wk.map(function(id){ var c=CAP[id], on=!!S.practice[id]; return '<button type="button" class="pr-row '+PILLARS[c.p].cls+(on?' on':'')+'" data-id="'+id+'"><span class="pr-ck" aria-hidden="true">'+(on?'✓':'')+'</span><span>'+esc(c.practice)+'</span></button>'; }).join('')+
@@ -1934,7 +1952,31 @@ function viewMentor(main){
       {l:'Los tres pilares',tag:'Espíritu, Prosperidad y Vitalidad',go:pillars},
       {l:'Tu Rueda de la Vida',tag:'lo que dicen tus resultados',go:wheel},
       {l:'Creencias limitantes',tag:'ideas que te frenan',go:beliefs},
-      {l:'Una idea para hoy',tag:'sorpréndeme',go:idea}]);
+      {l:'Una idea para hoy',tag:'sorpréndeme',go:idea}].concat(aiOn()?[{l:'Pregúntale a Áurea',tag:'conversa con tu mentor',main:true,go:ask}]:[]));
+  }
+  /* Conversación libre con la IA: la pregunta y la respuesta se escriben en su lugar, sin ventana de chat */
+  function leftTxt(){ return AI_LEFT?'Te quedan '+AI_LEFT.day+' consultas hoy · '+AI_LEFT.month+' este mes':'Tus consultas tienen un límite diario y mensual.'; }
+  function ask(){
+    say('Mentor · Pregúntale a Áurea',AIH.length?'¿Qué más quieres preguntarme, '+n+'?':'Pregúntame lo que quieras, '+n+': sobre tu ruta, tus cápsulas o lo que estás viviendo.',
+      '<form class="mt-ai" id="mtAi" novalidate><textarea id="mtAiT" maxlength="800" rows="3" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea><div class="mt-ai-r"><small>'+esc(leftTxt())+'</small><button class="btn btn-primary" type="submit">Enviar</button></div><p class="err" id="mtAiE"></p></form>',
+      [BACK]);
+    C.onsubmit=function(e){ if(e.target.id!=='mtAi') return; e.preventDefault(); var t=C.querySelector('#mtAiT'), q=t.value.trim(), er=C.querySelector('#mtAiE');
+      if(q.length<2){ er.textContent='Escribe tu pregunta.'; t.focus(); return; }
+      var bt=C.querySelector('button[type=submit]'); bt.disabled=true; bt.textContent='Pensando…'; er.textContent='';
+      aiCall({message:q,history:AIH.slice(-8),ctx:{week:weekTitles()}}).then(function(r){
+        if(my!==mentorRun) return; AIH.push({role:'user',text:q},{role:'assistant',text:r.text}); AIH=AIH.slice(-16); AI_LEFT=r.left||null; answer(q,r.text);
+      }).catch(function(e2){ if(my!==mentorRun) return; bt.disabled=false; bt.textContent='Enviar'; er.textContent=aiErr(e2); });
+    };
+    setTimeout(function(){ var t=C.querySelector('#mtAiT'); if(t&&!C.hidden) t.focus(); },50);
+  }
+  function answer(q,txt){
+    K.textContent='Mentor · Pregúntale a Áurea'; O.innerHTML=''; C.onsubmit=null; Q.style.minHeight='';
+    Q.textContent='«'+(q.length>140?q.slice(0,137)+'…':q)+'»';
+    C.innerHTML='<div class="mt-info mt-ans"><p id="mtA"></p><small class="mt-ai-l">'+esc(leftTxt())+'</small></div>'; C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); });
+    typeText(C.querySelector('#mtA'),txt,6,function(){ if(my!==mentorRun) return;
+      var opts=[{l:'Hacer otra pregunta',main:true,go:ask},{l:'Llevarlo a mi diario',tag:'escribir sobre esto',go:function(){ toDiary(q); }},BACK];
+      O.innerHTML=opts.map(function(o,i){ return '<button type="button" class="mt-op'+(o.main?' main':'')+'" style="--i:'+i+'">'+esc(o.l)+(o.tag?'<small>'+esc(o.tag)+'</small>':'')+'</button>'; }).join('');
+      O.querySelectorAll('.mt-op').forEach(function(b,i){ b.onclick=function(){ opts[i].go(); }; }); });
   }
   function books(){
     var order=need.map(function(a){return a;});
@@ -2090,7 +2132,7 @@ function openCap(id){
   var c=CAP[id], P=PILLARS[c.p], wasDone=!!S.done[id], before=level(); var D=DEEP[id]||{};
   var ov=document.createElement('div'); ov.className='ov gutter';
   ov.innerHTML='<article class="sheet '+P.cls+'" role="dialog" aria-modal="true" aria-label="'+esc(c.title)+'"><button class="close" type="button" aria-label="Cerrar">✕</button>'+
-    '<span class="k">'+P.name+' · '+dayFor(c.p)+' · '+capMin(c)+' min</span><h2>'+esc(c.title)+'</h2><div class="body">'+c.body.concat(D.more||[]).map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</div>'+
+    '<span class="k">'+P.name+' · '+dayFor(c.p)+' · '+capMin(c)+' min</span><h2>'+esc(c.title)+'</h2>'+(function(f){ return f?'<p class="cap-f">Elegida para ti: trabaja tu área de <b>'+esc(f.a.n)+'</b>, que hoy está en '+f.v+'/10.</p>':''; })(capFocus(id))+'<div class="body">'+c.body.concat(D.more||[]).map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</div>'+
     (D.steps?'<div class="steps"><b>Cómo aplicarlo</b><ol>'+D.steps.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>':'')+
     (D.exp?'<aside class="expert"><span class="ex-k">Lo que dicen los expertos</span><div class="ex-who"><span class="ex-av" aria-hidden="true">'+esc(D.exp.who.charAt(0))+'</span><span><b>'+esc(D.exp.who)+'</b><small>'+esc(D.exp.bk)+'</small></span></div><p>'+esc(D.exp.t)+'</p></aside>':'')+
     '<div class="practice"><b>Práctica de la semana</b><p>'+esc(c.practice)+'</p><label class="check"><input type="checkbox" id="pr-'+id+'" '+(S.practice[id]?'checked':'')+'> Me comprometo a realizarla esta semana</label></div>'+
@@ -2247,7 +2289,7 @@ function adminPanel(t,cached){
     cloudLoadAll().then(function(){ adminPanel(TAB,true); }).catch(function(e){ root.innerHTML='<div class="boot-load">'+esc(fbErr(e))+' <button class="btn btn-ghost" type="button" id="aBack">Volver</button></div>'; root.querySelector('#aBack').onclick=leaveAdmin; }); return; }
   root.innerHTML=''; AN=null;
   var el=document.createElement('div'); el.className='adm';
-  var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración'],['anim','Animaciones']];
+  var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración'],['anim','Animaciones'],['ia','Mentor IA']];
   el.innerHTML='<header class="adm-top"><div class="adm-in gutter"><div class="brand">'+logo(22)+'Áurea <span class="adm-tag">Administración</span></div>'+
     '<nav class="adm-tabs" aria-label="Secciones">'+TABS.map(function(x){return '<button type="button" data-a="'+x[0]+'"'+(x[0]===TAB?' aria-current="page"':'')+'>'+x[1]+'</button>';}).join('')+'</nav>'+
     '<button type="button" class="adm-out" id="aout">Salir</button></div></header><main class="adm-main gutter" id="amain"></main>';
@@ -2255,7 +2297,7 @@ function adminPanel(t,cached){
   el.querySelectorAll('[data-a]').forEach(function(b){ b.onclick=function(){ adminPanel(b.dataset.a); window.scrollTo(0,0); }; });
   el.querySelector('#aout').onclick=leaveAdmin;
   var m=el.querySelector('#amain');
-  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else admConfig(m);
+  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else if(TAB==='ia') admIA(m); else admConfig(m);
 }
 function admSummary(m){
   var L=uList(), c=cfg(), st={trial:0,sub:0,end:0,'':0}, ruta={3:0,6:0,12:0}, foc={s:0,m:0,v:0}, ctry={};
@@ -2347,6 +2389,34 @@ function admAnim(m){
     if(cloud()){ var d={updatedAt:Date.now()}; ANIM_KEYS.forEach(function(k){ d[k]=v[k]; }); FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),d,{merge:true}).then(ok).catch(function(e2){ er.textContent=fbErr(e2); }); return; }
     ok(); };
 }
+function admIA(m){
+  var a=aiCfg();
+  function nf(id,l,v,mx){ return fld(id,l,v,'number','min="0" max="'+mx+'" inputmode="numeric"'); }
+  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Mentor IA</h1></div><p class="adm-note">Anthropic no tiene plan gratuito: cada consulta se paga según el modelo. Los límites controlan el costo.</p></div>'+
+   '<div class="agrid ag2"><section class="pcard"><h2>Funcionamiento y límites</h2><form class="login mform" id="ia1" novalidate>'+
+   '<div class="ia-sw"><input type="checkbox" id="ia-on"'+(a.aiEnabled?' checked':'')+'><label for="ia-on">Activar «Pregúntale a Áurea» en la pestaña Mentor</label></div>'+
+   '<label><span>Modelo</span><select class="lfield" id="ia-model">'+AI_MODELS.map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===a.aiModel?' selected':'')+'>'+esc(x[1])+' · '+x[2]+' por 1.000 consultas</option>'; }).join('')+'</select></label>'+
+   nf('ia-tok','Largo máximo de cada respuesta (tokens, 400 a 4.000)',a.aiMaxTokens,4000)+
+   '<h3 class="ia-h">Mes de prueba gratuita</h3><div class="m2">'+nf('ia-td','Consultas por día',a.aiTrialDay,1000)+nf('ia-tm','Consultas por mes',a.aiTrialMonth,10000)+'</div>'+
+   '<h3 class="ia-h">Suscripción de pago</h3><div class="m2">'+nf('ia-pd','Consultas por día',a.aiPaidDay,1000)+nf('ia-pm','Consultas por mes',a.aiPaidMonth,10000)+'</div>'+
+   '<p class="m-note">0 consultas bloquea el mentor con IA para ese plan. El costo aproximado incluye una pregunta y una respuesta de largo normal.</p><p class="err" id="ia1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar</button></div></form></section>'+
+   '<section class="pcard"><h2>Uso de este mes</h2><div id="iaUse"><p class="muted">'+(cloud()?'Cargando…':'Disponible cuando la aplicación está conectada a Firebase.')+'</p></div>'+
+   '<p class="m-note">Costo estimado con los precios de Anthropic por millón de tokens: Haiku 5.5 US$0,10 entrada y US$0,50 salida; Sonnet 5.5 US$2 y US$10; Opus 5.5 US$4 y US$20. Revisa el valor exacto en la consola de Anthropic.</p></section></div>';
+  var PR={'claude-haiku-5-5':[0.10,0.50],'claude-sonnet-5-5':[2,10],'claude-opus-5-5':[4,20]};
+  if(cloud()) FB.f.getDoc(FB.f.doc(FB.db,'admin','iaStats')).then(function(d){ var mo=new Date().toLocaleDateString('en-CA',{timeZone:'America/Guayaquil'}).slice(0,7), v=d.exists()?(d.data()[mo]||null):null, box=m.querySelector('#iaUse'); if(!box) return;
+    if(!v){ box.innerHTML='<p class="muted">Todavía no hay consultas este mes.</p>'; return; }
+    var pr=PR[a.aiModel]||PR['claude-haiku-5-5'], usd=(v.inTok||0)/1e6*pr[0]+(v.outTok||0)/1e6*pr[1];
+    box.innerHTML='<div class="akpis ia-k"><div class="akpi"><span>Consultas</span><b>'+(v.msgs||0)+'</b></div><div class="akpi"><span>Costo estimado</span><b>US$'+usd.toFixed(2).replace('.',',')+'</b></div></div>'; })
+    .catch(function(){ var box=m.querySelector('#iaUse'); if(box) box.innerHTML='<p class="muted">No se pudo leer el uso. Despliega las nuevas reglas de Firestore.</p>'; });
+  m.querySelector('#ia1').onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#ia1e');
+    function iv(id){ return parseInt(m.querySelector('#'+id).value,10); }
+    var d={aiEnabled:m.querySelector('#ia-on').checked,aiModel:m.querySelector('#ia-model').value,aiMaxTokens:iv('ia-tok'),aiTrialDay:iv('ia-td'),aiTrialMonth:iv('ia-tm'),aiPaidDay:iv('ia-pd'),aiPaidMonth:iv('ia-pm')};
+    if(!(d.aiMaxTokens>=400&&d.aiMaxTokens<=4000)){ er.textContent='El largo máximo debe estar entre 400 y 4.000.'; return; }
+    if([d.aiTrialDay,d.aiTrialMonth,d.aiPaidDay,d.aiPaidMonth].some(function(x){ return !(x>=0); })){ er.textContent='Escribe límites válidos (0 o más).'; return; }
+    function ok(){ var cc=jget(CKEY,{}); AI_KEYS.forEach(function(k){ cc[k]=d[k]; }); jset(CKEY,cc); er.textContent=''; toast(cloud()?'Mentor IA guardado para todos.':'Mentor IA guardado.'); }
+    if(cloud()){ var x={updatedAt:Date.now()}; AI_KEYS.forEach(function(k){ x[k]=d[k]; }); FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),x,{merge:true}).then(ok).catch(function(e2){ er.textContent=fbErr(e2); }); return; }
+    ok(); };
+}
 function admConfig(m){
   var c=cfg();
   m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Configuración</h1></div></div>'+
@@ -2376,6 +2446,22 @@ function admConfig(m){
     if(nw){ var r=regRule('pw')(nw); if(r){ er.textContent=r; return; } }
     cc.admin={email:nm,pw:pwHash(nw||cur,'admin|'+nm)}; jset(CKEY,cc); er.textContent=''; m.querySelector('#cf-ac').value=''; m.querySelector('#cf-an').value=''; toast('Acceso actualizado.'); };
 }
+
+/* ---- Mentor con IA (Anthropic, a través de la función segura "mentor" de Firebase) ---- */
+var AI_KEYS=['aiEnabled','aiModel','aiMaxTokens','aiTrialDay','aiTrialMonth','aiPaidDay','aiPaidMonth'];
+var AI_DEF={aiEnabled:false,aiModel:'claude-haiku-5-5',aiMaxTokens:1500,aiTrialDay:5,aiTrialMonth:40,aiPaidDay:20,aiPaidMonth:300};
+var AI_MODELS=[['claude-haiku-5-5','Haiku 5.5 · rápido y económico','≈ US$0,40'],['claude-sonnet-5-5','Sonnet 5.5 · más profundo','≈ US$8'],['claude-opus-5-5','Opus 5.5 · el más capaz','≈ US$16']];
+function aiCfg(){ var c=jget(CKEY,{}), r={}; AI_KEYS.forEach(function(k){ r[k]=c[k]!=null?c[k]:AI_DEF[k]; }); r.aiEnabled=!!r.aiEnabled; return r; }
+function aiOn(){ return cloud() && !!fbUser && aiCfg().aiEnabled; }
+var aiFn=null, AIH=[], AI_LEFT=null;
+function aiCall(data){
+  var go=aiFn?Promise.resolve(aiFn):import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js').then(function(fm){ aiFn=fm.httpsCallable(fm.getFunctions(FB.app,'us-central1'),'mentor',{timeout:70000}); return aiFn; });
+  return go.then(function(fn){ return fn(data); }).then(function(r){ return r.data; });
+}
+function aiErr(e){ var c=String((e&&e.code)||'').replace('functions/','');
+  if(c==='resource-exhausted'||c==='failed-precondition'||c==='unavailable'||c==='invalid-argument'||c==='unauthenticated') return (e&&e.message)||'Áurea no pudo responder ahora.';
+  return 'Áurea no pudo responder ahora. Revisa tu conexión e inténtalo de nuevo en un momento.'; }
+function weekTitles(){ if(!S.route) return []; var w=S.route[currentWeek()]||[]; return w.map(function(id){ var c=CAP[id]; return c?c.title:''; }).filter(Boolean); }
 
 /* ================= NUBE (Firebase: cuentas y datos compartidos) =================
    Se activa solo si la página carga firebase-config.js con la configuración del proyecto.
@@ -2411,7 +2497,7 @@ function loadMine(){
 }
 function loadSettings(){
   return FB.f.getDoc(FB.f.doc(FB.db,'settings','app')).then(function(d){ if(!d.exists()) return; var v=d.data(), cc=jget(CKEY,{});
-    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); ANIM_KEYS.forEach(function(k){ if(v[k]!=null && +v[k]>=0) cc[k]=+v[k]; }); jset(CKEY,cc); AN=null; }).catch(function(){});
+    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); ANIM_KEYS.forEach(function(k){ if(v[k]!=null && +v[k]>=0) cc[k]=+v[k]; }); AI_KEYS.forEach(function(k){ if(v[k]!=null) cc[k]=v[k]; }); jset(CKEY,cc); AN=null; }).catch(function(){});
 }
 function cloudInit(){
   if(!FBC) return Promise.resolve();
@@ -2419,7 +2505,7 @@ function cloudInit(){
   var base='https://www.gstatic.com/firebasejs/10.12.2/';
   return Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]).then(function(m){
     var app=m[0].initializeApp(FBC);
-    FB={auth:m[1].getAuth(app),db:m[2].getFirestore(app),a:m[1],f:m[2]};
+    FB={app:app,auth:m[1].getAuth(app),db:m[2].getFirestore(app),a:m[1],f:m[2]};
     try{ FB.auth.languageCode='es'; }catch(e){}
     return new Promise(function(res){ var un=null, got=false; un=FB.a.onAuthStateChanged(FB.auth,function(u){ fbUser=u; if(got) return; got=true; if(un) un(); else setTimeout(function(){ un&&un(); },0); res(); }); });
   }).then(function(){ return Promise.all([loadSettings(), fbUser?loadMine():null]); })
@@ -2499,6 +2585,7 @@ function boot(){
     if(!cloud() && !S.reg.pw){ createPwScreen(); return; }
     if(!isAuth()){ loginScreen(); return; }
   }
+  if(S.stage==='app' && S.route && !S.routeV2 && S.diag && S.diag.wheel){ reorderRoute(wheelNow().w); S.routeV2=1; save(); }
   if(S.stage==='app' && S.route) renderApp('ruta');
   else if((S.stage==='intro'||S.stage==='building') && S.route) routeIntro();
   else if(S.stage==='diag') welcomeDiag();
