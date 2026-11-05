@@ -841,6 +841,19 @@ body{background:var(--bg)}
 .dia-grid.night .dia-page::before{content:'';position:absolute;z-index:-1;right:-90px;top:-90px;width:300px;height:300px;border-radius:50%;border:2px solid rgba(255,255,255,.08);box-shadow:inset 0 0 0 46px rgba(255,255,255,.025),0 0 0 46px rgba(255,255,255,.03);pointer-events:none}
 .dia-grid.night .dia-page::after{content:'';position:absolute;z-index:-1;right:46px;top:40px;width:34px;height:34px;border-radius:50%;box-shadow:-9px 6px 0 0 rgba(255,236,190,.85);pointer-events:none;opacity:.9}
 @media (max-width:560px){.dia-grid.night .dia-page::after{display:none}}
+.dia-grid.day .dia-page,.dia-grid.day .dia-side .pcard{--fg:#1B2036;--muted:#6B6475;--line:rgba(120,84,40,.16);--bg:rgba(255,255,255,.55);
+  color:var(--fg);border-color:rgba(240,190,120,.35);background-color:#FFF6EA;
+  background-image:radial-gradient(70% 50% at 92% 4%,rgba(255,200,95,.55),transparent 62%),radial-gradient(60% 45% at 60% 18%,rgba(255,228,170,.45),transparent 70%),radial-gradient(90% 70% at 0% 100%,rgba(196,180,240,.40),transparent 62%),linear-gradient(170deg,#FFF9EF 0%,#FDEBD6 48%,#F6E9F3 100%);
+  box-shadow:0 30px 60px -36px rgba(196,120,40,.45)}
+.dia-grid.day .dia-page{overflow:hidden;isolation:isolate}
+.dia-grid.day .dia-page::before{content:'';position:absolute;z-index:-1;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;border:2px solid rgba(246,169,59,.16);box-shadow:inset 0 0 0 40px rgba(255,214,130,.10),0 0 0 44px rgba(255,214,130,.08);pointer-events:none}
+.dia-grid.day .dia-page::after{content:'';position:absolute;z-index:-1;right:42px;top:36px;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#FFE7A3,#FFC24D 55%,#F39A2D);box-shadow:0 0 0 10px rgba(255,200,90,.16),0 0 40px 14px rgba(255,180,60,.40);pointer-events:none}
+@media (max-width:560px){.dia-grid.day .dia-page::after{display:none}}
+.dia-grid.day .dia-mode{background:rgba(255,255,255,.55);border-color:rgba(240,190,120,.35)}
+.dia-grid.day .dia-mode button[aria-selected="true"]{background:#fff;color:var(--fg);box-shadow:0 4px 14px -6px rgba(196,120,40,.45)}
+.dia-grid.day .dia-ask{background:linear-gradient(135deg,rgba(255,255,255,.75),rgba(255,236,200,.55));border-color:rgba(246,169,59,.32)}
+.dia-grid.day .mo{background:rgba(255,255,255,.65);border-color:rgba(240,190,120,.35)}
+.dia-grid.day .mo.on{background:color-mix(in srgb,var(--mc) 20%,#fff);border-color:var(--mc)}
 .dia-grid.night .dia-mode{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
 .dia-grid.night .dia-mode button[aria-selected="true"]{background:rgba(255,255,255,.16);color:#fff;box-shadow:0 4px 14px -6px rgba(0,0,0,.5)}
 .dia-grid.night .dia-ask{background:linear-gradient(135deg,rgba(160,139,255,.16),rgba(47,211,179,.08));border-color:rgba(160,139,255,.32);backdrop-filter:blur(6px)}
@@ -2178,7 +2191,7 @@ function diaryBook(main){
   function persist(){ clearTimeout(T); saved.textContent='Guardando…'; T=setTimeout(function(){ e.updatedAt=Date.now(); diaPut(today,JSON.parse(JSON.stringify(e))).then(function(){ saved.textContent='Guardado'; main.querySelector('#dStreak').textContent=diaStreak(); main.querySelector('#dCount').textContent=Object.keys(DIA).length; cal(); past(); }).catch(function(er){ saved.textContent='No se pudo guardar. '+fbErr(er); }); },700); }
   function area(id,label,val,ph,rows){ return '<label class="dia-f"><span>'+label+'</span><textarea id="'+id+'" rows="'+(rows||3)+'" placeholder="'+esc(ph)+'">'+esc(val||'')+'</textarea></label>'; }
   function draw(){
-    main.querySelector('.dia-grid').classList.toggle('night',mode==='noche');
+    main.querySelector('.dia-grid').classList.toggle('night',mode==='noche'); main.querySelector('.dia-grid').classList.toggle('day',mode==='manana');
     main.querySelectorAll('[data-m]').forEach(function(b){ b.setAttribute('aria-selected',b.dataset.m===mode?'true':'false'); });
     if(mode==='manana'){
       body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+'Áurea pregunta</span><p class="dia-q" id="dQ"></p></div>'+area('dAns','Tu respuesta',e.answer,'Escribe con calma, sin corregirte…',5)+area('dInt','Mi intención para hoy',e.intent,'Por ejemplo: responder con calma aunque el día se complique',2);
