@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="firebase-config.js"></script>
 <style>html,body{margin:0;padding:0;height:100%}</style>
 </head>
 <body>
@@ -723,7 +724,7 @@ footer .adm-link:hover{color:var(--accent)}
 <script>
 /* Días de prueba y precios definidos en el panel de administración de la app (mismo sitio) */
 (function(){ function applyCfg(){
-  var c=null; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'null'); }catch(e){}
+  var c=null; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'null'); }catch(e){} if(!c) c=window.__aureaCfg||null;
   if(!c) return;
   function fmt(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
   function all(sel,fn){ [].forEach.call(document.querySelectorAll(sel),fn); }
@@ -737,6 +738,17 @@ footer .adm-link:hover{color:var(--accent)}
   if(c.priceA>0){ all('[data-price-a]',function(e){ e.textContent=fmt(c.priceA); }); all('[data-price-am]',function(e){ e.textContent=fmt(Math.round(c.priceA/12*100)/100); }); }
   }
   applyCfg();
+  /* Con Firebase activo, la configuración se lee de la nube: la misma para todos los visitantes */
+  var F=window.AUREA_FIREBASE;
+  if(F && F.projectId && F.apiKey && window.fetch){
+    fetch('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(F.projectId)+'/databases/(default)/documents/settings/app?key='+encodeURIComponent(F.apiKey))
+      .then(function(r){ return r.ok?r.json():null; }).then(function(j){ if(!j||!j.fields) return;
+        function n(f){ return f?+(f.integerValue!=null?f.integerValue:f.doubleValue):0; }
+        var c={}; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'{}')||{}; }catch(e){}
+        ['trialDays','priceM','priceA'].forEach(function(k){ var v=n(j.fields[k]); if(v>0) c[k]=v; });
+        try{ localStorage.setItem('aurea-config',JSON.stringify(c)); }catch(e){}
+        window.__aureaCfg=c; applyCfg(); }).catch(function(){});
+  }
   /* al volver desde la app (botón Atrás) o con la app abierta en otra pestaña */
   window.addEventListener('pageshow',applyCfg);
   window.addEventListener('storage',function(e){ if(e.key==='aurea-config') applyCfg(); });

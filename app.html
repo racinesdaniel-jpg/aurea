@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="firebase-config.js"></script>
 <style>html,body{margin:0;padding:0;height:100%}#root{height:100%}</style>
 </head>
 <body>
@@ -720,6 +721,9 @@ body{background:var(--bg)}
 .wc-orig summary{cursor:pointer;font-weight:600;font-size:.92rem;color:var(--accent)}
 .wc-orig p{margin:10px 0 0;color:var(--muted);font-size:.92rem;line-height:1.6}
 .ad-radar{max-width:420px;margin:0 auto;width:100%}
+
+.boot-load{min-height:100%;display:grid;place-content:center;gap:14px;justify-items:center;color:var(--muted);font-size:.95rem;padding:40px;text-align:center}
+.boot-load span{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin 0.9s linear infinite}
 </style>
 
 <div id="root"></div>
@@ -734,12 +738,13 @@ var S = load() || fresh();
 function fresh(){ return {stage:'reg', reg:{}, diag:{}, route:null, done:{}, practice:{}, dayOffset:0, subscribed:false, plan:'anual'}; }
 function load(){ try{ var s=localStorage.getItem(KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  if(typeof cloud==='function' && cloud()){ cloudPush(); return; }
   if(S.reg && S.reg.email && S.reg.registeredAt){ var u=users(); u[mailKey(S.reg.email)]=S; jset(UKEY,u); } }
 /* Prototipo: cuentas y configuración en este navegador. En la versión real lo guarda el servidor. */
 var UKEY='aurea-usuarios', CKEY='aurea-config';
 function jget(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function jset(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
-function users(){ return jget(UKEY,{}); }
+function users(){ if(typeof cloud==='function' && cloud()) return admCache||{}; return jget(UKEY,{}); }
 function mailKey(m){ return String(m||'').trim().toLowerCase(); }
 function cfg(){ var c=jget(CKEY,{}); return {trialDays:c.trialDays>0?c.trialDays:30, priceM:c.priceM>0?c.priceM:9.99, priceA:c.priceA>0?c.priceA:79, admin:c.admin||null}; }
 function fmtP(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
@@ -1272,6 +1277,7 @@ function runSteps(cfg){
     next.onclick=function(){
       if(next.disabled) return;
       if(st.validate){ var m=st.validate(value); if(m){ err.textContent=m; return; } }
+      if(st.type==='password') pendingPw=value;
       if(st.key) cfg.store[st.key]= (st.type==='text'||st.type==='country')?String(value).trim():(st.type==='password'?pwHash(value,cfg.store.email):value);
       if(st.type==='schedule'){ cfg.store.months=monthsFor(totalMin(value)); }
       save();
@@ -1296,7 +1302,7 @@ var REG=[
  {key:'name',type:'text',q:'Para empezar, ¿cómo te gusta que te llamen?',ph:'Tu nombre',ac:'given-name',max:30,
   validate:function(v){ return String(v).trim().length<2?'Escribe al menos dos letras.':''; }},
  {key:'email',type:'email',q:function(){return 'Un gusto, '+S.reg.name+'. ¿Cuál es tu correo electrónico?';},hint:'Lo usarás para entrar a tu cuenta.',ph:'tucorreo@ejemplo.com',ac:'email',max:80,
-  validate:function(v){ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim())) return 'Revisa tu correo: parece que falta algo.'; var x=users()[mailKey(v)]; if(x && x!==S && x.reg && x.reg.registeredAt && !S.reg.registeredAt) return 'Ya existe una cuenta con este correo. Inicia sesión con él.'; return ''; }},
+  validate:function(v){ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim())) return 'Revisa tu correo: parece que falta algo.'; var x=cloud()?null:users()[mailKey(v)]; if(x && x!==S && x.reg && x.reg.registeredAt && !S.reg.registeredAt) return 'Ya existe una cuenta con este correo. Inicia sesión con él.'; return ''; }},
  {key:'pw',type:'password',q:'Crea una contraseña para tu cuenta.',hint:'La usarás junto con tu correo para iniciar sesión.',
   validate:function(v){ v=String(v||''); if(v.length<8) return 'Usa al menos 8 caracteres.'; if(!/[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(v)||!/\d/.test(v)) return 'Combina letras y números.'; return ''; }},
  {key:'age',type:'number',q:'¿Qué edad tienes?',ph:'Edad',
@@ -1311,9 +1317,9 @@ function pwHash(pw,email){ var str='aurea|'+String(email||'').trim().toLowerCase
   for(var k=0;k<1000;k++){ h1=Math.imul(h1^(h2>>>13),16777619)>>>0; h2=Math.imul(h2^(h1>>>7),2654435761)>>>0; }
   return 'h1$'+h1.toString(16)+h2.toString(16); }
 var AUTH_KEY='aurea-sesion', authMem=false;
-function isAuth(){ try{ return sessionStorage.getItem(AUTH_KEY)==='1'; }catch(e){ return authMem; } }
+function isAuth(){ if(cloud()) return !!fbUser && mailKey(fbUser.email)===mailKey(S.reg&&S.reg.email); try{ return sessionStorage.getItem(AUTH_KEY)==='1'; }catch(e){ return authMem; } }
 function setAuth(on){ authMem=on; try{ if(on) sessionStorage.setItem(AUTH_KEY,'1'); else sessionStorage.removeItem(AUTH_KEY); }catch(e){} }
-function logout(){ setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
+function logout(){ if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
 function loginScreen(){
   var el=botScreen({phase:'Iniciar sesión'}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
@@ -1331,13 +1337,18 @@ function loginScreen(){
   var tries=0;
   next.onclick=function(){
     if(next.disabled) return;
+    if(cloud()){ next.disabled=true; err.textContent='';
+      cloudLogin(mail.value,pw.value).then(function(){ boot(); }).catch(function(e){ tries++; err.textContent=fbErr(e)+(tries>=3?' Puedes usar «¿Olvidaste tu contraseña?».':''); pw.value=''; ok(); pw.focus({preventScroll:true}); });
+      return; }
     var m=mailKey(mail.value), u=users()[m];
     if(!u && m===mailKey(S.reg.email)) u=S;
     if(u && u.reg && u.reg.pw && pwHash(pw.value,u.reg.email)===u.reg.pw){ S=u; save(); setAuth(true); boot(); return; }
     tries++; err.textContent=tries>=3?'Los datos no coinciden. Revisa tu correo y tu contraseña, o usa «¿Olvidaste tu contraseña?».':'El correo o la contraseña no son correctos.';
     pw.value=''; ok(); pw.focus({preventScroll:true});
   };
-  el.querySelector('#forgot').onclick=function(){ err.textContent=''; hint.textContent='En la versión final recibirás en tu correo un enlace para crear una contraseña nueva.'; };
+  el.querySelector('#forgot').onclick=function(){ err.textContent='';
+    if(cloud()){ var em=mail.value.trim(); if(!em){ err.textContent='Escribe tu correo arriba y vuelve a tocar «¿Olvidaste tu contraseña?».'; mail.focus(); return; }
+      FB.a.sendPasswordResetEmail(FB.auth,em).then(function(){ hint.textContent='Si existe una cuenta con '+em+', te llegará un correo con un enlace para crear una contraseña nueva.'; }).catch(function(e){ err.textContent=fbErr(e); }); return; } hint.textContent='En la versión final recibirás en tu correo un enlace para crear una contraseña nueva.'; };
   back.disabled=false;
   back.onclick=function(){ S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} setAuth(false); startReg(); };
   admLink(el);
@@ -1374,7 +1385,13 @@ function regSummary(){
     return '<button type="button" class="rcard'+(f[3]?' wide':'')+'" style="--k:'+k+'" data-k="'+f[0]+'" aria-label="Editar '+f[1]+'"><span class="ic">'+icon(f[0])+'</span><span class="tx"><span>'+f[1]+'</span><b>'+esc(up(f[2]))+'</b></span><span class="ed"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></svg></span></button>';
   }).join('')+'</div>';
   ans.querySelectorAll('.rcard').forEach(function(c){ c.onclick=function(){ var idx=REG.map(function(s){return s.key;}).indexOf(c.dataset.k); runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary,start:idx,single:true}); }; });
-  next.onclick=function(){ S.reg.registeredAt=Date.now(); S.stage='diag'; save(); setAuth(true); welcomeDiag(); };
+  next.onclick=function(){
+    if(cloud()){ next.disabled=true; hint.textContent='Creando tu cuenta…';
+      cloudRegister(function(){ S.reg.registeredAt=Date.now(); S.stage='diag'; save(); welcomeDiag(); },function(e){ next.disabled=false;
+        if(e.code==='need-pw'){ runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary,start:REG.map(function(x){return x.key;}).indexOf('pw'),single:true}); return; }
+        hint.textContent=fbErr(e); if(e.code==='auth/email-already-in-use'){ setTimeout(loginScreen,2200); } });
+      return; }
+    S.reg.registeredAt=Date.now(); S.stage='diag'; save(); setAuth(true); welcomeDiag(); };
   typeQA(q,up('Revisa tus datos, '+r.name+'.'),hint,'Si todo está bien, presiona Registrar. Toca un dato para corregirlo.',function(){ ans.classList.remove('wait'); });
 }
 
@@ -1808,6 +1825,8 @@ function changePw(){
     var err=ov.querySelector('#c-err'); ov.querySelector('[data-x]').onclick=close;
     ov.querySelector('form').onsubmit=function(e){ e.preventDefault();
       var cur=ov.querySelector('#c-cur').value, nw=ov.querySelector('#c-new').value, rp=ov.querySelector('#c-rep').value;
+      if(cloud()){ var m0=regRule('pw')(nw); if(m0){ err.textContent=m0; return; } if(nw!==rp){ err.textContent='Las contraseñas nuevas no coinciden.'; return; }
+        cloudChangePw(cur,nw).then(function(){ close(); toast('Tu contraseña se cambió.'); }).catch(function(e){ err.textContent=(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password')?'Tu contraseña actual no es correcta.':fbErr(e); }); return; }
       if(pwHash(cur,S.reg.email)!==S.reg.pw){ err.textContent='Tu contraseña actual no es correcta.'; return; }
       var m=regRule('pw')(nw); if(m){ err.textContent=m; return; }
       if(nw!==rp){ err.textContent='Las contraseñas nuevas no coinciden.'; return; }
@@ -1831,9 +1850,9 @@ function wireUserMenu(el){
 var AKEY='aurea-admin-sesion', admMem=false;
 function isAdm(){ try{ return sessionStorage.getItem(AKEY)==='1'; }catch(e){ return admMem; } }
 function setAdm(on){ admMem=on; try{ if(on) sessionStorage.setItem(AKEY,'1'); else sessionStorage.removeItem(AKEY); }catch(e){} }
-function leaveAdmin(){ setAdm(false); try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} adminMode=false; window.scrollTo(0,0); boot(); }
+function leaveAdmin(){ if(cloud()){ adminMode=false; admCache=null; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} location.reload(); return; } setAdm(false); try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} adminMode=false; window.scrollTo(0,0); boot(); }
 var adminMode=false;
-function adminEntry(){ adminMode=true; if(isAdm()) adminPanel('resumen'); else adminLogin(); }
+function adminEntry(){ adminMode=true; if(cloud()){ if(cloudAdminOk()) adminPanel('resumen'); else adminLoginCloud(); return; } if(isAdm()) adminPanel('resumen'); else adminLogin(); }
 function adminLogin(){
   var c=cfg(), setup=!c.admin;
   var el=botScreen({phase:'Administración'}); el.classList.add('compact');
@@ -1861,10 +1880,12 @@ function adminLogin(){
 }
 function withUser(u,fn){ var old=S; S=u; try{ return fn(); } finally{ S=old; } }
 function uStatus(u){ return withUser(u,function(){ if(S.subscribed) return ['sub','Suscrito']; if(!S.reg.registeredAt) return ['', 'Sin terminar']; return trialLeft()>0?['trial','Prueba · '+trialLeft()+' d']:['end','Prueba terminada']; }); }
-function uList(){ var u=users(); return Object.keys(u).map(function(k){return u[k];}).sort(function(a,b){ return (b.reg.registeredAt||0)-(a.reg.registeredAt||0); }); }
+function uList(){ var u=users(); return Object.keys(u).map(function(k){return u[k];}).filter(function(x){ return x&&x.reg; }).sort(function(a,b){ return (b.reg.registeredAt||0)-(a.reg.registeredAt||0); }); }
 function fdate(t){ return t?new Date(t).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'}):'—'; }
-function adminPanel(t){
+function adminPanel(t,cached){
   adminMode=true; var TAB=t||'resumen';
+  if(cloud() && !cached){ root.innerHTML='<div class="boot-load" role="status"><span></span>Cargando usuarios…</div>';
+    cloudLoadAll().then(function(){ adminPanel(TAB,true); }).catch(function(e){ root.innerHTML='<div class="boot-load">'+esc(fbErr(e))+' <button class="btn btn-ghost" type="button" id="aBack">Volver</button></div>'; root.querySelector('#aBack').onclick=leaveAdmin; }); return; }
   root.innerHTML='';
   var el=document.createElement('div'); el.className='adm';
   var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración']];
@@ -1929,6 +1950,12 @@ function userDetail(key){
     '<div class="m-act ad-act"><button type="button" class="btn btn-ghost ad-del" id="adDel">Eliminar usuario</button><button type="button" class="btn btn-ghost" id="adExt">Extender prueba 7 días</button></div>',
   function(ov,close){
     ov.querySelector('.sheet').classList.add('wide');
+    if(cloud()){
+      ov.querySelector('#adExt').onclick=function(){ var s2=JSON.parse(JSON.stringify(u)); var id=s2._id; delete s2._id; s2.dayOffset=(s2.dayOffset||0)-7;
+        FB.f.updateDoc(userRef(id),{state:JSON.stringify(s2),updatedAt:Date.now()}).then(function(){ close(); adminPanel('usuarios'); toast('Se agregaron 7 días de prueba.'); }).catch(function(e){ toast(fbErr(e)); }); };
+      ov.querySelector('#adDel').onclick=function(){ if(!confirm('¿Eliminar los datos de '+tc(r.name)+'? Se borrarán sus respuestas y su progreso. Esta acción no se puede deshacer.')) return;
+        FB.f.deleteDoc(userRef(u._id)).then(function(){ close(); adminPanel('usuarios'); toast('Datos eliminados. Su acceso se borra en Firebase → Authentication.'); }).catch(function(e){ toast(fbErr(e)); }); };
+      return; }
     ov.querySelector('#adExt').onclick=function(){ var all=users(); all[key].dayOffset=(all[key].dayOffset||0)-7; jset(UKEY,all); if(mailKey(S.reg.email)===key){ S.dayOffset=all[key].dayOffset; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} } close(); adminPanel('usuarios'); userDetail(key); toast('Se agregaron 7 días de prueba.'); };
     ov.querySelector('#adDel').onclick=function(){ if(!confirm('¿Eliminar a '+tc(r.name)+'? Se borrarán su cuenta, sus respuestas y su progreso. Esta acción no se puede deshacer.')) return;
       var all=users(); delete all[key]; jset(UKEY,all); if(mailKey(S.reg.email)===key){ S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} setAuth(false); } close(); adminPanel('usuarios'); toast('Usuario eliminado.'); };
@@ -1949,7 +1976,13 @@ function admConfig(m){
     var d=parseInt(m.querySelector('#cf-days').value,10), pm=num(m.querySelector('#cf-pm').value), pa=num(m.querySelector('#cf-pa').value);
     if(!(d>=1&&d<=365)){ er.textContent='Los días de prueba deben estar entre 1 y 365.'; return; }
     if(!(pm>0)||!(pa>0)){ er.textContent='Escribe precios válidos, por ejemplo 9,99.'; return; }
-    var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=Math.round(pm*100)/100; cc.priceA=Math.round(pa*100)/100; jset(CKEY,cc); er.textContent=''; toast('Configuración guardada.'); };
+    pm=Math.round(pm*100)/100; pa=Math.round(pa*100)/100;
+    if(cloud()){ cloudSaveSettings(d,pm,pa).then(function(){ er.textContent=''; toast('Configuración guardada para todos.'); }).catch(function(e){ er.textContent=fbErr(e); }); return; }
+    var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; jset(CKEY,cc); er.textContent=''; toast('Configuración guardada.'); };
+  if(cloud()){ var sec=m.querySelector('#cf2'); sec.innerHTML='<label><span>Correo</span><input class="lfield" type="email" value="'+esc(fbUser.email)+'" disabled></label>'+pwFld('cf-ac','Contraseña actual','current-password')+pwFld('cf-an','Contraseña nueva','new-password')+'<p class="err" id="cf2e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Cambiar contraseña</button></div>'; wireEyes(sec);
+    sec.onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#cf2e'), cur=m.querySelector('#cf-ac').value, nw=m.querySelector('#cf-an').value, r=regRule('pw')(nw); if(r){ er.textContent=r; return; }
+      cloudChangePw(cur,nw).then(function(){ er.textContent=''; m.querySelector('#cf-ac').value=''; m.querySelector('#cf-an').value=''; toast('Contraseña actualizada.'); }).catch(function(e2){ er.textContent=(e2.code==='auth/invalid-credential')?'La contraseña actual no es correcta.':fbErr(e2); }); };
+    return; }
   m.querySelector('#cf2').onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#cf2e'), cc=jget(CKEY,{});
     var nm=mailKey(m.querySelector('#cf-am').value), cur=m.querySelector('#cf-ac').value, nw=m.querySelector('#cf-an').value;
     if(!cc.admin||pwHash(cur,'admin|'+cc.admin.email)!==cc.admin.pw){ er.textContent='La contraseña actual no es correcta.'; return; }
@@ -1958,16 +1991,117 @@ function admConfig(m){
     cc.admin={email:nm,pw:pwHash(nw||cur,'admin|'+nm)}; jset(CKEY,cc); er.textContent=''; m.querySelector('#cf-ac').value=''; m.querySelector('#cf-an').value=''; toast('Acceso actualizado.'); };
 }
 
+/* ================= NUBE (Firebase: cuentas y datos compartidos) =================
+   Se activa solo si la página carga firebase-config.js con la configuración del proyecto.
+   Sin esa configuración la app funciona como prototipo local (datos en este navegador). */
+var FBC=(window.AUREA_FIREBASE&&window.AUREA_FIREBASE.apiKey)?window.AUREA_FIREBASE:null;
+var FB=null, fbUser=null, admCache=null;
+var ADMINS=((FBC&&FBC.admins)||[]).map(function(x){ return String(x||'').trim().toLowerCase(); });
+function cloud(){ return !!FB; }
+function isAdmEmail(m){ return ADMINS.indexOf(mailKey(m))>=0; }
+function fbErr(e){ var c=(e&&e.code)||'';
+  return ({'auth/email-already-in-use':'Ya existe una cuenta con este correo. Inicia sesión con él.',
+   'auth/invalid-credential':'El correo o la contraseña no son correctos.','auth/wrong-password':'El correo o la contraseña no son correctos.','auth/user-not-found':'El correo o la contraseña no son correctos.',
+   'auth/invalid-email':'Revisa tu correo: parece que falta algo.','auth/missing-email':'Escribe tu correo.','auth/weak-password':'Usa una contraseña más segura.',
+   'auth/too-many-requests':'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.','auth/network-request-failed':'No hay conexión. Revisa tu internet e inténtalo de nuevo.',
+   'auth/requires-recent-login':'Por seguridad, cierra sesión y vuelve a ingresar antes de hacer este cambio.','permission-denied':'No tienes permiso para hacer esto.'})[c]||'Algo salió mal. Inténtalo de nuevo.'; }
+function packState(s){ var o=JSON.parse(JSON.stringify(s)); if(o.reg) delete o.reg.pw; return o; }
+function userRef(uid){ return FB.f.doc(FB.db,'users',uid); }
+var pushT=null;
+function cloudPush(){
+  if(!cloud()||!fbUser||!S.reg||!S.reg.registeredAt||mailKey(S.reg.email)!==mailKey(fbUser.email)) return;
+  clearTimeout(pushT);
+  pushT=setTimeout(function(){ var st=packState(S);
+    FB.f.setDoc(userRef(fbUser.uid),{email:mailKey(S.reg.email),name:S.reg.name||'',registeredAt:S.reg.registeredAt||0,updatedAt:Date.now(),state:JSON.stringify(st)}).catch(function(e){ console.warn('No se pudo guardar en la nube',e); }); },400);
+}
+function unpack(d){ try{ var v=d.data(); var s=JSON.parse(v.state); s._id=d.id; return s; }catch(e){ return null; } }
+function loadMine(){
+  return FB.f.getDoc(userRef(fbUser.uid)).then(function(d){
+    var s=d.exists()?unpack(d):null;
+    if(s){ delete s._id; S=s; }
+    else if(mailKey(S.reg&&S.reg.email)!==mailKey(fbUser.email)){ S=fresh(); S.reg.email=fbUser.email; }
+    try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+  });
+}
+function loadSettings(){
+  return FB.f.getDoc(FB.f.doc(FB.db,'settings','app')).then(function(d){ if(!d.exists()) return; var v=d.data(), cc=jget(CKEY,{});
+    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); jset(CKEY,cc); }).catch(function(){});
+}
+function cloudInit(){
+  if(!FBC) return Promise.resolve();
+  root.innerHTML='<div class="boot-load" role="status"><span></span>Cargando…</div>';
+  var base='https://www.gstatic.com/firebasejs/10.12.2/';
+  return Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]).then(function(m){
+    var app=m[0].initializeApp(FBC);
+    FB={auth:m[1].getAuth(app),db:m[2].getFirestore(app),a:m[1],f:m[2]};
+    try{ FB.auth.languageCode='es'; }catch(e){}
+    return new Promise(function(res){ var un=null, got=false; un=FB.a.onAuthStateChanged(FB.auth,function(u){ fbUser=u; if(got) return; got=true; if(un) un(); else setTimeout(function(){ un&&un(); },0); res(); }); });
+  }).then(function(){ return Promise.all([loadSettings(), fbUser?loadMine():null]); })
+  .catch(function(e){ console.warn('Firebase no disponible; modo local',e); FB=null; fbUser=null; });
+}
+/* --- Registro, inicio de sesión y contraseña en la nube --- */
+var pendingPw=null;
+function cloudRegister(onOk,onErr){
+  var mail=String(S.reg.email||'').trim();
+  function done(u){ fbUser=u; pendingPw=null; onOk(); }
+  if(fbUser && mailKey(fbUser.email)===mailKey(mail)) return done(fbUser);
+  if(!pendingPw){ onErr({code:'need-pw'}); return; }
+  FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ done(cr.user); }).catch(onErr);
+}
+function cloudLogin(mail,pw){
+  return FB.a.signInWithEmailAndPassword(FB.auth,String(mail).trim(),pw).then(function(cr){ fbUser=cr.user; return loadMine(); });
+}
+function cloudLogout(){ return FB.a.signOut(FB.auth).catch(function(){}).then(function(){ fbUser=null; S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }); }
+function cloudChangePw(cur,nw){
+  return FB.a.reauthenticateWithCredential(fbUser,FB.a.EmailAuthProvider.credential(fbUser.email,cur)).then(function(){ return FB.a.updatePassword(fbUser,nw); });
+}
+/* --- Administración en la nube --- */
+function cloudLoadAll(){
+  return FB.f.getDocs(FB.f.collection(FB.db,'users')).then(function(snap){ var all={};
+    snap.forEach(function(d){ var s=unpack(d); if(s&&s.reg&&s.reg.email) all[mailKey(s.reg.email)]=s; }); admCache=all; });
+}
+function cloudAdminOk(){ return cloud() && fbUser && isAdmEmail(fbUser.email) && fbUser.emailVerified; }
+function adminLoginCloud(){
+  var el=botScreen({phase:'Administración'}); el.classList.add('compact');
+  var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots');
+  el.querySelector('#tap').remove(); dots.innerHTML='<button type="button" class="forgot" id="aNew">Primera vez: crear mi acceso</button>';
+  back.textContent='← Volver'; back.disabled=false; back.onclick=leaveAdmin; next.textContent='Ingresar';
+  ans.innerHTML='<form class="login" novalidate>'+fld('a-mail','Correo de administrador',fbUser?fbUser.email:'','email','maxlength="80" autocomplete="username" placeholder="tucorreo@ejemplo.com"')+pwFld('a-pw','Contraseña','current-password')+'<p class="err" id="a-err"></p></form>';
+  wireEyes(ans);
+  var err=ans.querySelector('#a-err');
+  ans.querySelector('form').onsubmit=function(e){ e.preventDefault(); next.click(); };
+  ans.querySelectorAll('input').forEach(function(i){ i.oninput=function(){ err.textContent=''; }; });
+  function vals(){ return {m:ans.querySelector('#a-mail').value.trim(), p:ans.querySelector('#a-pw').value}; }
+  function verifyMsg(u){ return FB.a.sendEmailVerification(u).catch(function(){}).then(function(){ err.textContent=''; hint.textContent='Te enviamos un correo a '+u.email+'. Abre el enlace para confirmar que es tuyo y luego vuelve a ingresar aquí.'; }); }
+  next.onclick=function(){ var v=vals();
+    if(!isAdmEmail(v.m)){ err.textContent='Este correo no tiene permiso de administrador.'; return; }
+    next.disabled=true;
+    FB.a.signInWithEmailAndPassword(FB.auth,v.m,v.p).then(function(cr){ fbUser=cr.user; return cr.user.reload().then(function(){ return FB.auth.currentUser; }); })
+     .then(function(u){ next.disabled=false; if(!u.emailVerified) return verifyMsg(u); return u.getIdToken(true).then(function(){ adminPanel('resumen'); }); })
+     .catch(function(e){ next.disabled=false; err.textContent=fbErr(e)+((e.code==='auth/invalid-credential'||e.code==='auth/user-not-found')?' Si es tu primera vez, usa «Primera vez: crear mi acceso».':''); });
+  };
+  el.querySelector('#aNew').onclick=function(){ var v=vals();
+    if(!isAdmEmail(v.m)){ err.textContent='Este correo no tiene permiso de administrador.'; return; }
+    var r=regRule('pw')(v.p); if(r){ err.textContent=r; return; }
+    FB.a.createUserWithEmailAndPassword(FB.auth,v.m,v.p).then(function(cr){ fbUser=cr.user; return verifyMsg(cr.user); }).catch(function(e){ err.textContent=fbErr(e); });
+  };
+  typeQA(q,'Acceso de administrador.',hint,'Ingresa con tu correo y tu contraseña de administrador.',function(){ ans.classList.remove('wait'); });
+}
+function cloudSaveSettings(d,pm,pa){
+  var v={trialDays:d,priceM:pm,priceA:pa,updatedAt:Date.now()};
+  return FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),v,{merge:true}).then(function(){ var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; jset(CKEY,cc); });
+}
+
 /* ================= ARRANQUE ================= */
 drawOrbs();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ if(reduce) drawOrbs(); });
 function boot(){
   if(/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
   if(/^#login/.test(location.hash)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
-    if(!(S.reg && S.reg.registeredAt && S.reg.pw && isAuth())){ loginScreen(); return; } }
-  if(S.reg && S.reg.registeredAt && S.reg.email && !users()[mailKey(S.reg.email)]) save();
+    if(!(S.reg && S.reg.registeredAt && (cloud()||S.reg.pw) && isAuth())){ loginScreen(); return; } }
+  if(!cloud() && S.reg && S.reg.registeredAt && S.reg.email && !users()[mailKey(S.reg.email)]) save();
   if(S.stage!=='reg' && S.reg && S.reg.registeredAt){
-    if(!S.reg.pw){ createPwScreen(); return; }
+    if(!cloud() && !S.reg.pw){ createPwScreen(); return; }
     if(!isAuth()){ loginScreen(); return; }
   }
   if(S.stage==='app' && S.route) renderApp('ruta');
@@ -1975,7 +2109,7 @@ function boot(){
   else if(S.stage==='diag') welcomeDiag();
   else startReg();
 }
-boot();
+cloudInit().then(function(){ boot(); });
 window.addEventListener('hashchange',function(){ if(/^#admin/.test(location.hash)&&!adminMode){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; adminEntry(); } });
 if(reduce) setInterval(drawOrbs,1000);
 })();
