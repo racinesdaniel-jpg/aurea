@@ -317,6 +317,63 @@ body::before{background:#0E1430}
 .hero .btn-ghost:hover{background:rgba(255,255,255,.08)}
 footer .adm-link{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 footer .adm-link:hover{color:var(--accent)}
+/* ===== CONVERSA CON ÁUREA (mentor IA) ===== */
+.ai{background:var(--bg-2)}
+.ai .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.ai h2{font-size:var(--s4);line-height:1.08}
+.ai .lead{margin-top:20px}
+.ai-feats{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ai-feat{background:var(--surface);border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(20,26,46,.05),0 14px 30px -22px rgba(20,26,46,.3)}
+.ai-feat b{display:block;font-weight:600;margin-bottom:4px}
+.ai-feat p{color:var(--muted);font-size:.92rem;line-height:1.5}
+.ai-topics{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px}
+.ai-topics span{font-size:.82rem;padding:.4em .85em;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.ai-quota{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:14px 18px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--muted);font-size:.92rem}
+.ai-quota b{color:var(--fg);font-variant-numeric:tabular-nums}
+.aimock{margin:0;border-radius:22px;overflow:hidden;min-width:0;color:#F2F4FB;background:radial-gradient(420px 300px at 80% 0%,rgba(124,92,255,.38),transparent 70%),radial-gradient(380px 300px at 0% 100%,rgba(43,212,180,.22),transparent 70%),var(--ink);box-shadow:0 40px 90px -45px rgba(17,24,51,.8)}
+.aimock .bm-bar{background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.1)}
+.aimock .bm-bar i{background:rgba(255,255,255,.18)}.aimock .bm-bar span{color:#B4BAD3}
+.ai-body{padding:26px 22px 18px;display:grid;gap:16px;min-height:400px;align-content:start}
+.ai-who{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:#2FD3B3}
+.ai-who canvas{width:34px;height:34px}
+.ai-ask{justify-self:end;max-width:85%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:16px 16px 4px 16px;padding:12px 14px;font-size:.95rem;line-height:1.5}
+.ai-ans{font-size:1rem;line-height:1.6;color:#F2F4FB;min-height:9.6em}
+.ai-ans .bm-caret{border-left-color:#2FD3B3}
+.ai-acts{display:flex;flex-wrap:wrap;gap:8px;transition:opacity .4s}
+.ai-acts.wait{opacity:0}
+.ai-acts span{font-size:.8rem;font-weight:600;padding:.55em 1em;border-radius:999px;border:1px solid rgba(255,255,255,.25)}
+.ai-acts span:first-child{background:#2FD3B3;color:#06221D;border-color:#2FD3B3}
+.ai-left{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:#B4BAD3;padding:12px 22px;border-top:1px solid rgba(255,255,255,.1)}
+@media (max-width:900px){.ai .wrap{grid-template-columns:1fr}.aimock{order:2}}
+@media (max-width:560px){.ai-feats{grid-template-columns:1fr}}
+
+/* ===== DIARIO ===== */
+.diary .wrap{display:grid;gap:0}
+.diary h2{font-size:var(--s4);line-height:1.08;max-width:24ch}
+.diary .lead{margin-top:18px;max-width:64ch}
+.dia-cards{margin-top:44px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.dcard{position:relative;overflow:hidden;isolation:isolate;border-radius:22px;padding:28px 26px;display:grid;gap:14px;align-content:start;min-width:0}
+.dcard .dk{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}
+.dcard h3{font-size:var(--s2);line-height:1.2;max-width:18ch}
+.dcard .dq{font-family:var(--f-display);font-size:1.15rem;line-height:1.35}
+.dcard .dl{display:grid;gap:6px;font-size:.9rem}
+.dcard .dl span{border-bottom:1px solid var(--dl);padding:.35em 0;opacity:.85}
+.dmoods{display:flex;flex-wrap:wrap;gap:6px}
+.dmoods i{font-style:normal;font-size:.78rem;padding:.3em .75em;border-radius:999px;border:1px solid var(--dl)}
+.dmoods i.on{background:var(--dc);color:var(--dcf);border-color:var(--dc)}
+.dcard.am{--dl:rgba(120,84,40,.2);--dc:#E8912B;--dcf:#fff;color:#1B2036;background:linear-gradient(160deg,#FFF6E4 0%,#FFE3C2 45%,#F9D3D0 100%)}
+.dcard.am .dk{color:#B5651D}
+.dcard.am::before{content:'';position:absolute;z-index:-1;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;border:2px solid rgba(246,169,59,.18);box-shadow:inset 0 0 0 40px rgba(255,214,130,.12),0 0 0 44px rgba(255,214,130,.1)}
+.dcard.am::after{content:'';position:absolute;z-index:-1;right:42px;top:36px;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 38% 35%,#FFE7A3,#FFC24D 55%,#F39A2D);box-shadow:0 0 0 10px rgba(255,200,90,.16),0 0 40px 14px rgba(255,180,60,.4)}
+.dcard.pm{--dl:rgba(255,255,255,.18);--dc:#2FD3B3;--dcf:#06221D;color:#F3F2FB;background:radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 32% 62%,#fff,transparent),radial-gradient(1.4px 1.4px at 58% 28%,#fff,transparent),radial-gradient(1px 1px at 72% 82%,#fff,transparent),radial-gradient(1.2px 1.2px at 88% 48%,#fff,transparent),radial-gradient(1px 1px at 22% 88%,#fff,transparent),radial-gradient(1px 1px at 46% 10%,#fff,transparent),linear-gradient(135deg,#0E1430 0%,#2A2272 55%,#0C6A63 100%)}
+.dcard.pm .dk{color:#2FD3B3}
+.dcard.pm::after{content:'';position:absolute;z-index:-1;right:46px;top:40px;width:34px;height:34px;border-radius:50%;box-shadow:-9px 6px 0 0 rgba(255,236,190,.9)}
+.dia-notes{margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.dia-notes div{border-top:1px solid var(--line);padding-top:16px}
+.dia-notes b{display:block;font-weight:600;margin-bottom:4px}
+.dia-notes p{color:var(--muted);font-size:.92rem}
+@media (max-width:820px){.dia-cards,.dia-notes{grid-template-columns:1fr}}
+@media (max-width:560px){.dcard::after{display:none}}
 </style>
 
 <nav class="top">
@@ -329,6 +386,7 @@ footer .adm-link:hover{color:var(--accent)}
       <a href="#pilares">Pilares</a>
       <a href="#metodo">Método</a>
       <a href="#mentor">Mentor</a>
+      <a href="#diario">Diario</a>
       <a href="#niveles">Niveles</a>
       <a href="#precio">Precio</a>
     </div>
@@ -342,17 +400,17 @@ footer .adm-link:hover{color:var(--accent)}
     <div>
       <p class="eyebrow">Método de mentoría Áurea</p>
       <h1 style="margin-top:18px">La Espiral de la <em>Plenitud</em></h1>
-      <p class="lead">Mentoría personalizada para tu vida interior, tus finanzas y tu bienestar. Cada semana recibes tres cápsulas breves, una por pilar, dentro de una ruta diseñada para ti.</p>
+      <p class="lead">Mentoría personalizada para tu vida interior, tus finanzas y tu bienestar. Cada semana recibes tres cápsulas breves, una por pilar, dentro de una ruta diseñada a partir de tu Rueda de la Vida. Te acompañan Áurea Mentor, que conversa contigo con inteligencia artificial, y un diario para cada mañana y cada noche.</p>
       <div class="pillars-inline" aria-label="Los tres pilares">
         <span><i class="dot d-s"></i>Espíritu</span>
         <span><i class="dot d-m"></i>Prosperidad</span>
         <span><i class="dot d-v"></i>Vitalidad</span>
       </div>
       <div class="hero-cta">
-        <a class="btn btn-primary" href="app.html" data-trial-cta>Comenzar mes gratuito</a>
+        <a class="btn btn-primary" href="app.html" data-trial-cta>Comenzar prueba gratuita</a>
         <a class="btn btn-ghost" href="#metodo">Conocer el método</a>
       </div>
-      <p class="hero-note"><span data-trial-days>30</span> días sin costo, sin compromiso.</p>
+      <p class="hero-note"><span data-trial-days>15</span> días sin costo, sin tarjeta y sin compromiso.</p>
     </div>
     <div class="hero-space" aria-hidden="true"></div>
   </div>
@@ -366,7 +424,7 @@ footer .adm-link:hover{color:var(--accent)}
     <div class="why-grid">
       <div class="rv"><h3>Orden</h3><p>Hay miles de videos, libros y consejos, pero sin una secuencia es difícil saber por dónde empezar y qué viene después.</p></div>
       <div class="rv"><h3>Equilibrio</h3><p>La paz interior, la economía y la salud se influyen entre sí. Avanzar en una sola área suele dejar las otras en pausa.</p></div>
-      <div class="rv"><h3>Acompañamiento</h3><p>Un mentor conoce tu punto de partida, propone un ritmo realista y te indica el siguiente paso. Eso es lo que hace Áurea.</p></div>
+      <div class="rv"><h3>Acompañamiento</h3><p>Un mentor conoce tu punto de partida, propone un ritmo realista, responde tus dudas y te indica el siguiente paso. Eso es lo que hace Áurea.</p></div>
     </div>
   </div>
 </section>
@@ -381,7 +439,7 @@ footer .adm-link:hover{color:var(--accent)}
         <span class="tag">Pilar I</span>
         <h3>Espíritu</h3>
         <p>Ideas de las grandes tradiciones de sabiduría, explicadas en lenguaje cotidiano y aplicadas a tu día a día.</p>
-        <div class="chips"><span>Paz interior</span><span>Propósito</span><span>Aceptación</span><span>Presencia</span><span>Soltar el control</span></div>
+        <div class="chips"><span>Paz interior</span><span>Propósito</span><span>Aceptación</span><span>Presencia</span><span>Atención plena</span><span>Soltar el control</span><span>Metafísica</span></div>
       </article>
       <article class="pillar rv" data-p="m">
         <svg class="glyph" viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="38" width="8" height="14" rx="2" fill="var(--matter)" opacity=".45"/><rect x="24" y="30" width="8" height="22" rx="2" fill="var(--matter)" opacity=".65"/><rect x="36" y="21" width="8" height="31" rx="2" fill="var(--matter)" opacity=".85"/><rect x="48" y="11" width="8" height="41" rx="2" fill="var(--matter)"/></svg>
@@ -408,7 +466,7 @@ footer .adm-link:hover{color:var(--accent)}
         <p class="eyebrow">El método</p>
         <h2 style="margin-top:16px">Cada semana, una vuelta <em>completa</em>.</h2>
       </div>
-      <p class="lead rv">Una vuelta reúne una cápsula de Espíritu, una de Prosperidad y una de Vitalidad. La semana siguiente el ciclo se repite con un nivel más de profundidad, de modo que ningún pilar se queda atrás.</p>
+      <p class="lead rv">Una vuelta reúne una cápsula de Espíritu, una de Prosperidad y una de Vitalidad. La semana siguiente el ciclo se repite con un nivel más de profundidad, de modo que ningún pilar se queda atrás. Las cápsulas se eligen según tu Rueda de la Vida: primero las de tus áreas más bajas, y cada vuelta se abre al comenzar su semana.</p>
     </div>
 
     <div class="weeks">
@@ -430,13 +488,13 @@ footer .adm-link:hover{color:var(--accent)}
           <li><i class="dot d-m"></i><span><small>Prosperidad</small>Las creencias que frenan tu economía</span></li>
           <li><i class="dot d-v"></i><span><small>Vitalidad</small>Volver a la comida real</span></li>
         </ol></div>
-      <div class="week next rv"><b>Y la ruta continúa</b><span>13, 26 o 52 semanas, según la duración que elijas. Cada vuelta se apoya en la anterior.</span></div>
+      <div class="week next rv"><b>Y la ruta continúa</b><span>13, 26 o 52 semanas, según tu disponibilidad. Cada vuelta se abre en su semana y se apoya en la anterior.</span></div>
     </div>
 
     <div class="planner rv">
       <div>
         <h3>Tu ruta se ajusta a tu tiempo</h3>
-        <p>Eliges qué días y cuántos minutos puedes dedicar cada semana. Con eso, tu mentor calcula la duración ideal de tu ruta.</p>
+        <p>Eliges qué días y cuántos minutos puedes dedicar cada semana. Con eso, Áurea calcula la duración ideal de tu ruta y reparte tus cápsulas en esos días.</p>
         <div class="seg" role="group" aria-label="Tiempo disponible por semana">
           <button type="button" id="r3" data-m="3" aria-pressed="false"><b>3 meses</b><span>4 h o más por semana</span><em>Ruta intensiva</em></button>
           <button type="button" id="r6" data-m="6" aria-pressed="true"><b>6 meses</b><span>2 a 4 h por semana</span><em>Ruta profunda</em></button>
@@ -491,11 +549,11 @@ footer .adm-link:hover{color:var(--accent)}
     <div class="rv">
       <p class="eyebrow">Tu mentor</p>
       <h2 style="margin-top:16px">Primero te conoce. <em>Después</em> te guía.</h2>
-      <p class="lead" style="margin-top:20px">Tu mentor conversa contigo, entiende en qué punto estás en cada pilar y diseña tu ruta. Así se ve dentro de la app.</p>
+      <p class="lead" style="margin-top:20px">Áurea te hace unas preguntas sencillas, entiende en qué punto estás en cada área de tu vida y diseña tu ruta. Así se ve dentro de la app.</p>
       <ul>
         <li><span class="dot d-s" style="margin-top:9px"></span><span><b>Tu Rueda de la Vida.</b> Ocho áreas de tu vida en un gráfico: cómo estás hoy y dónde poner atención primero.</span></li>
-        <li><span class="dot d-m" style="margin-top:9px"></span><span><b>Ruta a tu medida.</b> 3, 6 o 12 meses según tu disponibilidad.</span></li>
-        <li><span class="dot d-v" style="margin-top:9px"></span><span><b>Acompañamiento semanal.</b> Tres cápsulas por semana, en los días que tú elijas.</span></li>
+        <li><span class="dot d-m" style="margin-top:9px"></span><span><b>Ruta a tu medida.</b> Empieza por las áreas que más lo necesitan y dura 3, 6 o 12 meses según tu disponibilidad.</span></li>
+        <li><span class="dot d-v" style="margin-top:9px"></span><span><b>Acompañamiento semanal.</b> Tres cápsulas por semana, en los días que tú elijas. Vuelve a evaluarte cuando quieras y compara tu rueda de hoy con la inicial.</span></li>
       </ul>
     </div>
     <figure class="botmock rv" aria-label="Vista del mentor dentro de la app Áurea">
@@ -508,6 +566,63 @@ footer .adm-link:hover{color:var(--accent)}
       </div>
       <div class="bm-foot"><span class="bm-btn ghost">← Anterior</span><span class="bm-dots" id="bmD"></span><span class="bm-btn">Siguiente</span></div>
     </figure>
+  </div>
+</section>
+
+<section class="ai" id="conversa">
+  <div class="wrap">
+    <div class="rv">
+      <p class="eyebrow">Áurea Mentor · Conversación personalizada</p>
+      <h2 style="margin-top:16px">Pregúntale lo que necesites. <em>Te responde a ti.</em></h2>
+      <p class="lead">Áurea conoce tu nombre, tu meta, tu Rueda de la Vida y las cápsulas de tu semana. Por eso sus respuestas no son consejos genéricos: parten de tu situación y terminan en un paso concreto que puedes dar hoy.</p>
+      <div class="ai-feats">
+        <div class="ai-feat"><b>Conversa con Áurea</b><p>Escribe tu duda con tus palabras: una decisión, un mal día, una meta que se estancó.</p></div>
+        <div class="ai-feat"><b>Explora a tu ritmo</b><p>Libros, autores y filosofías elegidos para tus áreas más bajas, explicados en lenguaje sencillo.</p></div>
+        <div class="ai-feat"><b>Tu lista de lectura</b><p>Guarda los libros que te recomienda y tenlos a mano cuando quieras.</p></div>
+        <div class="ai-feat"><b>Del mentor a tu diario</b><p>Lleva cualquier respuesta o idea a tu diario para escribir sobre ella.</p></div>
+      </div>
+      <div class="ai-topics" aria-label="Temas del mentor"><span>Libros</span><span>Autores</span><span>Filosofías</span><span>Los tres pilares</span><span>Tu Rueda de la Vida</span><span>Creencias limitantes</span><span>Una idea para hoy</span></div>
+      <p class="ai-quota"><span>Conversaciones incluidas:</span><span><b data-ai-trial>40</b> en tu prueba gratuita</span><span><b data-ai-paid>300</b> al mes con tu plan</span></p>
+    </div>
+    <figure class="aimock rv" aria-label="Ejemplo de una conversación con Áurea">
+      <div class="bm-bar"><i></i><i></i><i></i><span>Áurea · Mentor</span></div>
+      <div class="ai-body">
+        <p class="ai-ask" id="aiQ"></p>
+        <div class="ai-who"><canvas id="aiOrb"></canvas>Áurea responde</div>
+        <p class="ai-ans" id="aiA"></p>
+        <div class="ai-acts wait" id="aiB"><span>Hacer otra pregunta</span><span>Llevarlo a mi diario</span></div>
+      </div>
+      <p class="ai-left" id="aiL">Te quedan 37 consultas este mes</p>
+    </figure>
+  </div>
+</section>
+
+<section class="diary" id="diario">
+  <div class="wrap">
+    <p class="eyebrow rv">Diario personal</p>
+    <h2 class="rv" style="margin-top:16px">Cada día empieza con una intención y <em>termina con una revisión</em>.</h2>
+    <p class="lead rv">Marco Aurelio escribía cada noche para sí mismo; esas notas son hoy las <i>Meditaciones</i>. Séneca repasaba antes de dormir qué había hecho bien y qué podía mejorar. Tu diario recoge esa misma práctica en dos momentos del día, guiados por Áurea.</p>
+    <div class="dia-cards">
+      <article class="dcard am rv">
+        <span class="dk">Mañana · Intención</span>
+        <h3>¿Cómo te sientes al empezar el día?</h3>
+        <div class="dmoods" aria-hidden="true"><i>Difícil</i><i>Bajo</i><i>Normal</i><i class="on">Bien</i><i>Pleno</i></div>
+        <p class="dq">«¿Qué paso, por pequeño que sea, quieres dar hoy hacia tu meta?»</p>
+        <div class="dl"><span>Tu respuesta</span><span>Mi intención para hoy</span></div>
+      </article>
+      <article class="dcard pm rv">
+        <span class="dk">Noche · Revisión</span>
+        <h3>¿Cómo te sientes al terminar el día?</h3>
+        <div class="dmoods" aria-hidden="true"><i>Difícil</i><i>Bajo</i><i class="on">Normal</i><i>Bien</i><i>Pleno</i></div>
+        <p class="dq">«Antes de dormir, Séneca se preguntaba qué había hecho bien y qué podía mejorar.»</p>
+        <div class="dl"><span>¿Qué hice bien hoy?</span><span>¿Qué haría distinto?</span><span>Tres cosas que agradezco hoy</span></div>
+      </article>
+    </div>
+    <div class="dia-notes">
+      <div class="rv"><b>Preguntas a tu medida</b><p>Cada mañana Áurea te propone una pregunta ligada al pilar que trabajas ese día.</p></div>
+      <div class="rv"><b>Tu constancia, a la vista</b><p>Días seguidos, calendario del mes y tus páginas anteriores para releerte y descubrir patrones.</p></div>
+      <div class="rv"><b>Solo para ti</b><p>Nadie más puede leer lo que escribes, ni siquiera el equipo de Áurea.</p></div>
+    </div>
   </div>
 </section>
 
@@ -531,16 +646,18 @@ footer .adm-link:hover{color:var(--accent)}
 <section class="price" id="precio">
   <div class="wrap">
     <p class="eyebrow rv">Precio</p>
-    <h2 class="rv" style="margin-top:16px" data-trial-h2>Comienza con un mes sin costo.</h2>
-    <p class="lead rv">Explora el método durante <span data-trial-days>30</span> días. Después, elige el plan que mejor se ajuste a tu ruta.</p>
+    <h2 class="rv" style="margin-top:16px" data-trial-h2>Comienza con 15 días sin costo.</h2>
+    <p class="lead rv">Explora el método, conversa con Áurea y escribe tu diario durante <span data-trial-days>15</span> días, sin tarjeta. Después, elige el plan que mejor se ajuste a tu ruta.</p>
     <div class="plans">
       <div class="plan rv">
         <span class="eyebrow">Mensual</span>
         <div class="amt">$<span data-price-m>9,99</span> <small>USD / mes</small></div>
         <ul>
-          <li data-trial-li>Primer mes sin costo</li>
-          <li>Ruta personal de 3, 6 o 12 meses</li>
+          <li data-trial-li>Primeros 15 días sin costo</li>
+          <li>Ruta personal de 3, 6 o 12 meses según tu Rueda de la Vida</li>
           <li>Tres cápsulas nuevas cada semana</li>
+          <li><span>Áurea Mentor: <span data-ai-paid>300</span> conversaciones al mes</span></li>
+          <li>Diario personal de mañana y noche</li>
           <li>Niveles y seguimiento de progreso</li>
         </ul>
         <a class="btn btn-ghost" href="app.html">Comenzar</a>
@@ -570,8 +687,11 @@ footer .adm-link:hover{color:var(--accent)}
     <div class="rv">
       <details><summary>¿Necesito conocimientos previos?</summary><p>No. Las cápsulas están escritas para quien empieza. Son breves, claras y cada una termina con una práctica sencilla.</p></details>
       <details><summary>¿Cuánto tiempo requiere?</summary><p>Entre 5 y 15 minutos, tres días por semana. Tu mentor ajusta la ruta a 3, 6 o 12 meses según tu disponibilidad.</p></details>
-      <details><summary>¿Tiene orientación religiosa?</summary><p>No. Las cápsulas se inspiran en tradiciones filosóficas y de sabiduría de distintas culturas, presentadas como herramientas prácticas. Al final de cada una te contamos su origen.</p></details>
-      <details><summary data-trial-faq>¿Qué ocurre al terminar el mes gratuito?</summary><p>Te avisamos antes de que termine. Si deseas continuar, eliges tu plan y pagas con tarjeta. Si no, tu acceso se pausa sin ningún cargo.</p></details>
+      <details><summary>¿Tiene orientación religiosa?</summary><p>No. Las cápsulas se inspiran en tradiciones filosóficas y de sabiduría de distintas culturas, como el Estoicismo, el Budismo, el Taoísmo, el Hermetismo y la Metafísica, presentadas como herramientas prácticas. Al final de cada una te contamos su origen.</p></details>
+      <details><summary>¿Áurea es una persona?</summary><p>Áurea Mentor es un acompañante con inteligencia artificial, creado para acompañar el método de La Espiral de la Plenitud. Conoce tu ruta y tus respuestas para orientarte, pero no reemplaza a un profesional de la salud, de la psicología ni de las finanzas.</p></details>
+      <details><summary>¿Cuántas conversaciones con Áurea tengo?</summary><p>Durante la prueba gratuita tienes <span data-ai-trial>40</span> conversaciones en total, y con tu plan, <span data-ai-paid>300</span> al mes. Dentro de la app siempre ves cuántas te quedan.</p></details>
+      <details><summary>¿Mi diario es privado?</summary><p>Sí. Solo tú puedes leer lo que escribes, ni siquiera el equipo de Áurea. Lo único que se usa, sin tus textos, es cómo te sientes, para estadísticas generales.</p></details>
+      <details><summary data-trial-faq>¿Qué ocurre al terminar la prueba gratuita?</summary><p>Te avisamos antes de que termine. Si deseas continuar, eliges tu plan y pagas con tarjeta. Si no, tu acceso se pausa sin ningún cargo.</p></details>
       <details><summary>¿Puedo cancelar en cualquier momento?</summary><p>Sí. Cancelas desde tu perfil y conservas tu nivel si decides regresar.</p></details>
     </div>
   </div>
@@ -580,8 +700,8 @@ footer .adm-link:hover{color:var(--accent)}
 <section class="final">
   <div class="wrap">
     <h2 class="rv">Tu ruta comienza <em>esta semana</em>.</h2>
-    <p class="lead rv">Tres cápsulas, una semana y un primer paso en cada pilar de tu vida.</p>
-    <div class="hero-cta rv"><a class="btn btn-primary" href="app.html" data-trial-cta>Comenzar mes gratuito</a></div>
+    <p class="lead rv">Tres cápsulas, un mentor que te conoce y un diario para cada día. Tu primer paso en cada pilar de tu vida.</p>
+    <div class="hero-cta rv"><a class="btn btn-primary" href="app.html" data-trial-cta>Comenzar prueba gratuita</a></div>
   </div>
 </section>
 
@@ -696,6 +816,42 @@ footer .adm-link:hover{color:var(--accent)}
     orb();
   })();
 
+  /* ---------- Conversación de ejemplo con Áurea ---------- */
+  (function(){
+    var q=document.getElementById('aiQ'), a=document.getElementById('aiA'), b=document.getElementById('aiB'), l=document.getElementById('aiL'), oc=document.getElementById('aiOrb');
+    if(!q) return;
+    var convs=[
+      {q:'Me cuesta ahorrar. Siempre se me va el dinero antes de fin de mes. ¿Por dónde empiezo?',
+       a:'Ana, tu Rueda muestra Finanzas en 3 de 10, así que empecemos pequeño. Esta semana tu cápsula es «Págate primero a ti»: el día que recibas tu ingreso, aparta un 5 % antes de gastar en cualquier otra cosa. Esta noche anota en tu diario cómo te sentiste al hacerlo.',left:37},
+      {q:'Últimamente me siento sin rumbo. Trabajo mucho, pero no sé para qué.',
+       a:'Te entiendo, Ana. Propósito es hoy tu área más baja, y por eso tu ruta empieza ahí. Una idea para hoy: escribe tres momentos del último mes en los que perdiste la noción del tiempo. Ahí suele asomar lo que te importa. Si quieres, te recomiendo un libro para acompañar esta semana.',left:36}
+    ];
+    var ci=0; q.textContent=convs[0].q;
+    function typeG(el,text,speed,done){
+      if(reduce){ el.textContent=text; return done(); }
+      var sh=document.createElement('span'), c=document.createElement('span'), rs=document.createElement('span');
+      c.className='bm-caret'; rs.className='bm-ghost'; rs.textContent=text; el.innerHTML=''; el.appendChild(sh); el.appendChild(c); el.appendChild(rs);
+      var i=0; (function st(){ i++; sh.textContent=text.slice(0,i); rs.textContent=text.slice(i); if(i<text.length) setTimeout(st, /[.?,:]/.test(text[i-1])?speed*7:speed); else { c.remove(); done(); } })();
+    }
+    function play(){
+      var cv=convs[ci]; b.classList.add('wait'); a.innerHTML='<span class="bm-ghost">'+cv.a+'</span>'; q.textContent=cv.q; l.textContent='Te quedan '+(cv.left+1)+' consultas este mes';
+      setTimeout(function(){ typeG(a, cv.a, 22, function(){ b.classList.remove('wait'); l.textContent='Te quedan '+cv.left+' consultas este mes'; ci=(ci+1)%convs.length; if(!reduce) setTimeout(play, 5200); }); }, 900);
+    }
+    if('IntersectionObserver' in window){ new IntersectionObserver(function(es,o){ es.forEach(function(e){ if(e.isIntersecting){ play(); o.disconnect(); } }); },{threshold:.3}).observe(a); } else play();
+    var ot=0;
+    function orb(){
+      ot+=.016*(window.__aureaSpin||1); var d=Math.min(window.devicePixelRatio||1,2), W=oc.clientWidth, H=oc.clientHeight;
+      if(W){ if(oc.width!==W*d){oc.width=W*d;oc.height=H*d;} var x=oc.getContext('2d'); x.setTransform(d,0,0,d,0,0); x.clearRect(0,0,W,H);
+        var cx=W/2, cy=H/2, R=W*.46, turns=2.6, bb=Math.log((R*.9)/1.5)/(turns*2*Math.PI), rot=ot*.9;
+        x.globalAlpha=.95; x.strokeStyle='#2FD3B3'; x.lineWidth=1.3; x.beginPath();
+        for(var t=0;t<=turns*2*Math.PI;t+=.06){var r=1.5*Math.exp(bb*t), px=cx+r*Math.cos(t+rot), py=cy+r*Math.sin(t+rot); t?x.lineTo(px,py):x.moveTo(px,py);} x.stroke();
+        var cs=['#A08BFF','#F4B848','#FF8370']; for(var k=1;k<=6;k++){ var t2=k*2*Math.PI/3, r2=1.5*Math.exp(bb*t2); x.fillStyle=cs[(k-1)%3]; x.beginPath(); x.arc(cx+r2*Math.cos(t2+rot),cy+r2*Math.sin(t2+rot),1+k*.25,0,7); x.fill(); }
+        x.globalAlpha=1; }
+      if(!reduce) requestAnimationFrame(orb);
+    }
+    orb();
+  })();
+
   /* ---------- Planificador ---------- */
   var weeksBy={3:13,6:26,12:52}, rankBy={3:'Constancia',6:'Claridad',12:'Plenitud'};
   var ribbon=document.getElementById('ribbon');
@@ -729,12 +885,14 @@ footer .adm-link:hover{color:var(--accent)}
   window.__aureaSpin=c.spinSpeed>0?c.spinSpeed/100:1;
   function fmt(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
   function all(sel,fn){ [].forEach.call(document.querySelectorAll(sel),fn); }
-  var d=c.trialDays>0?Math.round(c.trialDays):30, mes=(d===30);
+  var d=c.trialDays>0?Math.round(c.trialDays):15, mes=(d===30);
   all('[data-trial-days]',function(e){ e.textContent=d; });
   all('[data-trial-cta]',function(e){ e.textContent=mes?'Comenzar mes gratuito':'Comenzar prueba gratuita'; });
   all('[data-trial-h2]',function(e){ e.textContent=mes?'Comienza con un mes sin costo.':'Comienza con '+d+(d===1?' día':' días')+' sin costo.'; });
   all('[data-trial-li]',function(e){ e.textContent=mes?'Primer mes sin costo':(d===1?'Primer día sin costo':'Primeros '+d+' días sin costo'); });
   all('[data-trial-faq]',function(e){ e.textContent=mes?'¿Qué ocurre al terminar el mes gratuito?':'¿Qué ocurre al terminar la prueba gratuita?'; });
+  if(c.aiTrialMonth>0) all('[data-ai-trial]',function(e){ e.textContent=Math.round(c.aiTrialMonth); });
+  if(c.aiPaidMonth>0) all('[data-ai-paid]',function(e){ e.textContent=Math.round(c.aiPaidMonth); });
   if(c.priceM>0) all('[data-price-m]',function(e){ e.textContent=fmt(c.priceM); });
   if(c.priceA>0){ all('[data-price-a]',function(e){ e.textContent=fmt(c.priceA); }); all('[data-price-am]',function(e){ e.textContent=fmt(Math.round(c.priceA/12*100)/100); }); }
   }
@@ -746,7 +904,7 @@ footer .adm-link:hover{color:var(--accent)}
       .then(function(r){ return r.ok?r.json():null; }).then(function(j){ if(!j||!j.fields) return;
         function n(f){ return f?+(f.integerValue!=null?f.integerValue:f.doubleValue):0; }
         var c={}; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'{}')||{}; }catch(e){}
-        ['trialDays','priceM','priceA','spinSpeed'].forEach(function(k){ var v=n(j.fields[k]); if(v>0) c[k]=v; });
+        ['trialDays','priceM','priceA','spinSpeed','aiTrialMonth','aiPaidMonth'].forEach(function(k){ var v=n(j.fields[k]); if(v>0) c[k]=v; });
         try{ localStorage.setItem('aurea-config',JSON.stringify(c)); }catch(e){}
         window.__aureaCfg=c; applyCfg(); }).catch(function(){});
   }
