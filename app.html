@@ -876,6 +876,8 @@ body{background:var(--bg)}
 .dia-read{display:grid;gap:6px}.dia-read h4{margin:10px 0 0;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.dia-read p{margin:0;line-height:1.6;white-space:pre-wrap}
 .dia-read blockquote{margin:0;padding:8px 12px;border-left:3px solid var(--accent);font-family:var(--f-display);font-style:italic}
 .tw-f{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}.cap-f{margin:-4px 0 6px;font-size:.9rem;color:var(--muted)}.cap-f b{color:var(--fg)}
+.pay-or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.8rem;margin:12px 0 4px}.pay-or::before,.pay-or::after{content:'';flex:1;height:1px;background:var(--line)}
+.pp-box{min-height:52px;margin-top:8px;display:grid;align-items:center}.pp-wait{color:var(--muted);font-size:.85rem;text-align:center}
 </style>
 
 <div id="root"></div>
@@ -903,7 +905,7 @@ var ANIM_DEF={typeSpeed:100,qhPause:0.35,paraPause:1.2,spinSpeed:100};
 var ANIM_KEYS=['typeSpeed','qhPause','paraPause','spinSpeed'];
 function anim(){ var c=jget(CKEY,{}), r={}; ANIM_KEYS.forEach(function(k){ var v=+c[k]; r[k]=(c[k]!=null && v>=0 && isFinite(v))?v:ANIM_DEF[k]; }); if(!(r.typeSpeed>0)) r.typeSpeed=100; return r; }
 var AN=null; function animNow(){ return AN||(AN=anim()); }
-function cfg(){ var c=jget(CKEY,{}); return {trialDays:c.trialDays>0?c.trialDays:15, priceM:c.priceM>0?c.priceM:9.99, priceA:c.priceA>0?c.priceA:79, payIva:c.payIva!=null?+c.payIva:15, admin:c.admin||null}; }
+function cfg(){ var c=jget(CKEY,{}); return {trialDays:c.trialDays>0?c.trialDays:15, priceM:c.priceM>0?c.priceM:9.99, priceA:c.priceA>0?c.priceA:79, payIva:c.payIva!=null?+c.payIva:15, payPayphone:!!c.payPayphone, payPaypal:!!c.payPaypal, admin:c.admin||null}; }
 function fmtP(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function up(s){ return String(s||'').toUpperCase(); }
@@ -1945,11 +1947,15 @@ function viewProfile(main){
       '<section class="pcard pdata"><div class="pd-h"><h2>Datos personales</h2><button type="button" class="pd-ed" id="pdEdit">Editar</button></div>'+row('Nombre',tc(r.name))+row('Correo',r.email)+row('Edad',r.age+' años')+row('Sexo',r.sex)+row('País',tc(r.country))+row('Ciudad',tc(r.city))+'</section>'+
     '</div>'+
     '<section class="pcard psub"><div><h2>Suscripción</h2>'+
-      (S.subscribed?'<p><span class="pstat ok">Activa</span> Plan '+(S.plan==='anual'?'anual · $'+fmtP(cfg().priceA)+' USD al año':'mensual · $'+fmtP(cfg().priceM)+' USD al mes')+'</p>'+(subEnd()?'<p class="note">Vigente hasta el '+subEnd()+'. Antes de esa fecha podrás renovarla.</p>':'')
+      (S.subscribed?'<p><span class="pstat ok">Activa</span> Plan '+(S.plan==='anual'?'anual · $'+fmtP(cfg().priceA)+' USD al año':'mensual · $'+fmtP(cfg().priceM)+' USD al mes')+'</p>'+(subEnd()?'<p class="note">'+(SUB&&SUB.autoRenew?'Se renueva sola el '+subEnd()+'. <button type="button" class="pd-ed" id="subCancel">Cancelar renovación</button>':'Vigente hasta el '+subEnd()+'. Antes de esa fecha podrás renovarla.')+'</p>':'')
         :'<p><span class="pstat">Prueba gratuita</span> Te '+(left===1?'queda 1 día':'quedan '+left+' días')+' de prueba.</p><div class="ptrial"><i style="width:'+Math.round((cfg().trialDays-left)/cfg().trialDays*100)+'%"></i></div>')+
       '</div>'+(S.subscribed?'':'<button class="btn btn-primary" id="seePlans" type="button">Ver planes</button>')+'</section>'+
     '<div class="plogout"><button type="button" id="chpw">Cambiar contraseña</button></div>';
   var sp=main.querySelector('#seePlans'); if(sp) sp.onclick=paywall;
+  var sc=main.querySelector('#subCancel'); if(sc) sc.onclick=function(){
+    if(!confirm('¿Cancelar la renovación automática? Conservas tu acceso hasta el '+subEnd()+'.')) return;
+    sc.disabled=true; fnCall('subCancel').then(loadSub).then(function(){ toast('Renovación cancelada. Tu acceso sigue hasta el '+subEnd()+'.'); renderApp('perfil'); })
+      .catch(function(e){ sc.disabled=false; toast((e&&e.message)||'No pude cancelar ahora. Intenta de nuevo.'); }); };
   main.querySelector('#chpw').onclick=changePw; main.querySelector('#pdEdit').onclick=editProfile;
 }
 
@@ -2273,12 +2279,19 @@ function paywall(){
   ov.innerHTML='<article class="sheet" role="dialog" aria-modal="true" aria-label="Suscripción">'+(ended?'':'<button class="close" type="button" aria-label="Cerrar">✕</button>')+
     '<div style="display:flex;justify-content:center" id="orbSlot"></div><p class="paytext" id="pt"></p>'+
     '<div class="plans"><button type="button" class="plan" data-p="mensual" aria-pressed="'+(S.plan==='mensual')+'"><span class="mono">Mensual</span><b>$'+fmtP(cfg().priceM)+'</b><small>USD al mes</small></button><button type="button" class="plan" data-p="anual" aria-pressed="'+(S.plan==='anual')+'"><span class="mono">Anual · Mejor valor</span><b>$'+fmtP(cfg().priceA)+'</b><small>USD al año · $'+fmtP(Math.round(cfg().priceA/12*100)/100)+' al mes</small></button></div>'+
-    '<button class="btn btn-primary big-cta" id="sub" type="button">'+(cloud()?'Pagar con tarjeta':'Suscribirme con tarjeta')+'</button>'+(cloud()?'<p class="note">Pago seguro con Payphone: Visa, Mastercard y otras tarjetas. Áurea no ve ni guarda los datos de tu tarjeta.</p><p class="note err" id="payErr" hidden></p>':'')+'<p class="note" id="payNote" hidden>En la versión final, este botón abre el pago seguro con tarjeta de crédito (Stripe). Ningún dato de tarjeta pasa por esta vista previa. <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">Simular pago aprobado</button></p></article>';
+    (!cloud()?'<button class="btn btn-primary big-cta" id="sub" type="button">Suscribirme con tarjeta</button>':
+      (cfg().payPayphone?'<button class="btn btn-primary big-cta" id="sub" type="button">Pagar con tarjeta</button>':'')+
+      (cfg().payPayphone&&cfg().payPaypal?'<p class="pay-or"><span>o</span></p>':'')+
+      (cfg().payPaypal?'<div id="ppBtn" class="pp-box"><span class="pp-wait">Cargando PayPal…</span></div>':'')+
+      (cfg().payPayphone||cfg().payPaypal?'<p class="note">'+(cfg().payPayphone?'Tarjeta: pago seguro con Payphone (Ecuador). ':'')+(cfg().payPaypal?'PayPal: desde cualquier país, con tu cuenta o tarjeta, y se renueva solo. ':'')+'Áurea no ve ni guarda los datos de tu tarjeta.</p>':'<p class="note">Muy pronto podrás suscribirte aquí con tarjeta o PayPal.</p>')+
+      '<p class="note err" id="payErr" hidden></p>')+'<p class="note" id="payNote" hidden>En la versión final, este botón abre el pago seguro con tarjeta de crédito (Stripe). Ningún dato de tarjeta pasa por esta vista previa. <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">Simular pago aprobado</button></p></article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   ov.querySelector('#orbSlot').appendChild(makeOrb());
   var cl=ov.querySelector('.close'); if(cl) cl.onclick=function(){ ov.remove(); document.body.style.overflow=''; };
   ov.querySelectorAll('.plan').forEach(function(b){ b.onclick=function(){ S.plan=b.dataset.p; save(); ov.querySelectorAll('.plan').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));}); }; });
-  ov.querySelector('#sub').onclick=function(){
+  var ppb=ov.querySelector('#ppBtn');
+  if(ppb) paypalMount(ppb,ov.querySelector('#payErr'),function(){ ov.remove(); document.body.style.overflow=''; renderApp(); toast('Suscripción activa con PayPal. Tu ruta continúa.'); });
+  var sb=ov.querySelector('#sub'); if(sb) sb.onclick=function(){
     if(!cloud()||!fbUser){ ov.querySelector('#payNote').hidden=false; return; }
     var b=this, er=ov.querySelector('#payErr'); b.disabled=true; b.textContent='Abriendo el pago seguro…'; er.hidden=true;
     payStart(S.plan==='mensual'?'mensual':'anual').then(function(r){ location.href=r.url; })
@@ -2584,6 +2597,8 @@ function admConfig(m){
     '<div class="agrid ag2"><section class="pcard"><h2>Prueba gratuita y planes</h2><form class="login mform" id="cf1" novalidate>'+
       fld('cf-days','Días de prueba gratuita',c.trialDays,'number','min="1" max="365" inputmode="numeric"')+
       '<div class="m2">'+fld('cf-pm','Plan mensual (USD)',fmtP(c.priceM),'text','inputmode="decimal"')+fld('cf-pa','Plan anual (USD)',fmtP(c.priceA),'text','inputmode="decimal"')+'</div>'+fld('cf-iva','IVA incluido en el precio (%)',c.payIva!=null?c.payIva:15,'number','min="0" max="30" inputmode="numeric"')+
+      '<div class="ia-sw"><input type="checkbox" id="cf-pph"'+(c.payPayphone?' checked':'')+'><label for="cf-pph">Pago con tarjeta por Payphone (Ecuador)</label></div>'+
+      '<div class="ia-sw"><input type="checkbox" id="cf-ppl"'+(c.payPaypal?' checked':'')+'><label for="cf-ppl">Pago con PayPal (otros países)</label></div>'+
       '<p class="m-note">Los días de prueba se aplican a todos los usuarios, también a los que ya están en su prueba gratuita. Los precios se muestran en la pantalla de suscripción y se cobran con IVA incluido; si no cobras IVA, pon 0. Confírmalo con tu contador.</p><p class="err" id="cf1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar configuración</button></div></form></section>'+
     '<section class="pcard"><h2>Acceso de administrador</h2><form class="login mform" id="cf2" novalidate>'+fld('cf-am','Correo',c.admin?c.admin.email:'','email','maxlength="80" autocomplete="username"')+pwFld('cf-ac','Contraseña actual','current-password')+pwFld('cf-an','Contraseña nueva (opcional)','new-password')+
       '<p class="err" id="cf2e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Actualizar acceso</button></div></form></section></div>';
@@ -2595,7 +2610,7 @@ function admConfig(m){
     if(!(pm>0)||!(pa>0)){ er.textContent='Escribe precios válidos, por ejemplo 9,99.'; return; }
     var iva=parseInt(m.querySelector('#cf-iva').value,10); if(!(iva>=0&&iva<=30)){ er.textContent='El IVA debe estar entre 0 y 30.'; return; }
     pm=Math.round(pm*100)/100; pa=Math.round(pa*100)/100;
-    if(cloud()){ cloudSaveSettings(d,pm,pa,iva).then(function(){ er.textContent=''; toast('Configuración guardada para todos.'); }).catch(function(e){ er.textContent=fbErr(e); }); return; }
+    if(cloud()){ cloudSaveSettings(d,pm,pa,iva,m.querySelector('#cf-pph').checked,m.querySelector('#cf-ppl').checked).then(function(){ er.textContent=''; toast('Configuración guardada para todos.'); }).catch(function(e){ er.textContent=fbErr(e); }); return; }
     var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; cc.payIva=iva; jset(CKEY,cc); er.textContent=''; toast('Configuración guardada.'); };
   if(cloud()){ var sec=m.querySelector('#cf2'); sec.innerHTML='<label><span>Correo</span><input class="lfield" type="email" value="'+esc(fbUser.email)+'" disabled></label>'+pwFld('cf-ac','Contraseña actual','current-password')+pwFld('cf-an','Contraseña nueva','new-password')+'<p class="err" id="cf2e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Cambiar contraseña</button></div>'; wireEyes(sec);
     sec.onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#cf2e'), cur=m.querySelector('#cf-ac').value, nw=m.querySelector('#cf-an').value, r=regRule('pw')(nw); if(r){ er.textContent=r; return; }
@@ -2671,10 +2686,30 @@ function loadSub(){
     if(S.subscribed&&SUB.plan) S.plan=SUB.plan; }).catch(function(){});
 }
 function subEnd(){ return SUB&&SUB.currentPeriodEnd?new Date(SUB.currentPeriodEnd).toLocaleDateString('es',{day:'numeric',month:'long',year:'numeric'}):''; }
-var payFn=null;
-function payStart(plan){
-  var go=payFn?Promise.resolve(payFn):import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js').then(function(fm){ payFn=fm.httpsCallable(fm.getFunctions(FB.app,'us-central1'),'payphoneStart',{timeout:40000}); return payFn; });
-  return go.then(function(fn){ return fn({plan:plan}); }).then(function(r){ return r.data; });
+var FNS={};
+function fnCall(name,data){
+  var go=FNS[name]?Promise.resolve(FNS[name]):import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js').then(function(fm){ FNS[name]=fm.httpsCallable(fm.getFunctions(FB.app,'us-central1'),name,{timeout:40000}); return FNS[name]; });
+  return go.then(function(fn){ return fn(data||{}); }).then(function(r){ return r.data; });
+}
+function payStart(plan){ return fnCall('payphoneStart',{plan:plan}); }
+/* PayPal: el botón oficial de PayPal; el servidor crea el plan y verifica la suscripción */
+var ppSdk=null;
+function paypalSdk(clientId){
+  if(ppSdk) return ppSdk;
+  ppSdk=new Promise(function(res,rej){ var sc=document.createElement('script');
+    sc.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(clientId)+'&vault=true&intent=subscription&currency=USD&locale=es_EC';
+    sc.onload=function(){ res(window.paypal); }; sc.onerror=function(){ ppSdk=null; rej(new Error('No pude cargar PayPal.')); }; document.head.appendChild(sc); });
+  return ppSdk;
+}
+function paypalMount(box,er,done){
+  fnCall('paypalPlan',{plan:S.plan==='mensual'?'mensual':'anual'}).then(function(cf){ return paypalSdk(cf.clientId).then(function(pp){
+    box.innerHTML=''; return pp.Buttons({style:{layout:'horizontal',shape:'pill',label:'subscribe',tagline:false,height:48},
+      createSubscription:function(d,a){ return fnCall('paypalPlan',{plan:S.plan==='mensual'?'mensual':'anual'}).then(function(r){ return a.subscription.create({plan_id:r.planId,custom_id:r.uid}); }); },
+      onApprove:function(d){ er.hidden=true; return fnCall('paypalConfirm',{subscriptionID:d.subscriptionID}).then(function(){ return loadSub(); }).then(done)
+        .catch(function(e){ er.textContent=(e&&e.message)||'No pude confirmar el pago.'; er.hidden=false; }); },
+      onError:function(){ er.textContent='PayPal no pudo completar el pago. Intenta de nuevo.'; er.hidden=false; }
+    }).render(box); }); })
+  .catch(function(e){ box.innerHTML=''; er.textContent=(e&&e.message)||'PayPal no está disponible ahora.'; er.hidden=false; });
 }
 /* Al volver de Payphone: /app.html?pago=ok|cancelado|rechazado|error */
 function payReturn(){
@@ -2685,7 +2720,7 @@ function payReturn(){
 }
 function loadSettings(){
   return FB.f.getDoc(FB.f.doc(FB.db,'settings','app')).then(function(d){ if(!d.exists()) return; var v=d.data(), cc=jget(CKEY,{});
-    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); if(v.payIva!=null) cc.payIva=+v.payIva; ANIM_KEYS.forEach(function(k){ if(v[k]!=null && +v[k]>=0) cc[k]=+v[k]; }); AI_KEYS.forEach(function(k){ if(v[k]!=null) cc[k]=v[k]; }); jset(CKEY,cc); AN=null; }).catch(function(){});
+    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); if(v.payIva!=null) cc.payIva=+v.payIva; cc.payPayphone=!!v.payPayphone; cc.payPaypal=!!v.payPaypal; ANIM_KEYS.forEach(function(k){ if(v[k]!=null && +v[k]>=0) cc[k]=+v[k]; }); AI_KEYS.forEach(function(k){ if(v[k]!=null) cc[k]=v[k]; }); jset(CKEY,cc); AN=null; }).catch(function(){});
 }
 function cloudInit(){
   if(!FBC) return Promise.resolve();
@@ -2755,9 +2790,9 @@ function adminLoginCloud(){
   };
   typeQA(q,'Acceso de administrador.',hint,'Ingresa con tu correo y tu contraseña de administrador.',function(){ ans.classList.remove('wait'); });
 }
-function cloudSaveSettings(d,pm,pa,iva){
-  var v={trialDays:d,priceM:pm,priceA:pa,payIva:iva,updatedAt:Date.now()};
-  return FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),v,{merge:true}).then(function(){ var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; cc.payIva=iva; jset(CKEY,cc); });
+function cloudSaveSettings(d,pm,pa,iva,pph,ppl){
+  var v={trialDays:d,priceM:pm,priceA:pa,payIva:iva,payPayphone:!!pph,payPaypal:!!ppl,updatedAt:Date.now()};
+  return FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),v,{merge:true}).then(function(){ var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; cc.payIva=iva; cc.payPayphone=!!pph; cc.payPaypal=!!ppl; jset(CKEY,cc); });
 }
 
 /* ================= ARRANQUE ================= */

@@ -161,3 +161,7 @@ const pagos = require("./pagos");
 exports.payphoneStart = pagos.payphoneStart;
 exports.payphoneReturn = pagos.payphoneReturn;
 exports.subsDaily = pagos.subsDaily;
+exports.paypalPlan = pagos.paypalPlan;
+exports.paypalConfirm = pagos.paypalConfirm;
+exports.paypalWebhook = pagos.paypalWebhook;
+exports.subCancel = pagos.subCancel;

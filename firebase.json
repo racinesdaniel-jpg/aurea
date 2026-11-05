@@ -21,6 +21,13 @@
           "functionId": "payphoneReturn",
           "region": "us-central1"
         }
+      },
+      {
+        "source": "/pago/paypal",
+        "function": {
+          "functionId": "paypalWebhook",
+          "region": "us-central1"
+        }
       }
     ]
   },
