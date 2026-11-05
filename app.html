@@ -1192,10 +1192,13 @@ function runSteps(cfg){
   var i=cfg.start||0;
   function show(){
     var st=cfg.steps[i];
-    var el=botScreen({phase:cfg.phase});
+    var el=botScreen({phase:st.phase||cfg.phase});
     var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
-    var bars=''; for(var k=0;k<cfg.steps.length;k++) bars+='<i class="'+(k===i?'on':(k<i?'done':''))+'"></i>';
-    dots.innerHTML='<div class="bar">'+bars+'</div><span>Pregunta '+(i+1)+' de '+cfg.steps.length+'</span>';
+    /* El contador solo cuenta preguntas reales (no las pantallas de introducción) y se reinicia en cada sección. */
+    var sec=st.sec||'', qs=[]; cfg.steps.forEach(function(x,k){ if(x.type!=='info' && (x.sec||'')===sec) qs.push(k); });
+    if(st.type==='info'){ dots.innerHTML=st.label?'<span>'+esc(st.label)+'</span>':''; }
+    else { var pos=qs.indexOf(i), bars=''; qs.forEach(function(k,j){ bars+='<i class="'+(j===pos?'on':(j<pos?'done':''))+'"></i>'; });
+      dots.innerHTML='<div class="bar">'+bars+'</div><span>Pregunta '+(pos+1)+' de '+qs.length+'</span>'; }
     back.disabled=(i===0 && !cfg.onBackFirst);
     if(i===0 && cfg.firstBackLabel){ back.textContent=cfg.firstBackLabel; back.classList.add('back-login'); }
     back.onclick=function(){ if(i>0){ i--; show(); } else if(cfg.onBackFirst) cfg.onBackFirst(); };
@@ -1399,7 +1402,7 @@ function regSummary(){
 /* 8 áreas agrupadas por pilar. Cada área lleva las etiquetas de las cápsulas que la trabajan. */
 var AREAS=[
  {k:'paz',p:'s',n:'Paz interior',tags:['ansiedad','calma'],q:'¿Cuánta calma sientes en tu día a día?',h:'Piensa en cuánto te preocupas y en lo fácil o difícil que te resulta estar en paz contigo.',lo:'Ninguna',hi:'Mucha'},
- {k:'proposito',p:'s',n:'Propósito',tags:['proposito'],q:'¿Qué tan claro tienes para qué haces lo que haces?',h:'Piensa si sientes que tu vida tiene un rumbo que te motiva y le da sentido a tus días.',lo:'Nada claro',hi:'Muy claro'},
+ {k:'proposito',p:'s',n:'Propósito',tags:['proposito'],q:'¿Qué tan claro tienes el rumbo de tu vida?',h:'Piensa si tienes metas que te motivan y si sientes que lo que haces cada día tiene sentido para ti.',lo:'Nada claro',hi:'Muy claro'},
  {k:'relaciones',p:'s',n:'Relaciones',tags:['relaciones','ego','pasado'],q:'¿Cómo te sientes con tus relaciones?',h:'Pareja, familia y amistades: el apoyo que das y recibes, y cómo manejas los conflictos.',lo:'Muy mal',hi:'Muy bien'},
  {k:'finanzas',p:'m',n:'Finanzas',tags:['ahorro','deudas','invertir'],q:'¿Cuánta tranquilidad te da tu situación económica?',h:'Piensa en tus deudas, en tu ahorro y en si tienes un respaldo para los imprevistos.',lo:'Ninguna',hi:'Mucha'},
  {k:'trabajo',p:'m',n:'Trabajo',tags:['ingresos','creencias'],q:'¿Qué tan satisfecho o satisfecha te sientes con tu trabajo?',h:'Piensa en tus ingresos, en tus posibilidades de crecer y en si aprovechas tus talentos.',lo:'Nada',hi:'Totalmente'},
@@ -1408,7 +1411,7 @@ var AREAS=[
  {k:'emociones',p:'v',n:'Emociones',tags:['estres','calma'],q:'¿Qué tan bien manejas el estrés y tus emociones?',h:'Piensa en cómo reaccionas cuando las cosas se complican o no salen como esperabas.',lo:'Muy mal',hi:'Muy bien'}
 ];
 var PSCORE={s:'sScore',m:'mScore',v:'vScore'};
-function wheelSteps(){ return AREAS.map(function(a,i){ return {key:'w_'+a.k,type:'scale',q:'Del 1 al 10: '+a.q.charAt(0).toLowerCase()+a.q.slice(1),hint:a.h,low:a.lo,high:a.hi,area:a.k}; }); }
+function wheelSteps(){ return AREAS.map(function(a,i){ return {key:'w_'+a.k,type:'scale',phase:'Rueda de la Vida',q:'Del 1 al 10: '+a.q.charAt(0).toLowerCase()+a.q.slice(1),hint:a.h,low:a.lo,high:a.hi,area:a.k}; }); }
 function wheelFrom(o){ var w={}; AREAS.forEach(function(a){ w[a.k]=o['w_'+a.k]; }); return w; }
 function wheelOf(d){ d=d||{}; if(d.wheel) return d.wheel; var w={}; AREAS.forEach(function(a){ w[a.k]=d[PSCORE[a.p]]||5; }); return w; }
 function wheelStart(){ return {t:S.diag.wheelAt||S.reg.registeredAt, w:wheelOf(S.diag)}; }
@@ -1486,10 +1489,11 @@ var FOLLOW={
     high:{q:'Tu energía está muy bien. ¿Qué quieres optimizar?',h:'Iremos por el siguiente nivel de bienestar.',o:[{v:'sedentarismo',l:'Mi rendimiento físico'},{v:'alimentacion',l:'Mi nutrición'},{v:'sueno',l:'La calidad de mi descanso'},{v:'estres',l:'Mi equilibrio ante la presión'},{v:'energia',l:'Mi vitalidad todo el día'}]}}
 };
 function DIAG(){ var n=S.reg.name; return [
- {key:'_i',type:'info',q:'Tu cuenta está lista, '+n+'.',hint:'Ahora haremos tu Rueda de la Vida: una foto de cómo está hoy cada área de tu vida. Son 8 preguntas rápidas del 1 al 10, más tu tiempo disponible y tu meta. Responde con lo primero que sientas: no hay respuestas buenas ni malas.',cta:'Comenzar mi rueda'},
- {key:'avail',type:'schedule',q:'¿Qué días y cuánto tiempo puedes dedicar a tu ruta?',hint:'Toca los días que eliges y ajusta los minutos de cada uno.',validate:function(v){ return (!v||!Object.keys(v).length)?'Elige al menos un día.':''; }}
+ {key:'_i',type:'info',q:'Tu cuenta está lista, '+n+'.',hint:'Ahora haremos tu Rueda de la Vida, una herramienta de autoevaluación usada en psicología y coaching. Muestra cómo te sientes hoy en 8 áreas de tu vida y cuáles piden más atención. Son 8 preguntas rápidas del 1 al 10. Responde con lo primero que sientas: no hay respuestas buenas ni malas.',cta:'Comenzar mi rueda',phase:'Rueda de la Vida'}
 ].concat(wheelSteps(),[
- {key:'goal',type:'text',q:'Imagina que pasó un año y tu vida cambió. ¿Qué es lo primero que notarías?',hint:'Escríbelo en pocas palabras. Lo recordaré durante tu ruta.',ph:'Por ejemplo: vivo con calma y sin deudas',max:90,validate:function(v){ return String(v).trim().length<4?'Escribe al menos unas palabras.':''; }}
+ {key:'_i2',type:'info',sec:'ruta',phase:'Tu ruta',q:'Tu rueda está completa, '+n+'.',hint:'Ahora, dos preguntas para armar tu ruta: qué días y cuánto tiempo puedes dedicarle, y qué te gustaría lograr. Con eso defino la duración de tu ruta y el ritmo de tus cápsulas.',cta:'Continuar'},
+ {key:'avail',type:'schedule',sec:'ruta',phase:'Tu ruta',q:'¿Qué días y cuánto tiempo puedes dedicar a tu ruta?',hint:'Toca los días que eliges y ajusta los minutos de cada uno.',validate:function(v){ return (!v||!Object.keys(v).length)?'Elige al menos un día.':''; }},
+ {key:'goal',type:'text',sec:'ruta',phase:'Tu ruta',q:'Imagina que pasó un año y tu vida cambió. ¿Qué es lo primero que notarías?',hint:'Escríbelo en pocas palabras. Lo recordaré durante tu ruta.',ph:'Por ejemplo: vivo con calma y sin deudas',max:90,validate:function(v){ return String(v).trim().length<4?'Escribe al menos unas palabras.':''; }}
 ]); }
 function welcomeDiag(){ S.stage='diag'; save(); runSteps({phase:'Diagnóstico',steps:DIAG(),store:S.diag,onDone:buildRoute}); }
 
