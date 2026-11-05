@@ -2046,7 +2046,15 @@ function cloudRegister(onOk,onErr){
   function done(u){ fbUser=u; pendingPw=null; onOk(); }
   if(fbUser && mailKey(fbUser.email)===mailKey(mail)) return done(fbUser);
   if(!pendingPw){ onErr({code:'need-pw'}); return; }
-  FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ done(cr.user); }).catch(onErr);
+  FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ done(cr.user); }).catch(function(e){
+    if(e&&e.code==='auth/email-already-in-use'){
+      /* La cuenta ya existe (por ejemplo, el acceso de administrador) pero puede no tener registro de usuario: si la contraseña coincide, se completa el registro. */
+      FB.a.signInWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){
+        return FB.f.getDoc(userRef(cr.user.uid)).then(function(d){ if(d.exists()){ fbUser=cr.user; pendingPw=null; return loadMine().then(function(){ boot(); }); } done(cr.user); });
+      }).catch(function(){ onErr(e); });
+      return;
+    }
+    onErr(e); });
 }
 function cloudLogin(mail,pw){
   return FB.a.signInWithEmailAndPassword(FB.auth,String(mail).trim(),pw).then(function(cr){ fbUser=cr.user; return loadMine(); });
