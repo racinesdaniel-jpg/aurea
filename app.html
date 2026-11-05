@@ -84,6 +84,8 @@ p{margin:0}
 .caret{display:inline;border-left:2px solid var(--accent);margin-left:-1px;margin-right:-1px;animation:blinkb 1s steps(1) infinite}
 @keyframes blinkb{50%{border-left-color:transparent}}
 .ghost{visibility:hidden}
+::highlight(tw-ghost){color:transparent}
+.caret-abs{position:absolute;width:2px;margin-left:-1px;background:var(--accent);animation:blinkb 1s steps(1) infinite;pointer-events:none;font-style:normal}
 .q,.hint,.paytext{text-wrap:wrap}
 #q.plain{text-transform:none;letter-spacing:0;font-weight:300;max-width:26ch;font-size:clamp(1.4rem,3vw,2rem);line-height:1.3}
 @keyframes blink{50%{opacity:0}}
@@ -630,7 +632,7 @@ body{background:var(--bg)}
 .adm-tabs button[aria-current]{background:#fff;color:#111833}
 .adm-out{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;font:inherit;font-size:.88rem;font-weight:600;padding:.5em 1.1em;border-radius:999px;cursor:pointer}
 .adm-out:hover{background:rgba(255,255,255,.1)}
-@media (max-width:760px){.adm-tabs{order:3;margin-left:0;width:100%;justify-content:space-between}.adm-tabs button{flex:1}.adm-out{margin-left:auto}}
+@media (max-width:760px){.adm-tabs{order:3;margin-left:0;width:100%;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;border-radius:18px}.adm-tabs::-webkit-scrollbar{display:none}.adm-tabs button{flex:0 0 auto;white-space:nowrap}.adm-out{margin-left:auto}}
 .adm-main{max-width:1240px;margin:0 auto;padding-block:32px 60px;display:grid;gap:22px}
 .adm-h{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .adm-h h1{font-size:clamp(2rem,4vw,2.8rem);font-weight:400;line-height:1.05}.adm-h h1 small{font-family:var(--f-body);font-size:1rem;color:var(--muted);font-weight:600;vertical-align:middle;margin-left:6px}
@@ -765,12 +767,27 @@ body{background:var(--bg)}
 .mt-cover b{font-family:var(--f-display);font-weight:400;font-size:.95rem;line-height:1.2}.mt-cover small{font-size:.68rem;opacity:.8}
 .mt-cover.d-s{background:linear-gradient(160deg,#6D5BD0,#2B2266)}.mt-cover.d-m{background:linear-gradient(160deg,#C98A12,#5E3E05)}.mt-cover.d-v{background:linear-gradient(160deg,#E0604A,#6B2215)}
 @media (max-width:520px){.mt-book{grid-template-columns:84px 1fr;gap:12px}}
-.mt-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:720px}
+.mt-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:720px;width:100%}
+.mt-opts .mt-op{flex:0 0 calc((100% - 20px)/3);box-sizing:border-box;align-content:center;min-height:62px}
+@media (max-width:620px){.mt-opts .mt-op{flex-basis:calc((100% - 10px)/2)}}
 .mt-op{display:grid;gap:2px;justify-items:center;padding:12px 18px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-weight:600;cursor:pointer;opacity:0;transform:translateY(8px);animation:mtIn .4s ease forwards;animation-delay:calc(var(--i)*60ms);transition:border-color .15s,background .15s}
 .mt-op small{font-weight:400;font-size:.75rem;color:var(--muted)}
 .mt-ai{display:grid;gap:10px}.mt-ai textarea{width:100%;min-height:96px;resize:vertical;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;line-height:1.5}.mt-ai textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
 .mt-ai-r{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.mt-ai-r small,.mt-ai-l{color:var(--muted);font-size:.8rem}.mt-ans p{white-space:pre-line;line-height:1.6;margin:0 0 10px}.mt-ans .mt-ai-l{display:block}
+.an-f{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 16px}.an-f label{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--muted)}.an-f select{width:auto;padding:8px 12px}
+.an-chip,.an-clear{border:1px solid var(--accent);background:var(--accent-soft);color:var(--fg);border-radius:999px;padding:7px 12px;font:inherit;font-size:.85rem;cursor:pointer}.an-clear{background:transparent;border-color:var(--line)}
+.an-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}@media (max-width:980px){.an-g{grid-template-columns:1fr 1fr}}@media (max-width:640px){.an-g{grid-template-columns:1fr}}
+.an-k{font-size:1.7rem!important}.an-k small{font-family:var(--f-body,inherit);font-size:.85rem;color:var(--muted)}
+.an-bars{display:grid;gap:4px}.an-b{display:grid;grid-template-columns:minmax(80px,38%) 1fr 34px;gap:10px;align-items:center;padding:6px 8px;border:0;border-radius:10px;background:transparent;color:var(--fg);font:inherit;font-size:.88rem;text-align:left;cursor:pointer}
+.an-b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.an-b i{height:10px;border-radius:0 4px 4px 0;background:var(--bg-2);overflow:hidden}.an-b em{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--accent)}.an-b b{text-align:right;font-variant-numeric:tabular-nums}
+.an-b:hover,.an-l:hover{background:var(--bg-2)}.an-b.on,.an-l.on{background:var(--accent-soft)}.an-b.dim,.an-l.dim{opacity:.45}.an-more{font-size:.8rem;color:var(--muted);margin:4px 8px 0}
+.an-don{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center}@media (max-width:420px){.an-don{grid-template-columns:1fr;justify-items:center}}
+.an-don svg{width:150px;height:150px}.an-s{stroke:var(--surface);stroke-width:2;cursor:pointer;transition:opacity .15s}.an-s.dim{opacity:.3}.an-s:hover,.an-s:focus{opacity:.85;outline:none}
+.an-dt{font-size:22px;fill:var(--fg);font-family:var(--f-display)}.an-ds{font-size:9px;fill:var(--muted);letter-spacing:.06em}
+.an-leg{display:grid;gap:2px;width:100%}.an-l{display:grid;grid-template-columns:10px 1fr auto 40px;gap:8px;align-items:center;padding:5px 8px;border:0;border-radius:8px;background:transparent;color:var(--fg);font:inherit;font-size:.85rem;text-align:left;cursor:pointer}
+.an-l i{width:10px;height:10px;border-radius:50%}.an-l b{font-variant-numeric:tabular-nums}.an-l small{color:var(--muted);text-align:right}.an-empty{font-size:.9rem}
 .ia-sw{display:flex;gap:10px;align-items:center;font-weight:600}.login .ia-sw label{display:block;cursor:pointer}.akpis.ia-k{grid-template-columns:1fr 1fr}.ia-k .akpi b{font-size:2rem}.ia-sw input{width:18px;height:18px;accent-color:var(--accent)}.ia-h{font-size:.9rem;margin:6px 0 -4px;color:var(--muted);font-weight:600}
+.mt-op.done{cursor:default;color:var(--accent);border-color:var(--accent)}.mt-op:disabled:hover{background:var(--surface)}
 .mt-op:hover{border-color:var(--accent);background:var(--accent-soft)}
 .mt-op.main{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}.mt-op.main small{color:rgba(255,255,255,.85)}
 @keyframes mtIn{to{opacity:1;transform:none}}
@@ -921,6 +938,10 @@ var CAPS=[
   body:['Lo que llamamos «yo» está hecho de tus padres, tus maestros, tu idioma, la comida que comiste hoy y miles de personas que nunca conocerás.','Comprender esta interdependencia reduce el ego y aumenta la gratitud: nadie se hace solo.'],
   practice:'Antes de comer, piensa en cinco personas que hicieron posible ese plato.',
   origin:'Budismo',ref:'La vacuidad (śūnyatā): nada tiene una existencia separada e independiente.'},
+ {id:'s15',p:'s',t:['proposito','calma'],title:'Tus palabras construyen tu día',min:4,
+  body:['Cada día te dices frases sin darte cuenta: «no puedo», «todo me sale mal», «siempre igual». Repetidas, se vuelven la forma en que miras lo que te pasa.','Elegir con cuidado lo que dices sobre ti y sobre tu vida no cambia los hechos de inmediato, pero sí cambia dónde pones tu atención y las decisiones que tomas.'],
+  practice:'Esta semana, cada vez que te descubras diciendo «no puedo» o «siempre me pasa», cámbialo por «estoy aprendiendo a…» y anótalo.',
+  origin:'Metafísica',ref:'El poder de la palabra, idea central de Florence Scovel Shinn y Conny Méndez.'},
  /* ---- PROSPERIDAD ---- */
  {id:'m1',p:'m',t:['creencias'],title:'Lo que te dijeron sobre el dinero',min:5,
   body:['«El dinero es sucio», «los ricos son malas personas», «para ganar hay que sufrir». Muchas de estas frases las escuchamos de niños y siguen decidiendo por nosotros.','Una creencia limitante no se elimina ignorándola: se reemplaza cuando la descubres, la cuestionas y eliges una nueva.'],
@@ -974,6 +995,10 @@ var CAPS=[
   body:['Tu conocimiento y tus habilidades son el primer capital que tienes. Invertir en aprender suele dar más rendimiento que cualquier otra inversión.','Una segunda fuente de ingresos, aunque sea pequeña, te da más libertad y menos dependencia.'],
   practice:'Define una habilidad que quieras aprender este año y dedica 20 minutos esta semana a empezar.',
   origin:'Desarrollo profesional',ref:'La inversión en capital humano, concepto del economista Gary Becker.'},
+ {id:'m14',p:'m',t:['creencias','ahorro'],title:'Agradecer lo que ya tienes',min:4,
+  body:['Cuando solo miramos lo que falta, el dinero se vive con angustia y cualquier gasto se siente como una pérdida.','Agradecer lo que ya tienes no es conformarte: es ver con claridad tus recursos, cuidarlos mejor y decidir desde la calma, no desde el miedo.'],
+  practice:'Cada noche de esta semana, anota tres recursos que ya tienes (un ingreso, una habilidad, una persona que te apoya) y una forma de aprovecharlos mejor.',
+  origin:'Metafísica',ref:'La gratitud como base de la prosperidad, en «La ciencia de hacerse rico» de Wallace D. Wattles.'},
  /* ---- VITALIDAD ---- */
  {id:'v1',p:'v',t:['energia','sueno'],title:'Agua y luz al despertar',min:4,
   body:['La luz natural de la mañana le indica a tu cuerpo que el día comenzó, y un vaso de agua repone lo que perdiste durante la noche.','Dos gestos sencillos que mejoran tu energía, tu ánimo y la calidad de tu descanso.'],
@@ -1026,7 +1051,11 @@ var CAPS=[
  {id:'v13',p:'v',t:['estres','energia','relaciones'],title:'Relaciones que dan salud',min:4,
   body:['Uno de los estudios más largos sobre la felicidad encontró que la calidad de nuestras relaciones predice nuestra salud mejor que el dinero o la fama.','Cuidar tus vínculos también es cuidar tu cuerpo.'],
   practice:'Llama o visita a alguien importante para ti con quien no hablas hace tiempo.',
-  origin:'Psicología y salud',ref:'El Estudio de Harvard sobre el Desarrollo Adulto, iniciado en 1938.'}
+  origin:'Psicología y salud',ref:'El Estudio de Harvard sobre el Desarrollo Adulto, iniciado en 1938.'},
+ {id:'v14',p:'v',t:['estres','calma'],title:'Como piensas, así te sientes',min:4,
+  body:['Muchas emociones no nacen de lo que pasa, sino de lo que nos decimos sobre lo que pasa. Un mismo retraso puede vivirse como una tragedia o como un rato para respirar.','Cuidar tus pensamientos es como cuidar un jardín: no puedes evitar que caigan semillas, pero sí decidir cuáles riegas.'],
+  practice:'Cuando sientas estrés esta semana, escribe el pensamiento que lo acompaña y busca una forma más amable y realista de decirlo.',
+  origin:'Metafísica y Psicología',ref:'«Como un hombre piensa, así es su vida», de James Allen (1903), y la terapia cognitiva.'}
 ];
 var CAP={}; CAPS.forEach(function(c){CAP[c.id]=c;});
 /* ---- Contexto de cada filosofía o disciplina (se muestra al terminar la cápsula) ---- */
@@ -1049,7 +1078,8 @@ var TRAD={
  nutricion:{n:'La ciencia de la nutrición',t:'Estudia cómo los alimentos afectan nuestro cuerpo y nuestra salud. En las últimas décadas ha pasado de contar calorías a mirar la calidad de lo que comemos: cuánto procesamiento tiene, cuánta fibra aporta y cómo influye en nuestra energía, nuestro ánimo y nuestro intestino.'},
  sueno:{n:'La medicina del sueño',t:'Especialidad que estudia qué ocurre mientras dormimos y cómo dormir mejor. Hoy sabemos que el sueño no es tiempo perdido: es cuando el cerebro ordena la memoria, el cuerpo se repara y se regulan el hambre y el ánimo. Su base es el ritmo circadiano, el reloj interno de unas 24 horas que se sincroniza con la luz.'},
  ejercicio:{n:'La medicina del ejercicio',t:'Estudia el movimiento como herramienta de salud. Sus investigaciones muestran que el ejercicio regular reduce el riesgo de enfermedades del corazón, diabetes, depresión y deterioro cognitivo, y que nunca es tarde para empezar: los beneficios aparecen a cualquier edad.'},
- atencion:{n:'La atención plena',t:'Conocida en inglés como «mindfulness», es la práctica de prestar atención al momento presente, con curiosidad y sin juzgar. Nace de la meditación budista y llegó a la medicina en 1979, cuando Jon Kabat-Zinn creó en la Universidad de Massachusetts un programa para reducir el estrés que hoy se usa en hospitales de todo el mundo.'}
+ metafisica:{n:'La Metafísica',t:'En filosofía, la metafísica es la rama que se pregunta por lo que hay más allá de lo visible; el nombre viene de las obras de Aristóteles. En el lenguaje de hoy, «Metafísica» suele referirse además a una corriente espiritual nacida en Estados Unidos en el siglo XIX, el Nuevo Pensamiento, con autores como Ralph Waldo Emerson, Emmet Fox y Joseph Murphy, y en Latinoamérica con la venezolana Conny Méndez. Su idea central es que nuestros pensamientos, palabras y creencias dan forma a la manera en que vivimos. La ciencia no ha comprobado que el pensamiento cambie la realidad por sí solo, pero la psicología sí confirma que lo que repetimos influye en lo que sentimos y en cómo actuamos.'},
+ atencion:{n:'La atención plena (mindfulness)',t:'Conocida en inglés como «mindfulness», es la práctica de prestar atención al momento presente, con curiosidad y sin juzgar. Nace de la meditación budista y llegó a la medicina en 1979, cuando Jon Kabat-Zinn creó en la Universidad de Massachusetts un programa para reducir el estrés que hoy se usa en hospitales de todo el mundo.'}
 };
 /* Para cada cápsula: tradiciones, la idea explicada, una frase de su origen y un libro para profundizar */
 var LEARN={
@@ -1067,6 +1097,7 @@ var LEARN={
  s12:{tr:['hermetismo'],idea:'El principio de ritmo enseña que todo fluye y refluye, como las mareas, las estaciones o el día y la noche. Los estados de ánimo, la energía y hasta las épocas económicas también tienen ciclos. Saberlo ayuda a no creer que un mal día es para siempre, ni que un buen momento durará sin cuidado: en la caída se prepara la subida.',q:'Todo fluye y refluye; todo tiene sus períodos de avance y retroceso.',qa:'El Kybalión',bk:'El Kybalión, de Tres Iniciados'},
  s13:{tr:['budismo'],idea:'Es la cuarta noble verdad en la práctica: ocho áreas de la vida que se cultivan al mismo tiempo. Comprensión correcta, intención correcta, palabra correcta, acción correcta, forma de vida correcta, esfuerzo correcto, atención correcta y concentración correcta. «Correcto» aquí no significa perfecto, sino equilibrado: un camino medio entre los excesos.',q:'Tú mismo debes hacer el esfuerzo; los maestros solo señalan el camino.',qa:'Dhammapada',bk:'Dhammapada (enseñanzas de Buda)'},
  s14:{tr:['budismo'],idea:'Śūnyatā, la vacuidad, no significa que nada importe. Significa que nada existe de forma aislada: una taza de té contiene la lluvia que regó la planta, el trabajo de quien la cosechó y el sol que la hizo crecer. Thich Nhat Hanh llamó a esto «interser». Entenderlo reduce la soledad y aumenta la gratitud y la compasión.',q:'Si eres poeta, verás claramente que hay una nube flotando en esta hoja de papel.',qa:'Thich Nhat Hanh',bk:'El corazón de la comprensión, de Thich Nhat Hanh'},
+ s15:{tr:['metafisica','psicologia'],idea:'',by:{metafisica:'Florence Scovel Shinn y Conny Méndez enseñaban que la palabra tiene poder: lo que afirmas con frecuencia sobre ti termina orientando tu vida. Por eso proponían cambiar las frases negativas por afirmaciones sencillas, dichas con convicción.',psicologia:'La psicología lo explica de otra forma: el diálogo interno influye en tu ánimo y en tu conducta. Los estudios sobre el «autodiálogo» muestran que hablarte con frases constructivas mejora la concentración y reduce la ansiedad.'},q:'Como el hombre piensa en su corazón, así es él.',qa:'Proverbios 23:7, frase que inspiró a la Metafísica',bk:'Metafísica 4 en 1, de Conny Méndez'},
  m1:{tr:['dinero'],idea:'Las creencias sobre el dinero se forman antes de los diez años, escuchando lo que dicen y hacen nuestros padres: «el dinero es sucio», «los ricos son malos», «no alcanza». Los investigadores las llaman «guiones del dinero» y muestran que influyen en cuánto ganamos, gastamos y ahorramos en la adultez. Identificarlas es el primer paso para elegir otras.',q:'Hacer dinero es una cosa; conservarlo es otra muy distinta.',qa:'Morgan Housel (idea central de su libro)',bk:'La psicología del dinero, de Morgan Housel'},
  m2:{tr:['psicologia'],idea:'Todos tenemos un diálogo interno que comenta lo que hacemos. Aaron Beck descubrió que muchas veces ese diálogo cae en «distorsiones»: exagerar lo malo, generalizar («siempre me pasa») o adivinar lo que piensan otros. La reestructuración cognitiva enseña a detectar esos pensamientos y cuestionarlos con preguntas sencillas: ¿es cierto?, ¿qué evidencia tengo?',q:'Los hombres no se perturban por las cosas, sino por la visión que tienen de ellas.',qa:'Epicteto, citado por Albert Ellis como origen de su terapia',bk:'Sentirse bien, de David D. Burns'},
  m3:{tr:['finanzas'],idea:'En El hombre más rico de Babilonia (1926), George S. Clason cuenta la historia de Arkad, que se hizo rico con una regla sencilla: guardar al menos una décima parte de todo lo que ganaba antes de pagar cualquier otra cosa. La lógica es que si ahorras lo que sobra, nunca sobra nada; si ahorras primero, aprendes a vivir con el resto.',q:'Una parte de todo lo que ganas te pertenece para que la conserves.',qa:'George S. Clason, El hombre más rico de Babilonia',bk:'El hombre más rico de Babilonia, de George S. Clason'},
@@ -1080,6 +1111,7 @@ var LEARN={
  m11:{tr:['crecimiento'],idea:'Carol Dweck encontró dos formas de ver nuestras capacidades. Con mentalidad fija, un fracaso confirma que «no sirvo para esto». Con mentalidad de crecimiento, el fracaso es información: muestra qué falta aprender. Sus estudios con miles de estudiantes muestran que esta segunda forma de pensar se puede aprender y mejora los resultados.',q:'No he fracasado. He encontrado diez mil formas que no funcionan.',qa:'Atribuido a Thomas Edison',bk:'Mindset: la actitud del éxito, de Carol Dweck'},
  m12:{tr:['inversion'],idea:'Diversificar es repartir el dinero entre distintas inversiones para que, si a una le va mal, las demás compensen. Harry Markowitz demostró en 1952 que una cartera variada reduce el riesgo sin sacrificar mucho la ganancia. Lo mismo vale para los ingresos: depender de una sola fuente te hace vulnerable.',q:'Reparte tu porción entre siete, y aun entre ocho, porque no sabes qué mal vendrá.',qa:'Eclesiastés',bk:'Un paseo aleatorio por Wall Street, de Burton Malkiel'},
  m13:{tr:['profesional'],idea:'Gary Becker mostró que la educación y las habilidades son una inversión con retorno: quien aprende algo valioso aumenta lo que puede ganar durante toda su vida. Tu talento es el único activo que nadie te puede quitar y que se multiplica al usarlo. Invertir tiempo y dinero en aprender suele ser la inversión más rentable.',q:'Invertir en conocimiento paga el mejor interés.',qa:'Benjamin Franklin',bk:'Tan bueno que no podrán ignorarte, de Cal Newport'},
+ m14:{tr:['metafisica','dinero'],idea:'',by:{metafisica:'Wallace D. Wattles escribió en 1910 que la gratitud mantiene la mente enfocada en lo que funciona y abre la puerta a crear más valor. Para la Metafísica, la prosperidad empieza por reconocer la abundancia que ya existe en tu vida.',dinero:'La psicología del dinero coincide en algo práctico: cuando decides desde el miedo, gastas de forma impulsiva o te paralizas. La gratitud reduce esa ansiedad y ayuda a tomar mejores decisiones financieras.'},q:'Agradece lo que tienes y tendrás más.',qa:'Idea de Wallace D. Wattles',bk:'La ciencia de hacerse rico, de Wallace D. Wattles'},
  v1:{tr:['estilo','sueno'],idea:'Nuestro reloj interno se ajusta cada mañana con la luz. Exponerte a luz natural en la primera hora del día le indica al cuerpo que es de día: sube el cortisol de forma sana, mejora el ánimo y, unas 14 a 16 horas después, se libera la melatonina que nos ayuda a dormir. Tomar agua al despertar repone lo perdido durante la noche.',q:'Pronto a la cama y pronto a levantarse hacen al hombre sano, rico y sabio.',qa:'Benjamin Franklin',bk:'Por qué dormimos, de Matthew Walker'},
  v2:{tr:['ejercicio','estilo'],idea:'La Organización Mundial de la Salud recomienda al menos 150 minutos de actividad moderada por semana, unos 22 minutos al día. Caminar a paso ligero cumple ese objetivo y se asocia con menos riesgo de enfermedades del corazón, diabetes y depresión. Además, caminar ayuda a pensar: muchos filósofos, de Aristóteles a Nietzsche, pensaban caminando.',q:'Caminar es el mejor remedio del hombre.',qa:'Atribuido a Hipócrates',bk:'Exercised, de Daniel Lieberman'},
  v3:{tr:['nutricion'],idea:'La clasificación NOVA, creada en la Universidad de São Paulo, divide los alimentos según cuánto han sido procesados: desde naturales (frutas, granos, huevos) hasta ultraprocesados (productos industriales con ingredientes que no usarías en tu cocina). Muchos estudios asocian el alto consumo de ultraprocesados con más riesgo de obesidad y enfermedades crónicas.',q:'Come comida. No demasiada. Sobre todo plantas.',qa:'Michael Pollan',bk:'El detective en el supermercado, de Michael Pollan'},
@@ -1092,7 +1124,8 @@ var LEARN={
  v10:{tr:['nutricion'],idea:'Los «azúcares libres» son los que se agregan a los productos más los de jugos y mieles. La OMS recomienda que sean menos del 10% de la energía diaria, y lo ideal es bajar al 5%: unas seis cucharaditas al día. Muchos productos «salados» o «saludables», como salsas, panes o yogures, tienen azúcar escondido; leer las etiquetas es la mejor defensa.',q:'Lo poco agrada y lo mucho enfada.',qa:'Refrán popular',bk:'Sugar Blues, de William Dufty'},
  v11:{tr:['estilo'],idea:'Pasar muchas horas sentado afecta la salud incluso en personas que hacen ejercicio. Las investigaciones muestran que levantarse unos minutos cada 30 o 60 minutos mejora la circulación, el azúcar en la sangre y la concentración. Las «pausas activas» son pequeñas interrupciones que se suman a lo largo del día.',q:'Solo los pensamientos que nacen caminando tienen valor.',qa:'Friedrich Nietzsche, El ocaso de los ídolos',bk:'Exercised, de Daniel Lieberman'},
  v12:{tr:['estilo'],idea:'En 1982, el gobierno de Japón promovió el shinrin-yoku, «baño de bosque»: pasear despacio entre árboles con los cinco sentidos. Los estudios muestran que reduce el cortisol, la presión arterial y el ritmo cardíaco, y mejora el ánimo. No hace falta un bosque: un parque, un jardín o un rato bajo el cielo también ayudan.',q:'Mira profundamente la naturaleza y entonces comprenderás todo mejor.',qa:'Atribuido a Albert Einstein',bk:'Shinrin-yoku, de Qing Li'},
- v13:{tr:['estilo','psicologia'],idea:'',by:{estilo:'La medicina del estilo de vida incluye las relaciones sanas como uno de sus seis pilares de salud. Las investigaciones muestran que la soledad prolongada afecta la salud tanto como fumar y aumenta el riesgo de enfermedades del corazón.',psicologia:'El Estudio de Harvard sobre el Desarrollo Adulto sigue la vida de cientos de personas desde 1938. Su conclusión más clara: lo que más predice una vida larga y feliz no es el dinero ni la fama, sino la calidad de nuestras relaciones.'},end:'Cuidar a las personas cercanas es también cuidar el cuerpo.',q:'Sin amigos, nadie querría vivir, aunque tuviera todos los demás bienes.',qa:'Aristóteles, Ética a Nicómaco',bk:'Una buena vida, de Robert Waldinger y Marc Schulz'}
+ v13:{tr:['estilo','psicologia'],idea:'',by:{estilo:'La medicina del estilo de vida incluye las relaciones sanas como uno de sus seis pilares de salud. Las investigaciones muestran que la soledad prolongada afecta la salud tanto como fumar y aumenta el riesgo de enfermedades del corazón.',psicologia:'El Estudio de Harvard sobre el Desarrollo Adulto sigue la vida de cientos de personas desde 1938. Su conclusión más clara: lo que más predice una vida larga y feliz no es el dinero ni la fama, sino la calidad de nuestras relaciones.'},end:'Cuidar a las personas cercanas es también cuidar el cuerpo.',q:'Sin amigos, nadie querría vivir, aunque tuviera todos los demás bienes.',qa:'Aristóteles, Ética a Nicómaco',bk:'Una buena vida, de Robert Waldinger y Marc Schulz'},
+ v14:{tr:['metafisica','psicologia'],idea:'',by:{metafisica:'James Allen comparaba la mente con un jardín: si no siembras buenas ideas, crecen solas las malas hierbas. Para él, el carácter y el ánimo de una persona son el fruto de los pensamientos que cultiva cada día.',psicologia:'La terapia cognitiva, creada por Aaron Beck, llegó a una conclusión parecida con método científico: muchas emociones nacen de pensamientos automáticos, y aprender a revisarlos reduce la ansiedad y el estrés.'},q:'Como el hombre piensa en su corazón, así es él.',qa:'Proverbios 23:7, epígrafe del libro de James Allen',bk:'Como un hombre piensa, así es su vida, de James Allen'}
 };
 /* ---- Contenido ampliado de cada cápsula: más explicación, pasos para aplicarlo y, en Prosperidad y Vitalidad, la voz de un experto ---- */
 var DEEP={
@@ -1203,7 +1236,13 @@ var DEEP={
   exp:{who:'Qing Li (Escuela de Medicina de Nippon, Tokio)',bk:'Shinrin-yoku: el arte japonés de los baños de bosque',t:'Li es uno de los principales investigadores del baño de bosque. Sus estudios mostraron que pasar tiempo entre árboles aumenta la actividad de las células que defienden al cuerpo, y que el efecto puede durar varios días. Recomienda unas dos horas al mes como mínimo.'}},
  v13:{more:['Solemos pensar en la salud como alimentación, ejercicio y sueño. Pero las relaciones son igual de importantes. La soledad prolongada eleva el estrés, debilita las defensas y aumenta el riesgo de enfermedades del corazón tanto como fumar.','No se trata de tener muchos amigos, sino de tener vínculos de calidad: personas con quienes puedes hablar con confianza, que te apoyan y a quienes apoyas. Esas relaciones necesitan cuidado, como un jardín: llamadas, visitas, tiempo compartido y gestos de cariño.'],
   steps:['Haz una lista de cinco personas importantes para ti.','Esta semana, llama o visita a una con quien no hablas hace tiempo.','Agenda un encuentro mensual fijo con alguien que te haga bien.'],
-  exp:{who:'Robert Waldinger (Universidad de Harvard)',bk:'Una buena vida',t:'Waldinger dirige el Estudio de Harvard sobre el Desarrollo Adulto, que sigue a cientos de personas desde 1938. Su conclusión, compartida en una de las charlas TED más vistas: las buenas relaciones nos mantienen más felices y más sanos. Las personas más satisfechas con sus vínculos a los 50 años eran las más sanas a los 80.'}}
+  exp:{who:'Robert Waldinger (Universidad de Harvard)',bk:'Una buena vida',t:'Waldinger dirige el Estudio de Harvard sobre el Desarrollo Adulto, que sigue a cientos de personas desde 1938. Su conclusión, compartida en una de las charlas TED más vistas: las buenas relaciones nos mantienen más felices y más sanos. Las personas más satisfechas con sus vínculos a los 50 años eran las más sanas a los 80.'}},
+ s15:{more:['Piensa en las frases que más repites sobre ti: «soy desordenado», «no tengo suerte», «yo no sirvo para esto». Cada una funciona como una instrucción que tu mente intenta cumplir.','No se trata de negar los problemas, sino de describirlos de una forma que te deje espacio para mejorar. «Todavía no lo logro» abre una puerta que «nunca lo lograré» cierra.'],
+  steps:['Durante un día, anota cada frase negativa que te digas sobre ti.','Elige la que más se repite y escribe una versión realista y amable.','Repite la nueva frase cada mañana durante una semana.']},
+ m14:{more:['La gratitud no es solo un sentimiento agradable: cambia hacia dónde miras. Cuando reconoces lo que tienes, notas recursos que antes pasabas por alto, como una habilidad, un contacto o un ahorro pequeño.','Desde ahí, las decisiones de dinero se vuelven más tranquilas y más inteligentes.'],
+  steps:['Escribe tres recursos que ya tienes.','Para cada uno, anota cómo podrías aprovecharlo un poco mejor.','Al final de la semana, elige uno y da un paso concreto.']},
+ v14:{more:['Entre lo que pasa y lo que sientes hay un pensamiento, aunque sea muy rápido. Si alguien no te responde un mensaje, puedes pensar «no le importo» o «estará ocupado», y cada idea trae una emoción distinta.','Aprender a ver ese pensamiento te da la posibilidad de elegir uno más justo contigo y con los demás.'],
+  steps:['Cuando sientas estrés, detente y escribe qué pasó.','Anota el pensamiento que tuviste en ese momento.','Escribe otra forma posible de verlo, más amable y realista.']}
 };
 function capMin(c){ return c.min+(DEEP[c.id]?3:0); }
 var LEVELS=[{n:'I',name:'Origen',w:0,d:'Comienzas tu ruta.'},{n:'II',name:'Despertar',w:4,d:'4 semanas completas.'},{n:'III',name:'Práctica',w:8,d:'8 semanas y tus primeros hábitos.'},{n:'IV',name:'Constancia',w:13,d:'13 semanas. Ruta de 3 meses.'},{n:'V',name:'Claridad',w:26,d:'26 semanas. Ruta de 6 meses.'},{n:'VI',name:'Maestría',w:39,d:'39 semanas de práctica.'},{n:'VII',name:'Plenitud',w:52,d:'52 semanas. La espiral completa.'}];
@@ -1235,8 +1274,12 @@ function makeOrb(){
 }
 var ot=0;
 function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
-function drawOrbs(){
-  ot+=0.016*orbState.speed*animNow().spinSpeed/100;
+var orbRAF=0, orbLast=0;
+function startOrbs(){ if(!reduce && !orbRAF) orbRAF=requestAnimationFrame(drawOrbs); }
+function drawOrbs(now){
+  orbRAF=0; now=typeof now==='number'?now:performance.now();
+  var dt=orbLast?Math.min(0.05,(now-orbLast)/1000):0.016; orbLast=now;
+  ot+=dt*orbState.speed*animNow().spinSpeed/100;
   orbCanvases=orbCanvases.filter(function(c){return c.isConnected;});
   var a=tok('--accent'), cols=[tok('--spirit'),tok('--matter'),tok('--vital')];
   orbCanvases.forEach(function(c){
@@ -1252,7 +1295,7 @@ function drawOrbs(){
     for(var k=1;k<=Math.floor(turns*3);k++){var t2=k*2*Math.PI/3,r2=2*Math.exp(b*t2)*breathe;x.fillStyle=cols[(k-1)%3];x.globalAlpha=.95;x.beginPath();x.arc(cx+r2*Math.cos(t2+rot),cy+r2*Math.sin(t2+rot),1.4+k*.32,0,7);x.fill();}
     x.globalAlpha=1;
   });
-  if(!reduce) requestAnimationFrame(drawOrbs);
+  if(!reduce && orbCanvases.length) orbRAF=requestAnimationFrame(drawOrbs); else orbLast=0;
 }
 
 /* ================= ESCRITURA ================= */
@@ -1261,6 +1304,7 @@ function typeText(el,text,speed,done){
   /* El texto completo se coloca desde el inicio (la parte pendiente invisible), así cada letra aparece en su lugar final y nada se mueve. */
   if(typingJob) typingJob.cancel();
   speed=Math.max(1,Math.round(speed*1.8*100/animNow().typeSpeed));
+  if(window.CSS&&CSS.highlights&&window.Highlight&&!reduce) return typeHL(el,text,speed,done);
   el.innerHTML='';
   var shown=document.createElement('span'), caret=document.createElement('span'), rest=document.createElement('span');
   caret.className='caret'; rest.className='ghost'; rest.textContent=text;
@@ -1272,6 +1316,22 @@ function typeText(el,text,speed,done){
   el.onclick=finish;
   typingJob={cancel:function(){ finished=true; clearTimeout(timer); orbState.speed=1; }};
   if(reduce) finish(); else timer=setTimeout(step,300);
+}
+/* Escritura sin mover nada: el texto completo queda en un solo nodo desde el inicio y la parte pendiente se oculta con un resaltado CSS, que no altera la composición de la línea */
+var HL=null;
+function typeHL(el,text,speed,done){
+  if(!HL){ HL=new Highlight(); CSS.highlights.set('tw-ghost',HL); }
+  el.textContent=text; var node=el.firstChild, rg=new Range(); rg.setStart(node,0); rg.setEnd(node,text.length); HL.clear(); HL.add(rg);
+  if(getComputedStyle(el).position==='static') el.style.position='relative';
+  var car=document.createElement('i'); car.className='caret-abs'; car.setAttribute('aria-hidden','true'); el.appendChild(car);
+  var i=0, timer=null, finished=false;
+  function place(){ var r0=el.getBoundingClientRect(), r=document.createRange(); if(i>0){ r.setStart(node,i-1); r.setEnd(node,i); } else { r.setStart(node,0); r.setEnd(node,Math.min(1,text.length)); }
+    var rs=r.getClientRects(), b=rs[rs.length-1]; if(!b) return; car.style.left=((i>0?b.right:b.left)-r0.left)+'px'; car.style.top=(b.top-r0.top)+'px'; car.style.height=b.height+'px'; }
+  function finish(){ if(finished) return; finished=true; clearTimeout(timer); HL.delete(rg); car.remove(); orbState.speed=1; el.onclick=null; typingJob=null; done&&done(); }
+  function step(){ i++; rg.setStart(node,i); place(); if(i<text.length){ var ch=text[i-1]; timer=setTimeout(step, /[.?!]/.test(ch)?speed*9:(ch===','||ch===':'?speed*4:speed)); } else finish(); }
+  el.onclick=finish; place();
+  typingJob={cancel:function(){ finished=true; clearTimeout(timer); HL.delete(rg); car.remove(); orbState.speed=1; }};
+  timer=setTimeout(step,300);
 }
 /* Escribe la pregunta y luego la indicación, una tras otra */
 function typeQA(q,qt,hint,ht,done){
@@ -1889,14 +1949,14 @@ function weekPlanCard(){
 /* ================= MENTOR ================= */
 /* Áurea guía con preguntas: el texto se escribe en su lugar fijo y debajo aparecen las opciones. */
 var BOOKS={
- paz:[{t:'El poder del ahora',a:'Eckhart Tolle',y:'1997',why:'Enseña a salir del ruido mental y volver al presente, que es donde aparece la calma.'},{t:'Meditaciones',a:'Marco Aurelio',y:'siglo II',why:'Las notas personales de un emperador que buscaba serenidad en medio de guerras y grandes responsabilidades.'}],
- proposito:[{t:'El hombre en busca de sentido',a:'Viktor Frankl',y:'1946',why:'Un psiquiatra que sobrevivió a los campos de concentración muestra que quien tiene un «para qué» puede enfrentar casi cualquier «cómo».'},{t:'Ikigai',a:'Héctor García y Francesc Miralles',y:'2016',why:'Explora la idea japonesa de tener una razón para levantarte cada mañana.'}],
- relaciones:[{t:'Los cuatro acuerdos',a:'Miguel Ruiz',y:'1997',why:'Cuatro compromisos sencillos para relacionarte mejor y dejar de tomarte todo de forma personal.'},{t:'Comunicación no violenta',a:'Marshall Rosenberg',y:'1999',why:'Un método práctico para decir lo que sientes y necesitas sin atacar ni ponerte a la defensiva.'}],
- finanzas:[{t:'La psicología del dinero',a:'Morgan Housel',y:'2020',why:'Muestra que manejar bien el dinero depende más de tu comportamiento que de cuánto sabes.'},{t:'El hombre más rico de Babilonia',a:'George S. Clason',y:'1926',why:'Historias sencillas sobre ahorrar, salir de deudas y hacer crecer lo que tienes.'}],
- trabajo:[{t:'Hábitos atómicos',a:'James Clear',y:'2018',why:'Cómo pequeños cambios diarios se suman hasta transformar tus resultados.'},{t:'Mindset: la actitud del éxito',a:'Carol Dweck',y:'2006',why:'Explica por qué creer que puedes aprender cambia lo que logras.'}],
+ paz:[{t:'El Sermón del Monte',a:'Emmet Fox',y:'1934',why:'Un clásico de la Metafísica que lee las enseñanzas de Jesús como una guía práctica para vivir con calma y sin resentimiento.'},{t:'El poder del ahora',a:'Eckhart Tolle',y:'1997',why:'Enseña a salir del ruido mental y volver al presente, que es donde aparece la calma.'},{t:'Meditaciones',a:'Marco Aurelio',y:'siglo II',why:'Las notas personales de un emperador que buscaba serenidad en medio de guerras y grandes responsabilidades.'}],
+ proposito:[{t:'El hombre en busca de sentido',a:'Viktor Frankl',y:'1946',why:'Un psiquiatra que sobrevivió a los campos de concentración muestra que quien tiene un «para qué» puede enfrentar casi cualquier «cómo».'},{t:'Ikigai',a:'Héctor García y Francesc Miralles',y:'2016',why:'Explora la idea japonesa de tener una razón para levantarte cada mañana.'},{t:'Metafísica 4 en 1',a:'Conny Méndez',y:'Venezuela, siglo XX',why:'Reúne en lenguaje sencillo las ideas básicas de la Metafísica: el poder del pensamiento, de la palabra y del perdón.'}],
+ relaciones:[{t:'Los cuatro acuerdos',a:'Miguel Ruiz',y:'1997',why:'Cuatro compromisos sencillos para relacionarte mejor y dejar de tomarte todo de forma personal.'},{t:'Comunicación no violenta',a:'Marshall Rosenberg',y:'1999',why:'Un método práctico para decir lo que sientes y necesitas sin atacar ni ponerte a la defensiva.'},{t:'El juego de la vida y cómo jugarlo',a:'Florence Scovel Shinn',y:'1925',why:'Un clásico de la Metafísica sobre cómo tus palabras y tu actitud cambian la forma en que te relacionas.'}],
+ finanzas:[{t:'La psicología del dinero',a:'Morgan Housel',y:'2020',why:'Muestra que manejar bien el dinero depende más de tu comportamiento que de cuánto sabes.'},{t:'El hombre más rico de Babilonia',a:'George S. Clason',y:'1926',why:'Historias sencillas sobre ahorrar, salir de deudas y hacer crecer lo que tienes.'},{t:'La ciencia de hacerse rico',a:'Wallace D. Wattles',y:'1910',why:'Un clásico de la Metafísica que relaciona la prosperidad con la gratitud y con crear valor para otros, en lugar de competir.'}],
+ trabajo:[{t:'Hábitos atómicos',a:'James Clear',y:'2018',why:'Cómo pequeños cambios diarios se suman hasta transformar tus resultados.'},{t:'Mindset: la actitud del éxito',a:'Carol Dweck',y:'2006',why:'Explica por qué creer que puedes aprender cambia lo que logras.'},{t:'El poder de tu mente subconsciente',a:'Joseph Murphy',y:'1963',why:'Muestra cómo lo que te repites a diario sobre ti y tu trabajo termina guiando tus decisiones.'}],
  salud:[{t:'El secreto de las zonas azules',a:'Dan Buettner',y:'2008',why:'Cómo comen, se mueven y conviven las comunidades del mundo donde más personas llegan a los cien años con buena salud.'},{t:'Hábitos atómicos',a:'James Clear',y:'2018',why:'Para convertir el cuidado de tu cuerpo en una rutina que se mantiene sola.'}],
  descanso:[{t:'Por qué dormimos',a:'Matthew Walker',y:'2017',why:'Un neurocientífico explica qué hace el sueño por tu cuerpo y tu mente, y cómo dormir mejor.'}],
- emociones:[{t:'Inteligencia emocional',a:'Daniel Goleman',y:'1995',why:'Cómo reconocer y manejar tus emociones, y por qué eso pesa tanto como el talento.'},{t:'El poder del ahora',a:'Eckhart Tolle',y:'1997',why:'Ayuda a observar lo que sientes sin dejar que te arrastre.'}]
+ emociones:[{t:'Inteligencia emocional',a:'Daniel Goleman',y:'1995',why:'Cómo reconocer y manejar tus emociones, y por qué eso pesa tanto como el talento.'},{t:'El poder del ahora',a:'Eckhart Tolle',y:'1997',why:'Ayuda a observar lo que sientes sin dejar que te arrastre.'},{t:'Como un hombre piensa, así es su vida',a:'James Allen',y:'1903',why:'Un libro breve sobre cómo los pensamientos que cultivas se convierten en tu estado de ánimo y en tu carácter.'}]
 };
 var AUTHORS=[
  {n:'Marco Aurelio',k:'Emperador romano y filósofo estoico · 121–180',t:'Gobernó Roma durante casi veinte años de guerras y epidemias. Cada noche escribía notas para sí mismo sobre cómo ser mejor persona. Nunca pensó publicarlas: hoy las conocemos como «Meditaciones».',i:'No controlas lo que pasa, pero sí cómo respondes.'},
@@ -1905,9 +1965,13 @@ var AUTHORS=[
  {n:'Lao Tse',k:'Sabio chino del Taoísmo · según la tradición, siglo VI a. C.',t:'Se le atribuye el Tao Te Ching, un libro breve de 81 poemas sobre vivir en armonía con el ritmo natural de las cosas.',i:'El agua es suave y, aun así, vence a la piedra con constancia.'},
  {n:'Siddhartha Gautama, el Buda',k:'Fundador del Budismo · c. siglo V a. C.',t:'Dejó una vida de príncipe para entender por qué sufrimos. Su respuesta: gran parte del sufrimiento nace de aferrarnos a lo que cambia.',i:'La atención al momento presente calma la mente.'},
  {n:'Viktor Frankl',k:'Psiquiatra austriaco · 1905–1997',t:'Sobrevivió a los campos de concentración y creó la logoterapia, una forma de terapia centrada en encontrar sentido a la vida.',i:'Entre lo que te pasa y tu respuesta hay un espacio: ahí está tu libertad.'},
+ {n:'James Allen',k:'Escritor británico de la Metafísica · 1864–1912',t:'En 1903 publicó «Como un hombre piensa, así es su vida», un libro breve que inspiró a generaciones de autores de desarrollo personal.',i:'Tus pensamientos son semillas: lo que siembras en tu mente termina apareciendo en tu vida.'},
+ {n:'Conny Méndez',k:'Escritora y compositora venezolana · 1898–1979',t:'Fue caricaturista, cantante y compositora antes de dedicarse a la Metafísica. Sus libros, reunidos en «Metafísica 4 en 1», la llevaron a millones de lectores en Latinoamérica.',i:'Lo que afirmas con tus palabras se vuelve tu forma de mirar el mundo.'},
+ {n:'Joseph Murphy',k:'Autor irlandés de la Metafísica · 1898–1981',t:'Ministro y conferencista que vivió en Estados Unidos. Su libro «El poder de tu mente subconsciente» (1963) es uno de los más leídos sobre el tema.',i:'Lo que repites cada día en tu mente termina guiando tus hábitos.'},
+ {n:'Florence Scovel Shinn',k:'Ilustradora y escritora estadounidense · 1871–1940',t:'Artista de Nueva York que en 1925 publicó «El juego de la vida y cómo jugarlo», sobre el poder de las palabras y la fe en lo cotidiano.',i:'Cuida tus palabras: con ellas describes, y también construyes, tu día.'},
  {n:'Carol Dweck',k:'Psicóloga de la Universidad de Stanford · 1946',t:'Tras décadas de investigación describió la «mentalidad de crecimiento»: creer que tus capacidades se desarrollan con esfuerzo y práctica.',i:'Todavía no lo logras: la palabra clave es «todavía».'}
 ];
-var PHILOS=['estoicismo','budismo','taoismo','hermetismo','atencion','crecimiento','estilo'];
+var PHILOS=['estoicismo','budismo','taoismo','hermetismo','metafisica','atencion','crecimiento','estilo'];
 var BELIEFS=[
  {f:'No soy bueno con el dinero',r:'Estoy aprendiendo a manejar mi dinero, paso a paso.',e:'Piensa en una vez que pagaste algo a tiempo o guardaste aunque sea un poco. Eso ya es manejar dinero: se trata de practicarlo más seguido.'},
  {f:'Ya es tarde para cambiar',r:'Hoy es un buen día para empezar algo pequeño.',e:'El cerebro sigue formando conexiones nuevas toda la vida. Muchas personas empiezan a estudiar, a ejercitarse o a emprender después de los 50 y 60 años.'},
@@ -1922,7 +1986,7 @@ function viewMentor(main){
   main.innerHTML='<section class="mt"><div class="mt-stage"><div class="mt-bg" aria-hidden="true"></div><p class="mt-k" id="mtK"></p><div class="mt-orb" id="mtOrb"></div>'+
     '<h1 class="mt-q" id="mtQ" aria-live="polite"></h1><div class="mt-card" id="mtC" hidden></div><div class="mt-opts" id="mtO"></div></div>'+
     '<aside class="mt-side" id="mtS"></aside></section>';
-  main.querySelector('#mtOrb').appendChild(makeOrb()); if(!reduce) requestAnimationFrame(drawOrbs);
+  main.querySelector('#mtOrb').appendChild(makeOrb()); startOrbs();
   var K=main.querySelector('#mtK'), Q=main.querySelector('#mtQ'), C=main.querySelector('#mtC'), O=main.querySelector('#mtO');
   function side(){ var L=S.mentorSaved||[]; main.querySelector('#mtS').innerHTML='<h2>Tu lista de lecturas</h2>'+(L.length?'<ul>'+L.map(function(b,i){ return '<li><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small><button type="button" data-rm="'+i+'" aria-label="Quitar">✕</button></li>'; }).join('')+'</ul>':'<p>Cuando Áurea te recomiende un libro, puedes guardarlo aquí.</p>');
     main.querySelectorAll('[data-rm]').forEach(function(b){ b.onclick=function(){ S.mentorSaved.splice(+b.dataset.rm,1); save(); side(); }; }); }
@@ -1937,7 +2001,7 @@ function viewMentor(main){
       if(k<msgs.length){ setTimeout(function(){ if(my===mentorRun) nx(); }, reduce?0:animNow().paraPause*1000); return; }
       if(card){ C.innerHTML=card; C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); }); }
       O.innerHTML=opts.map(function(o,i){ return '<button type="button" class="mt-op'+(o.main?' main':'')+(o.cls?' '+o.cls:'')+'" style="--i:'+i+'">'+esc(o.l)+(o.tag?'<small>'+esc(o.tag)+'</small>':'')+'</button>'; }).join('');
-      O.querySelectorAll('.mt-op').forEach(function(b,i){ b.onclick=function(){ opts[i].go(); }; });
+      O.querySelectorAll('.mt-op').forEach(function(b,i){ b.onclick=function(){ opts[i].go(b); }; });
     }); })();
   }
   var BACK={l:'Volver a los temas',go:function(){ home(true); }};
@@ -1952,12 +2016,15 @@ function viewMentor(main){
       {l:'Los tres pilares',tag:'Espíritu, Prosperidad y Vitalidad',go:pillars},
       {l:'Tu Rueda de la Vida',tag:'lo que dicen tus resultados',go:wheel},
       {l:'Creencias limitantes',tag:'ideas que te frenan',go:beliefs},
-      {l:'Una idea para hoy',tag:'sorpréndeme',go:idea}].concat(aiOn()?[{l:'Pregúntale a Áurea',tag:'conversa con tu mentor',main:true,go:ask}]:[]));
+      {l:'Una idea para hoy',tag:'sorpréndeme',go:idea},
+      {l:'Conversa con Áurea',tag:aiTag(),main:true,go:ask}]);
   }
   /* Conversación libre con la IA: la pregunta y la respuesta se escriben en su lugar, sin ventana de chat */
-  function leftTxt(){ return AI_LEFT?'Te quedan '+AI_LEFT.day+' consultas hoy · '+AI_LEFT.month+' este mes':'Tus consultas tienen un límite diario y mensual.'; }
+  function leftTxt(){ var L=aiLim(); return AI_LEFT?'Te quedan '+AI_LEFT.day+' de '+L[0]+' conversaciones hoy · '+AI_LEFT.month+' este mes':'Tu plan incluye '+L[0]+' conversaciones al día y '+L[1]+' al mes.'; }
   function ask(){
-    say('Mentor · Pregúntale a Áurea',AIH.length?'¿Qué más quieres preguntarme, '+n+'?':'Pregúntame lo que quieras, '+n+': sobre tu ruta, tus cápsulas o lo que estás viviendo.',
+    if(!aiOn()){ say('Mentor · Conversa con Áurea',['Muy pronto podrás conversar conmigo libremente, '+n+'.','Tu plan incluirá '+aiLim()[0]+' conversaciones al día. Mientras tanto, explora los temas que preparé para ti.'],null,[BACK]); return; }
+    if(!AI_LEFT){ aiLeftLoad().then(function(){ if(my===mentorRun && !C.hidden){ var sm=C.querySelector('.mt-ai-r small'); if(sm) sm.textContent=leftTxt(); } }); }
+    say('Mentor · Conversa con Áurea',AIH.length?'¿Qué más quieres preguntarme, '+n+'?':'Pregúntame lo que quieras, '+n+': sobre tu ruta, tus cápsulas o lo que estás viviendo.',
       '<form class="mt-ai" id="mtAi" novalidate><textarea id="mtAiT" maxlength="800" rows="3" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea><div class="mt-ai-r"><small>'+esc(leftTxt())+'</small><button class="btn btn-primary" type="submit">Enviar</button></div><p class="err" id="mtAiE"></p></form>',
       [BACK]);
     C.onsubmit=function(e){ if(e.target.id!=='mtAi') return; e.preventDefault(); var t=C.querySelector('#mtAiT'), q=t.value.trim(), er=C.querySelector('#mtAiE');
@@ -1970,7 +2037,7 @@ function viewMentor(main){
     setTimeout(function(){ var t=C.querySelector('#mtAiT'); if(t&&!C.hidden) t.focus(); },50);
   }
   function answer(q,txt){
-    K.textContent='Mentor · Pregúntale a Áurea'; O.innerHTML=''; C.onsubmit=null; Q.style.minHeight='';
+    K.textContent='Mentor · Conversa con Áurea'; O.innerHTML=''; C.onsubmit=null; Q.style.minHeight='';
     Q.textContent='«'+(q.length>140?q.slice(0,137)+'…':q)+'»';
     C.innerHTML='<div class="mt-info mt-ans"><p id="mtA"></p><small class="mt-ai-l">'+esc(leftTxt())+'</small></div>'; C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); });
     typeText(C.querySelector('#mtA'),txt,6,function(){ if(my!==mentorRun) return;
@@ -1987,7 +2054,7 @@ function viewMentor(main){
     var L=BOOKS[a.k]||[], b=L[i%L.length], saved=(S.mentorSaved||[]).some(function(x){return x.t===b.t;});
     var card='<div class="mt-book"><div class="mt-cover '+PILLARS[a.p].cls+'"><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small></div><div><p class="mt-ck">'+esc(a.n)+' · '+esc(b.y)+'</p><h3>'+esc(b.t)+'</h3><p class="mt-by">'+esc(b.a)+'</p><p>'+esc(b.why)+'</p></div></div>';
     var opts=[];
-    if(!saved) opts.push({l:'Guardar en mi lista',main:true,go:function(){ S.mentorSaved=(S.mentorSaved||[]).concat([{t:b.t,a:b.a}]); save(); side(); toast('Guardado en tu lista de lecturas.'); bookOf(a,i); }});
+    if(!saved) opts.push({l:'Guardar en mi lista',main:true,go:function(btn){ S.mentorSaved=(S.mentorSaved||[]).concat([{t:b.t,a:b.a}]); save(); side(); toast('Guardado en tu lista de lecturas.'); if(btn){ btn.disabled=true; btn.classList.remove('main'); btn.classList.add('done'); btn.textContent='✓ En tu lista'; } }});
     if(L.length>1) opts.push({l:'Otro libro',go:function(){ bookOf(a,i+1); }});
     opts.push({l:'Otra área',go:books}, BACK);
     say('Mentor · Libros · '+a.n,'Para '+a.n.toLowerCase()+', te recomiendo «'+b.t+'».',card,opts);
@@ -2035,6 +2102,9 @@ function diaLoad(){
   if(cloud()&&fbUser) return FB.f.getDocs(FB.f.collection(FB.db,'users',fbUser.uid,'diario')).then(function(snap){ DIA={}; snap.forEach(function(d){ DIA[d.id]=d.data(); }); });
   DIA=jget(diaLocalKey(),{}); return Promise.resolve();
 }
+/* Solo el ánimo (no lo que escribes) se guarda en tu perfil para la analítica anónima del administrador */
+function moodLog(day,slot,v){ S.moods=S.moods||{}; var m=S.moods[day]||{}; m[slot]=v; S.moods[day]=m;
+  var ks=Object.keys(S.moods).sort(); while(ks.length>180){ delete S.moods[ks.shift()]; } save(); }
 function diaPut(k,e){
   DIA[k]=e;
   if(cloud()&&fbUser) return FB.f.setDoc(FB.f.doc(FB.db,'users',fbUser.uid,'diario',k),e);
@@ -2079,13 +2149,14 @@ function diaryBook(main){
   var today=dKey(), e=Object.assign({mood:0,intent:'',answer:'',good:'',better:'',grat:['','',''],prompt:''},DIA[today]||{});
   var P=diaPrompt(); if(!e.prompt) e.prompt=diaPrefill||P.q; else if(diaPrefill) e.prompt=diaPrefill; diaPrefill=null;
   var night=new Date().getHours()>=17, mode=night?'noche':'manana';
+  if(e.mood && e.moodAm==null && e.moodPm==null) e.moodAm=e.mood;
   var dlabel=new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
   main.innerHTML='<section class="dia-top"><div><p class="eyebrow">Diario personal</p><h1>'+esc(dlabel.charAt(0).toUpperCase()+dlabel.slice(1))+'</h1></div>'+
       '<div class="dia-stats"><div><b id="dStreak">'+diaStreak()+'</b><span>días seguidos</span></div><div><b id="dCount">'+Object.keys(DIA).length+'</b><span>páginas</span></div><button type="button" class="pd-ed" id="dWhy">Por qué un diario</button></div></section>'+
     '<div class="dia-grid"><section class="dia-page"><div class="dia-mode" role="tablist"><button type="button" role="tab" data-m="manana">Mañana · Intención</button><button type="button" role="tab" data-m="noche">Noche · Revisión</button></div>'+
-      '<div class="dia-mood"><span>¿Cómo te sientes?</span><div>'+MOODS.map(function(m){ return '<button type="button" class="mo mo'+m.v+'" data-v="'+m.v+'"><i></i>'+m.l+'</button>'; }).join('')+'</div></div>'+
+      '<div class="dia-mood"><span id="dMoodH">¿Cómo te sientes?</span><div>'+MOODS.map(function(m){ return '<button type="button" class="mo mo'+m.v+'" data-v="'+m.v+'"><i></i>'+m.l+'</button>'; }).join('')+'</div></div>'+
       '<div id="dBody"></div><p class="dia-saved" id="dSaved" aria-live="polite"></p></section>'+
-      '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>Páginas anteriores</h2><div id="dPast"></div></section><p class="dia-priv">🔒 Solo tú puedes leer tu diario. Ni el equipo de Áurea tiene acceso.</p></aside></div>';
+      '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>Páginas anteriores</h2><div id="dPast"></div></section><p class="dia-priv">🔒 Solo tú puedes leer tu diario. Ni el equipo de Áurea tiene acceso. Solo cómo te sientes se usa, sin tus textos, para estadísticas generales.</p></aside></div>';
   var body=main.querySelector('#dBody'), saved=main.querySelector('#dSaved'), T=null;
   function persist(){ clearTimeout(T); saved.textContent='Guardando…'; T=setTimeout(function(){ e.updatedAt=Date.now(); diaPut(today,JSON.parse(JSON.stringify(e))).then(function(){ saved.textContent='Guardado'; main.querySelector('#dStreak').textContent=diaStreak(); main.querySelector('#dCount').textContent=Object.keys(DIA).length; cal(); past(); }).catch(function(er){ saved.textContent='No se pudo guardar. '+fbErr(er); }); },700); }
   function area(id,label,val,ph,rows){ return '<label class="dia-f"><span>'+label+'</span><textarea id="'+id+'" rows="'+(rows||3)+'" placeholder="'+esc(ph)+'">'+esc(val||'')+'</textarea></label>'; }
@@ -2104,9 +2175,11 @@ function diaryBook(main){
     body.querySelectorAll('textarea').forEach(function(t){ t.oninput=function(){ e[map[t.id]]=t.value; persist(); }; });
     body.querySelectorAll('[data-g]').forEach(function(t){ t.oninput=function(){ e.grat[+t.dataset.g]=t.value; persist(); }; });
   }
-  main.querySelectorAll('[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.dataset.m; draw(); }; });
-  function moods(){ main.querySelectorAll('.mo').forEach(function(b){ b.classList.toggle('on',+b.dataset.v===e.mood); b.setAttribute('aria-pressed',+b.dataset.v===e.mood?'true':'false'); }); }
-  main.querySelectorAll('.mo').forEach(function(b){ b.onclick=function(){ e.mood=+b.dataset.v; moods(); persist(); }; });
+  main.querySelectorAll('[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.dataset.m; draw(); moods(); }; });
+  function mk(){ return mode==='manana'?'moodAm':'moodPm'; }
+  function moods(){ var v=e[mk()]||0; main.querySelector('#dMoodH').textContent=mode==='manana'?'¿Cómo te sientes al empezar el día?':'¿Cómo te sientes al terminar el día?';
+    main.querySelectorAll('.mo').forEach(function(b){ b.classList.toggle('on',+b.dataset.v===v); b.setAttribute('aria-pressed',+b.dataset.v===v?'true':'false'); }); }
+  main.querySelectorAll('.mo').forEach(function(b){ b.onclick=function(){ var v=+b.dataset.v; e[mk()]=v; e.mood=v; moods(); persist(); moodLog(today,mode==='manana'?'am':'pm',v); }; });
   function cal(){ var d=new Date(), y=d.getFullYear(), m=d.getMonth(), first=(new Date(y,m,1).getDay()+6)%7, nd=new Date(y,m+1,0).getDate();
     var ml=d.toLocaleDateString('es',{month:'long',year:'numeric'}); main.querySelector('#dCalH').textContent=ml.charAt(0).toUpperCase()+ml.slice(1);
     var h=DAYS.map(function(x){return '<span class="dc-h">'+x.c+'</span>';}).join(''); for(var i=0;i<first;i++) h+='<span></span>';
@@ -2289,15 +2362,16 @@ function adminPanel(t,cached){
     cloudLoadAll().then(function(){ adminPanel(TAB,true); }).catch(function(e){ root.innerHTML='<div class="boot-load">'+esc(fbErr(e))+' <button class="btn btn-ghost" type="button" id="aBack">Volver</button></div>'; root.querySelector('#aBack').onclick=leaveAdmin; }); return; }
   root.innerHTML=''; AN=null;
   var el=document.createElement('div'); el.className='adm';
-  var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración'],['anim','Animaciones'],['ia','Mentor IA']];
+  var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración'],['analitica','Analítica'],['anim','Animaciones'],['ia','Mentor IA']];
   el.innerHTML='<header class="adm-top"><div class="adm-in gutter"><div class="brand">'+logo(22)+'Áurea <span class="adm-tag">Administración</span></div>'+
     '<nav class="adm-tabs" aria-label="Secciones">'+TABS.map(function(x){return '<button type="button" data-a="'+x[0]+'"'+(x[0]===TAB?' aria-current="page"':'')+'>'+x[1]+'</button>';}).join('')+'</nav>'+
     '<button type="button" class="adm-out" id="aout">Salir</button></div></header><main class="adm-main gutter" id="amain"></main>';
   root.appendChild(el);
   el.querySelectorAll('[data-a]').forEach(function(b){ b.onclick=function(){ adminPanel(b.dataset.a); window.scrollTo(0,0); }; });
   el.querySelector('#aout').onclick=leaveAdmin;
+  var tb=el.querySelector('.adm-tabs'), cu=tb.querySelector('[aria-current]'); if(cu && tb.scrollWidth>tb.clientWidth) tb.scrollLeft=cu.offsetLeft-(tb.clientWidth-cu.offsetWidth)/2;
   var m=el.querySelector('#amain');
-  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else if(TAB==='ia') admIA(m); else admConfig(m);
+  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else if(TAB==='ia') admIA(m); else if(TAB==='analitica') admAnalytics(m); else admConfig(m);
 }
 function admSummary(m){
   var L=uList(), c=cfg(), st={trial:0,sub:0,end:0,'':0}, ruta={3:0,6:0,12:0}, foc={s:0,m:0,v:0}, ctry={};
@@ -2375,7 +2449,7 @@ function admAnim(m){
    F.map(function(f){ return '<label class="an-row"><span>'+f[1]+' <b id="v-'+f[0]+'">'+show(f[0],a[f[0]])+'</b></span><input type="range" id="an-'+f[0]+'" min="'+f[3]+'" max="'+f[4]+'" step="'+f[5]+'" value="'+a[f[0]]+'"><small class="m-note">'+f[6]+'</small></label>'; }).join('')+
    '<p class="err" id="an1e"></p><div class="m-act"><button class="btn btn-ghost" type="button" id="anDef">Valores originales</button><button class="btn btn-primary" type="submit">Guardar</button></div></form></section>'+
    '<section class="pcard an-prev"><h2>Vista previa</h2><div class="an-orb" id="anOrb"></div><p class="an-q" id="anQ"></p><p class="an-h" id="anH"></p><div class="m-act"><button class="btn btn-ghost" type="button" id="anTry">Probar</button></div><p class="m-note">La vista previa usa los valores que tienes en pantalla, aunque todavía no los hayas guardado.</p></section></div>';
-  m.querySelector('#anOrb').appendChild(makeOrb()); if(!reduce) requestAnimationFrame(drawOrbs);
+  m.querySelector('#anOrb').appendChild(makeOrb()); startOrbs();
   function cur(){ var r={}; ANIM_KEYS.forEach(function(k){ r[k]=+m.querySelector('#an-'+k).value; }); return r; }
   ANIM_KEYS.forEach(function(k){ m.querySelector('#an-'+k).oninput=function(){ m.querySelector('#v-'+k).textContent=show(k,+this.value); AN=cur(); }; });
   AN=cur();
@@ -2389,12 +2463,61 @@ function admAnim(m){
     if(cloud()){ var d={updatedAt:Date.now()}; ANIM_KEYS.forEach(function(k){ d[k]=v[k]; }); FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),d,{merge:true}).then(ok).catch(function(e2){ er.textContent=fbErr(e2); }); return; }
     ok(); };
 }
+/* ---- Analítica: gráficos enlazados; al tocar una barra o un sector se filtran todos los demás ---- */
+var ANF={}, ANP=30;
+function admAnalytics(m){
+  var L=uList(), MC={1:'#8C93A8',2:'#7C9CD6',3:'#5FB3A4',4:'#0E8C78',5:'#D6A21E'}, ML={1:'Difícil',2:'Bajo',3:'Normal',4:'Bien',5:'Pleno'};
+  var AGES=['18–24','25–34','35–44','45–54','55–64','65 o más'], SEXC={'Mujer':'var(--spirit)','Hombre':'var(--matter)','Prefiero no decirlo':'var(--vital)'};
+  var DIMS={pais:'País',ciudad:'Ciudad',edad:'Edad',genero:'Género',am:'Ánimo al empezar el día',pm:'Ánimo al terminar el día'};
+  function ageR(a){ a=+a; if(!(a>0)) return 'Sin dato'; return a<25?AGES[0]:a<35?AGES[1]:a<45?AGES[2]:a<55?AGES[3]:a<65?AGES[4]:AGES[5]; }
+  function uv(u,d){ var r=u.reg||{}; return d==='pais'?(tc(r.country||'')||'Sin dato'):d==='ciudad'?(tc(r.city||'')||'Sin dato'):d==='edad'?ageR(r.age):(r.sex||'Sin dato'); }
+  var since=ANP?dKey(new Date(Date.now()-(ANP-1)*864e5)):'0000';
+  function ents(u,slot){ var M=u.moods||{}, out=[]; Object.keys(M).forEach(function(k){ if(k>=since && M[k][slot]) out.push(+M[k][slot]); }); return out; }
+  function pass(u,ex){ return Object.keys(ANF).every(function(d){ if(d===ex) return true; var f=ANF[d];
+    if(d==='am'||d==='pm') return ents(u,d).indexOf(+f)>=0; return uv(u,d)===f; }); }
+  function counts(d){ var c={}; L.forEach(function(u){ if(!pass(u,d)) return; if(d==='am'||d==='pm') ents(u,d).forEach(function(v){ c[v]=(c[v]||0)+1; }); else { var k=uv(u,d); c[k]=(c[k]||0)+1; } }); return c; }
+  function bars(d,order,top){ var c=counts(d), ks=order?order.filter(function(k){ return c[k]; }):Object.keys(c).sort(function(a,b){ return c[b]-c[a]||a.localeCompare(b); });
+    var more=0; if(top&&ks.length>top){ ks.slice(top).forEach(function(k){ more+=c[k]; }); ks=ks.slice(0,top); }
+    var mx=Math.max.apply(null,ks.map(function(k){return c[k];}).concat([1])), sel=ANF[d];
+    if(!ks.length) return '<p class="muted an-empty">Sin datos con estos filtros.</p>';
+    return '<div class="an-bars">'+ks.map(function(k){ var lb=(d==='am'||d==='pm')?ML[k]:k, on=sel!=null&&String(sel)===String(k), dim=sel!=null&&!on;
+      return '<button type="button" class="an-b'+(on?' on':'')+(dim?' dim':'')+'" data-d="'+d+'" data-v="'+esc(String(k))+'" title="'+esc(lb)+': '+c[k]+'" aria-pressed="'+on+'"><span>'+esc(lb)+'</span><i><em style="width:'+Math.max(2,Math.round(c[k]/mx*100))+'%'+((d==='am'||d==='pm')?';background:'+MC[k]:'')+'"></em></i><b>'+c[k]+'</b></button>'; }).join('')+
+      (more?'<p class="an-more">Otros: '+more+'</p>':'')+'</div>'; }
+  function donut(d,order,col){ var c=counts(d), ks=order.filter(function(k){ return c[k]; }), tot=ks.reduce(function(a,k){ return a+c[k]; },0), sel=ANF[d];
+    if(!tot) return '<p class="muted an-empty">Sin datos con estos filtros.</p>';
+    var R=62,r=40,cx=75,cy=75,a0=-Math.PI/2, paths='';
+    ks.forEach(function(k){ var f=c[k]/tot, a1=a0+f*2*Math.PI, on=sel!=null&&String(sel)===String(k), dim=sel!=null&&!on, lb=(d==='am'||d==='pm')?ML[k]:k;
+      var big=(a1-a0)>Math.PI?1:0, P=function(rad,a){ return (cx+rad*Math.cos(a)).toFixed(2)+' '+(cy+rad*Math.sin(a)).toFixed(2); };
+      var dd=f>=0.9999?'M '+P(R,a0)+' A '+R+' '+R+' 0 1 1 '+P(R,a0+Math.PI)+' A '+R+' '+R+' 0 1 1 '+P(R,a0)+' M '+P(r,a0)+' A '+r+' '+r+' 0 1 0 '+P(r,a0+Math.PI)+' A '+r+' '+r+' 0 1 0 '+P(r,a0)+' Z'
+        :'M '+P(R,a0)+' A '+R+' '+R+' 0 '+big+' 1 '+P(R,a1)+' L '+P(r,a1)+' A '+r+' '+r+' 0 '+big+' 0 '+P(r,a0)+' Z';
+      paths+='<path class="an-s'+(dim?' dim':'')+'" d="'+dd+'" fill="'+col(k)+'" fill-rule="evenodd" data-d="'+d+'" data-v="'+esc(String(k))+'" tabindex="0" role="button" aria-label="'+esc(lb)+': '+c[k]+'"><title>'+esc(lb)+': '+c[k]+' ('+Math.round(f*100)+' %)</title></path>'; a0=a1; });
+    return '<div class="an-don"><svg viewBox="0 0 150 150" role="img" aria-label="'+esc(DIMS[d])+'">'+paths+'<text x="75" y="72" text-anchor="middle" class="an-dt">'+tot+'</text><text x="75" y="90" text-anchor="middle" class="an-ds">'+((d==='am'||d==='pm')?'registros':'usuarios')+'</text></svg>'+
+      '<div class="an-leg">'+ks.map(function(k){ var on=sel!=null&&String(sel)===String(k), lb=(d==='am'||d==='pm')?ML[k]:k;
+        return '<button type="button" class="an-l'+(on?' on':'')+(sel!=null&&!on?' dim':'')+'" data-d="'+d+'" data-v="'+esc(String(k))+'" aria-pressed="'+on+'"><i style="background:'+col(k)+'"></i><span>'+esc(lb)+'</span><b>'+c[k]+'</b><small>'+Math.round(c[k]/tot*100)+' %</small></button>'; }).join('')+'</div></div>'; }
+  var U=L.filter(function(u){ return pass(u,null); }), am=[], pm=[];
+  U.forEach(function(u){ am=am.concat(ents(u,'am')); pm=pm.concat(ents(u,'pm')); });
+  function avg(a){ if(!a.length) return '—'; var v=a.reduce(function(x,y){return x+y;},0)/a.length; return ML[Math.round(v)]+' <small>'+v.toFixed(1).replace('.',',')+'</small>'; }
+  var chips=Object.keys(ANF).map(function(d){ var v=ANF[d]; return '<button type="button" class="an-chip" data-x="'+d+'">'+esc(DIMS[d])+': <b>'+esc((d==='am'||d==='pm')?ML[v]:v)+'</b> ✕</button>'; }).join('');
+  function card(d,inner,wide){ return '<section class="pcard an-c'+(wide?' wide':'')+'"><h2>'+DIMS[d]+'</h2>'+inner+'</section>'; }
+  var sexOrder=['Mujer','Hombre','Prefiero no decirlo','Sin dato'];
+  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Analítica</h1></div><p class="adm-note">Toca una barra o un sector para filtrar todos los gráficos. Vuelve a tocarlo para quitar el filtro.</p></div>'+
+    '<div class="an-f"><label>Ánimo de los últimos <select class="lfield" id="anP">'+[[7,'7 días'],[30,'30 días'],[90,'90 días'],[0,'todo el tiempo']].map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===ANP?' selected':'')+'>'+x[1]+'</option>'; }).join('')+'</select></label>'+chips+(chips?'<button type="button" class="an-clear" id="anClr">Quitar filtros</button>':'')+'</div>'+
+    '<div class="akpis"><div class="akpi"><span>Usuarios</span><b>'+U.length+'</b></div><div class="akpi"><span>Registros de ánimo</span><b>'+(am.length+pm.length)+'</b></div><div class="akpi"><span>Ánimo promedio al empezar</span><b class="an-k">'+avg(am)+'</b></div><div class="akpi"><span>Ánimo promedio al terminar</span><b class="an-k">'+avg(pm)+'</b></div></div>'+
+    '<div class="an-g">'+card('am',donut('am',[5,4,3,2,1],function(k){ return MC[k]; }))+card('pm',donut('pm',[5,4,3,2,1],function(k){ return MC[k]; }))+card('genero',donut('genero',sexOrder,function(k){ return SEXC[k]||'var(--muted)'; }))+
+      card('edad',bars('edad',AGES.concat(['Sin dato'])))+card('pais',bars('pais',null,8))+card('ciudad',bars('ciudad',null,8))+'</div>'+
+    '<p class="adm-foot">El ánimo se cuenta por registro (un usuario puede marcar varios días). Los textos del diario son privados y no se usan aquí.</p>';
+  function go(d,v){ if(ANF[d]!=null&&String(ANF[d])===v) delete ANF[d]; else ANF[d]=(d==='am'||d==='pm')?+v:v; admAnalytics(m); }
+  m.querySelectorAll('[data-d]').forEach(function(b){ b.onclick=function(){ go(b.dataset.d,b.dataset.v); }; b.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(b.dataset.d,b.dataset.v); } }; });
+  m.querySelectorAll('[data-x]').forEach(function(b){ b.onclick=function(){ delete ANF[b.dataset.x]; admAnalytics(m); }; });
+  var clr=m.querySelector('#anClr'); if(clr) clr.onclick=function(){ ANF={}; admAnalytics(m); };
+  m.querySelector('#anP').onchange=function(){ ANP=+this.value; admAnalytics(m); };
+}
 function admIA(m){
   var a=aiCfg();
   function nf(id,l,v,mx){ return fld(id,l,v,'number','min="0" max="'+mx+'" inputmode="numeric"'); }
   m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Mentor IA</h1></div><p class="adm-note">Anthropic no tiene plan gratuito: cada consulta se paga según el modelo. Los límites controlan el costo.</p></div>'+
    '<div class="agrid ag2"><section class="pcard"><h2>Funcionamiento y límites</h2><form class="login mform" id="ia1" novalidate>'+
-   '<div class="ia-sw"><input type="checkbox" id="ia-on"'+(a.aiEnabled?' checked':'')+'><label for="ia-on">Activar «Pregúntale a Áurea» en la pestaña Mentor</label></div>'+
+   '<div class="ia-sw"><input type="checkbox" id="ia-on"'+(a.aiEnabled?' checked':'')+'><label for="ia-on">Activar «Conversa con Áurea» en la pestaña Mentor</label></div>'+
    '<label><span>Modelo</span><select class="lfield" id="ia-model">'+AI_MODELS.map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===a.aiModel?' selected':'')+'>'+esc(x[1])+' · '+x[2]+' por 1.000 consultas</option>'; }).join('')+'</select></label>'+
    nf('ia-tok','Largo máximo de cada respuesta (tokens, 400 a 4.000)',a.aiMaxTokens,4000)+
    '<h3 class="ia-h">Mes de prueba gratuita</h3><div class="m2">'+nf('ia-td','Consultas por día',a.aiTrialDay,1000)+nf('ia-tm','Consultas por mes',a.aiTrialMonth,10000)+'</div>'+
@@ -2461,6 +2584,11 @@ function aiCall(data){
 function aiErr(e){ var c=String((e&&e.code)||'').replace('functions/','');
   if(c==='resource-exhausted'||c==='failed-precondition'||c==='unavailable'||c==='invalid-argument'||c==='unauthenticated') return (e&&e.message)||'Áurea no pudo responder ahora.';
   return 'Áurea no pudo responder ahora. Revisa tu conexión e inténtalo de nuevo en un momento.'; }
+function aiLim(){ var a=aiCfg(), paid=!!S.subscribed; return paid?[+a.aiPaidDay,+a.aiPaidMonth]:[+a.aiTrialDay,+a.aiTrialMonth]; }
+function aiTag(){ var a=aiCfg(); if(!a.aiEnabled||!cloud()) return 'muy pronto'; if(AI_LEFT) return 'te quedan '+AI_LEFT.day+' hoy'; return aiLim()[0]+' conversaciones al día'; }
+function aiLeftLoad(){ if(!cloud()||!fbUser) return Promise.resolve();
+  return FB.f.getDoc(FB.f.doc(FB.db,'users',fbUser.uid,'ia','uso')).then(function(d){ var u=d.exists()?d.data():{}, L=aiLim(), day=new Date().toLocaleDateString('en-CA',{timeZone:'America/Guayaquil'}), mo=day.slice(0,7);
+    var dn=u.day===day?(u.dayN||0):0, mn=u.month===mo?(u.monN||0):0; AI_LEFT={day:Math.max(0,L[0]-dn),month:Math.max(0,L[1]-mn)}; }).catch(function(){}); }
 function weekTitles(){ if(!S.route) return []; var w=S.route[currentWeek()]||[]; return w.map(function(id){ var c=CAP[id]; return c?c.title:''; }).filter(Boolean); }
 
 /* ================= NUBE (Firebase: cuentas y datos compartidos) =================
