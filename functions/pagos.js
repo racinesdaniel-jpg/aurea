@@ -121,7 +121,7 @@ exports.payphoneReturn = onRequest(
 );
 
 /* 3) Cada día a las 03:00 (Ecuador): desactivar las suscripciones cuyo período terminó. */
-exports.subsDaily = onSchedule({ schedule: "0 3 * * *", timeZone: "America/Guayaquil", region: "us-central1", secrets: ["PAYPAL_SECRET"] }, async () => {
+exports.subsDaily = onSchedule({ schedule: "0 3 * * *", timeZone: "America/Guayaquil", region: "us-central1", secrets: ["PAYPAL_CLIENT_ID", "PAYPAL_SECRET"] }, async () => {
   const now = Date.now();
   const q = await db().collection("subs").where("currentPeriodEnd", "<", now).get();
   let vencidas = q.docs.filter((d) => d.data().active === true);
@@ -151,7 +151,7 @@ exports._cifrarTitular = (nombre, clave) => {
    PayPal cobra solo cada mes o cada año. El servidor crea los planes en PayPal (uno por precio), verifica cada
    suscripción consultando a PayPal (nunca confía en lo que envía el navegador) y la renueva o la cierra según su estado. */
 const PAYPAL_SECRET = defineSecret("PAYPAL_SECRET");
-const PAYPAL_CLIENT_ID = defineString("PAYPAL_CLIENT_ID", { default: "" });
+const PAYPAL_CLIENT_ID = defineSecret("PAYPAL_CLIENT_ID"); // no es secreto, pero así se guarda igual que el Secret
 const PAYPAL_ENV = defineString("PAYPAL_ENV", { default: "sandbox" }); // "sandbox" (pruebas) o "live"
 const ppBase = () => (PAYPAL_ENV.value() === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com");
 const GRACIA = 3 * 864e5; // días de margen tras la fecha de cobro, por si PayPal tarda en cobrar
@@ -225,7 +225,7 @@ async function ppSync(subId, uidEsperado) {
 
 /* La app pide los datos para mostrar el botón de PayPal del plan elegido. */
 exports.paypalPlan = onCall(
-  { secrets: [PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
+  { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
   async (req) => {
     if (!req.auth) throw new HttpsError("unauthenticated", "Inicia sesión para suscribirte.");
     if (!PAYPAL_CLIENT_ID.value()) throw new HttpsError("failed-precondition", "El pago con PayPal aún no está configurado.");
@@ -242,7 +242,7 @@ exports.paypalPlan = onCall(
 );
 /* Tras aprobar en PayPal, la app envía el id de la suscripción; el servidor lo verifica con PayPal. */
 exports.paypalConfirm = onCall(
-  { secrets: [PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
+  { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
   async (req) => {
     if (!req.auth) throw new HttpsError("unauthenticated", "Inicia sesión para suscribirte.");
     const id = String((req.data && req.data.subscriptionID) || "");
@@ -258,7 +258,7 @@ exports.paypalConfirm = onCall(
 );
 /* La persona cancela la renovación desde su perfil; mantiene el acceso hasta el fin del período pagado. */
 exports.subCancel = onCall(
-  { secrets: [PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
+  { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
   async (req) => {
     if (!req.auth) throw new HttpsError("unauthenticated", "Inicia sesión.");
     const ref = db().doc("subs/" + req.auth.uid);
@@ -275,7 +275,7 @@ exports.subCancel = onCall(
 /* Avisos de PayPal (cobro hecho, cancelación, suspensión). No se confía en el contenido del aviso:
    solo se usa el id para volver a consultar la suscripción a PayPal. */
 exports.paypalWebhook = onRequest(
-  { secrets: [PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
+  { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
   async (req, res) => {
     const b = req.body || {};
     const r = b.resource || {};
