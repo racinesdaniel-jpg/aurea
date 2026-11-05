@@ -1156,7 +1156,7 @@ function typeText(el,text,speed,done){
   caret.className='caret'; rest.className='ghost'; rest.textContent=text;
   el.appendChild(shown); el.appendChild(caret); el.appendChild(rest);
   var i=0, timer=null, finished=false;
-  orbState.speed=3.5;
+  /* La espiral gira siempre a la misma velocidad, también mientras se escribe el texto. */
   function finish(){ if(finished) return; finished=true; clearTimeout(timer); shown.textContent=text; rest.textContent=''; caret.remove(); orbState.speed=1; el.onclick=null; typingJob=null; done&&done(); }
   function step(){ i++; shown.textContent=text.slice(0,i); rest.textContent=text.slice(i); if(i<text.length){ var ch=text[i-1]; timer=setTimeout(step, /[.?!]/.test(ch)?speed*9:(ch===','||ch===':'?speed*4:speed)); } else finish(); }
   el.onclick=finish;
