@@ -462,7 +462,7 @@ body{background:var(--bg)}
 .chip.tb-trial{border-color:color-mix(in srgb,var(--accent) 50%,var(--line));color:var(--accent)}
 .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:1.05rem;color:#fff;background:linear-gradient(135deg,var(--spirit),var(--accent));flex:none}
 .app-main{max-width:1180px;margin:0 auto;padding-block:24px 110px;display:grid;gap:24px}
-.bnav{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:40;display:grid;grid-template-columns:repeat(2,1fr);gap:4px;padding:6px;border-radius:22px;
+.bnav{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border-radius:22px;
   background:color-mix(in srgb,var(--ink) 94%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 18px 40px -16px rgba(10,14,30,.55)}
 .bnav-b{display:grid;justify-items:center;gap:2px;padding:8px 4px;border:0;border-radius:16px;background:transparent;color:#A9B0CC;font-size:.72rem;font-weight:600;cursor:pointer}
 .bnav-b[aria-current="page"]{background:rgba(255,255,255,.1);color:#fff}
@@ -728,6 +728,103 @@ body{background:var(--bg)}
 
 .boot-load{min-height:100%;display:grid;place-content:center;gap:14px;justify-items:center;color:var(--muted);font-size:.95rem;padding:40px;text-align:center}
 .boot-load span{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin 0.9s linear infinite}
+/* ---- Tu semana ---- */
+.wplan{border:1px solid var(--line);background:var(--surface);border-radius:24px;padding:22px;display:grid;gap:14px}
+.wp-list{display:grid;gap:8px}
+.wp-day{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:center;padding:10px 12px;border-radius:16px;background:var(--bg)}
+.wp-d{display:grid;justify-items:center;line-height:1.1}.wp-d b{font-size:.95rem}.wp-d small{color:var(--muted);font-size:.75rem}
+.wp-acts{display:flex;flex-wrap:wrap;gap:6px}
+.wp-act{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:.82rem}
+.wp-act i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.wp-act.d-s i{background:var(--spirit)}.wp-act.d-m i{background:var(--matter)}.wp-act.d-v i{background:var(--vital)}.wp-act.wp-pr i{background:var(--accent)}.wp-act.wp-di i{background:var(--fg)}
+.tw-lock{margin:2px 0 0;font-size:.85rem;color:var(--muted)}
+
+/* ---- Mentor ---- */
+.mt{display:grid;gap:22px}
+@media (min-width:1000px){.mt{grid-template-columns:1fr 280px;align-items:start}}
+.mt-stage{position:relative;overflow:hidden;border-radius:30px;padding:clamp(24px,4vw,48px) clamp(18px,4vw,48px) clamp(26px,4vw,44px);background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;min-height:540px;isolation:isolate}
+.mt-bg{position:absolute;inset:0;z-index:-1;background:radial-gradient(60% 50% at 50% 0%,var(--accent-soft),transparent 70%),radial-gradient(40% 40% at 90% 100%,rgba(124,92,255,.08),transparent 70%)}
+.mt-k{margin:0;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mt-orb .orb{width:84px;height:84px}
+.mt-q{font-family:var(--f-display);font-weight:300;font-size:clamp(1.35rem,3vw,2.05rem);line-height:1.25;max-width:30ch;margin:0;cursor:pointer}
+.mt-card{width:100%;max-width:620px;opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease}
+.mt-card.in{opacity:1;transform:none}
+.mt-info{text-align:left;border:1px solid var(--line);border-radius:20px;padding:18px 20px;background:var(--bg);display:grid;gap:10px}
+.mt-info p{margin:0;line-height:1.6}
+.mt-info blockquote{margin:0;padding:10px 14px;border-left:3px solid var(--accent);font-family:var(--f-display);font-size:1.15rem;font-style:italic}
+.mt-ck{font-size:.72rem!important;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mt-tip{font-size:.88rem;color:var(--muted)}
+.mt-next{font-size:.9rem}
+.mt-bar{display:grid;grid-template-columns:110px 1fr 24px;gap:10px;align-items:center;font-size:.88rem}
+.mt-bar i{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.mt-bar em{display:block;height:100%;border-radius:inherit;background:var(--accent)}
+.mt-info.d-s .mt-bar em{background:var(--spirit)}.mt-info.d-m .mt-bar em{background:var(--matter)}.mt-info.d-v .mt-bar em{background:var(--vital)}
+.mt-wheel{justify-items:center}.mt-wheel svg{max-width:300px;width:100%}
+.mt-book{display:grid;grid-template-columns:120px 1fr;gap:18px;text-align:left;align-items:start;border:1px solid var(--line);border-radius:20px;padding:18px;background:var(--bg)}
+.mt-book h3{font-family:var(--f-display);font-size:1.4rem;font-weight:400;margin:2px 0}.mt-book p{margin:0 0 6px;line-height:1.55}.mt-by{color:var(--muted)}
+.mt-cover{aspect-ratio:2/3;border-radius:6px 12px 12px 6px;padding:12px 10px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;background:linear-gradient(160deg,var(--ink-2),var(--ink));box-shadow:inset 6px 0 0 rgba(255,255,255,.12),0 14px 24px -14px rgba(17,24,51,.6)}
+.mt-cover b{font-family:var(--f-display);font-weight:400;font-size:.95rem;line-height:1.2}.mt-cover small{font-size:.68rem;opacity:.8}
+.mt-cover.d-s{background:linear-gradient(160deg,#6D5BD0,#2B2266)}.mt-cover.d-m{background:linear-gradient(160deg,#C98A12,#5E3E05)}.mt-cover.d-v{background:linear-gradient(160deg,#E0604A,#6B2215)}
+@media (max-width:520px){.mt-book{grid-template-columns:84px 1fr;gap:12px}}
+.mt-opts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:720px}
+.mt-op{display:grid;gap:2px;justify-items:center;padding:12px 18px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-weight:600;cursor:pointer;opacity:0;transform:translateY(8px);animation:mtIn .4s ease forwards;animation-delay:calc(var(--i)*60ms);transition:border-color .15s,background .15s}
+.mt-op small{font-weight:400;font-size:.75rem;color:var(--muted)}
+.mt-op:hover{border-color:var(--accent);background:var(--accent-soft)}
+.mt-op.main{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}.mt-op.main small{color:rgba(255,255,255,.85)}
+@keyframes mtIn{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.mt-op{animation:none;opacity:1;transform:none}.mt-card{transition:none}}
+.mt-side{border:1px solid var(--line);background:var(--surface);border-radius:24px;padding:20px;display:grid;gap:10px}
+.mt-side h2{font-size:1.15rem;font-weight:400;margin:0}.mt-side p{margin:0;color:var(--muted);font-size:.9rem}
+.mt-side ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.mt-side li{display:grid;grid-template-columns:1fr auto;gap:0 8px;padding:10px 12px;border-radius:14px;background:var(--bg)}
+.mt-side li b{font-weight:600;font-size:.9rem}.mt-side li small{grid-column:1;color:var(--muted);font-size:.8rem}
+.mt-side li button{grid-row:1/3;grid-column:2;border:0;background:none;color:var(--muted);cursor:pointer}
+
+/* ---- Diario ---- */
+.dia-tl{display:grid;gap:14px}.dia-tl h2{font-size:1.5rem;font-weight:400;margin:0}
+.dia-tl ol{list-style:none;margin:0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.dia-tl li{display:grid;gap:8px;padding:18px 20px;border-radius:20px;border:1px solid var(--line);background:var(--surface);opacity:0;transform:translateY(10px);animation:mtIn .5s ease forwards;animation-delay:calc(var(--i)*90ms)}
+.dia-tl li b{font-family:var(--f-display);font-size:1.25rem;font-weight:400}.dia-tl li p{margin:4px 0 0;line-height:1.6;color:var(--muted)}
+.dt-y{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.dia-why{margin:0;padding-left:18px;display:grid;gap:8px;line-height:1.55}
+.dia-start{display:grid;justify-items:center;gap:10px;text-align:center}.dia-start p{margin:0;color:var(--muted);font-size:.9rem}
+.dia-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px}
+.dia-top h1{font-family:var(--f-display);font-weight:300;font-size:clamp(1.8rem,4vw,2.6rem);margin:0}
+.dia-stats{display:flex;align-items:center;gap:18px}.dia-stats div{display:grid;justify-items:center}.dia-stats b{font-family:var(--f-display);font-size:1.7rem;font-weight:400;line-height:1}.dia-stats span{font-size:.75rem;color:var(--muted)}
+.dia-grid{display:grid;gap:20px}
+@media (min-width:980px){.dia-grid{grid-template-columns:1fr 320px;align-items:start}}
+.dia-page{position:relative;border-radius:28px;padding:clamp(20px,3.5vw,36px);background:var(--surface);border:1px solid var(--line);display:grid;gap:20px}
+.dia-f textarea{background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--line) 31px 32px);background-attachment:local;border-bottom:0}
+.dia-mode{display:inline-flex;justify-self:start;gap:4px;padding:4px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
+.dia-mode button{border:0;background:transparent;padding:8px 16px;border-radius:999px;font:inherit;font-size:.86rem;font-weight:600;color:var(--muted);cursor:pointer}
+.dia-mode button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 2px 8px -4px rgba(0,0,0,.25)}
+.dia-mood{display:grid;gap:10px}.dia-mood>span{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.dia-mood>div{display:flex;flex-wrap:wrap;gap:8px}
+.mo{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font:inherit;font-size:.85rem;cursor:pointer;color:var(--fg)}
+.mo i,.dp i{width:12px;height:12px;border-radius:50%;flex:none}
+.mo1 i,i.mo1,.dc.mo1{--mc:#8C93A8}.mo2 i,i.mo2,.dc.mo2{--mc:#7C9CD6}.mo3 i,i.mo3,.dc.mo3{--mc:#5FB3A4}.mo4 i,i.mo4,.dc.mo4{--mc:#0E8C78}.mo5 i,i.mo5,.dc.mo5{--mc:#D6A21E}
+.mo i,.dp i{background:var(--mc)}
+.mo.on{border-color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,var(--surface));font-weight:600}
+.dia-ask{display:grid;gap:8px;padding:18px 20px;border-radius:20px;background:var(--bg);border:1px solid var(--line)}
+.dia-who{display:inline-flex;align-items:center;gap:8px;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.dia-q{margin:0;font-family:var(--f-display);font-size:clamp(1.2rem,2.4vw,1.55rem);line-height:1.3;cursor:pointer}
+.dia-f{display:grid;gap:8px}.dia-f>span{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.dia-f textarea,.dia-grat input{width:100%;box-sizing:border-box;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--fg);font-family:var(--f-display);font-size:1.15rem;line-height:32px;padding:0 2px;resize:vertical;outline:none}
+.dia-f textarea:focus,.dia-grat input:focus{border-bottom-color:var(--accent)}
+.dia-grat{display:grid;gap:6px}.dia-grat label{display:grid;grid-template-columns:22px 1fr;align-items:center;gap:8px}.dia-grat b{color:var(--accent);font-family:var(--f-display);font-size:1.1rem}
+.dia-saved{margin:0;font-size:.8rem;color:var(--muted);min-height:1.2em;text-align:right}
+.dia-side{display:grid;gap:16px}
+.dia-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:.8rem}
+.dc-h{color:var(--muted);font-size:.7rem;font-weight:600;padding-bottom:4px}
+.dc{aspect-ratio:1;display:grid;place-items:center;border-radius:50%;color:var(--muted)}
+.dc.has{background:color-mix(in srgb,var(--mc) 22%,transparent);color:var(--fg);font-weight:600}
+.dc.today{outline:2px solid var(--accent);outline-offset:-2px}
+#dPast{display:grid;gap:6px}
+.dp{display:flex;gap:10px;align-items:center;text-align:left;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--bg);font:inherit;color:var(--fg);cursor:pointer}
+.dp span{display:grid;min-width:0}.dp b{font-size:.85rem;text-transform:capitalize}.dp small{color:var(--muted);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dia-empty{margin:0;color:var(--muted);font-size:.9rem;line-height:1.5}
+.dia-priv{margin:0;font-size:.82rem;color:var(--muted);text-align:center}
+.dia-read{display:grid;gap:6px}.dia-read h4{margin:10px 0 0;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.dia-read p{margin:0;line-height:1.6;white-space:pre-wrap}
+.dia-read blockquote{margin:0;padding:8px 12px;border-left:3px solid var(--accent);font-family:var(--f-display);font-style:italic}
 </style>
 
 <div id="root"></div>
@@ -1331,7 +1428,7 @@ function pwHash(pw,email){ var str='aurea|'+String(email||'').trim().toLowerCase
 var AUTH_KEY='aurea-sesion', authMem=false;
 function isAuth(){ if(cloud()) return !!fbUser && mailKey(fbUser.email)===mailKey(S.reg&&S.reg.email); try{ return sessionStorage.getItem(AUTH_KEY)==='1'; }catch(e){ return authMem; } }
 function setAuth(on){ authMem=on; try{ if(on) sessionStorage.setItem(AUTH_KEY,'1'); else sessionStorage.removeItem(AUTH_KEY); }catch(e){} }
-function logout(){ if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
+function logout(){ DIA=null; if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
 function loginScreen(){
   var el=botScreen({phase:'Iniciar sesión'}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
@@ -1527,7 +1624,7 @@ function buildRoute(){
   var s=orderPillar('s',d.sCh), m=orderPillar('m',d.mCh), v=orderPillar('v',d.vCh);
   var route=[];
   for(var w=0;w<weeks;w++){ route.push(w<13?[s[w],m[w],v[w]]:null); }
-  S.route=route; S.stage='building'; save();
+  S.route=route; S.routeAt=Date.now(); S.stage='building'; save();
   buildingScreen();
 }
 function buildingScreen(){
@@ -1582,7 +1679,13 @@ function weeksDone(){ var n=0; if(!S.route) return 0; for(var i=0;i<S.route.leng
 function points(){ return doneCount()*10+Object.keys(S.practice).length*5; }
 function level(){ var w=weeksDone(), L=LEVELS[0]; LEVELS.forEach(function(l){ if(w>=l.w) L=l; }); return L; }
 function nextLevel(){ var w=weeksDone(); for(var i=0;i<LEVELS.length;i++) if(LEVELS[i].w>w) return LEVELS[i]; return null; }
-function currentWeek(){ var w=weeksDone(); return Math.min(w, S.route.length-1); }
+/* Las vueltas se abren por calendario: una por semana desde que empezó la ruta. Completar antes no adelanta la siguiente. */
+var WEEK_MS=7*864e5;
+function routeStart(){ return S.routeAt||S.reg.registeredAt||Date.now(); }
+function calWeek(){ return Math.max(0,Math.floor((Date.now()-routeStart())/WEEK_MS)); }
+function nextOpenDate(){ return new Date(routeStart()+(calWeek()+1)*WEEK_MS); }
+function fmtOpen(d){ var s=d.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'}); return s; }
+function currentWeek(){ var w=weeksDone(); return Math.min(w, calWeek(), S.route.length-1); }
 function trialLeft(){ var days=Math.floor((Date.now()-S.reg.registeredAt)/86400000)+S.dayOffset; return Math.max(0,cfg().trialDays-days); }
 function locked(){ return !S.subscribed && trialLeft()<=0; }
 
@@ -1590,6 +1693,8 @@ var tab='ruta';
 var NAV_IC={
   ruta:'<path d="M12 12a1.5 1.5 0 0 1 1.5 1.5A3 3 0 0 1 10.5 16.5 4.5 4.5 0 0 1 6 12a6 6 0 0 1 6-6 7.5 7.5 0 0 1 7.5 7.5A9 9 0 0 1 10.5 21.5"/>',
   progreso:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  mentor:'<path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3ZM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15ZM5 15l.6 1.4L7 17l-1.4.6L5 19l-.6-1.4L3 17l1.4-.6L5 15Z"/>',
+  diario:'<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4ZM5 17a3 3 0 0 1 3-3h11M9 8h6"/>',
   perfil:'<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"/>'};
 function navIcon(k){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+NAV_IC[k]+'</svg>'; }
 function uIc(d){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>'; }
@@ -1598,8 +1703,8 @@ function renderApp(t){
   root.innerHTML='';
   var L=level(), N=nextLevel(), w=weeksDone(), left=trialLeft();
   var lp=N?Math.round((w-L.w)/(N.w-L.w)*100):100;
-  var TABS=[['ruta','Mi ruta'],['progreso','Progreso']];
-  var nav=function(cls){ return TABS.map(function(x){ return '<button type="button" class="'+cls+'" data-t="'+x[0]+'"'+(tab===x[0]?' aria-current="page"':'')+'>'+navIcon(x[0])+'<span>'+x[1]+'</span></button>'; }).join(''); };
+  var TABS=[['ruta','Mi ruta','Mi ruta'],['progreso','Progreso','Progreso'],['mentor','Mentor','Mentor'],['diario','Diario personal','Diario']];
+  var nav=function(cls){ return TABS.map(function(x){ return '<button type="button" class="'+cls+'" data-t="'+x[0]+'"'+(tab===x[0]?' aria-current="page"':'')+'>'+navIcon(x[0])+'<span>'+(cls==='bnav-b'?x[2]:x[1])+'</span></button>'; }).join(''); };
   var today=new Date(Date.now()+S.dayOffset*86400000).toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
   var el=document.createElement('div'); el.className='app';
   el.innerHTML='<aside class="side"><div class="brand">'+logo(24)+'Áurea</div><nav class="snav" aria-label="Secciones">'+nav('snav-b')+'</nav>'+
@@ -1619,7 +1724,8 @@ function renderApp(t){
   el.querySelectorAll('[data-t]').forEach(function(b){ b.onclick=function(){ renderApp(b.dataset.t); window.scrollTo(0,0); }; });
   wireUserMenu(el);
   var main=el.querySelector('#main');
-  if(tab==='ruta') viewRoute(main); else if(tab==='progreso') viewProgress(main); else viewProfile(main);
+  if(tab!=='mentor') mentorRun++;
+  if(tab==='ruta') viewRoute(main); else if(tab==='progreso') viewProgress(main); else if(tab==='mentor') viewMentor(main); else if(tab==='diario') viewDiary(main); else viewProfile(main);
   if(locked()) setTimeout(paywall,300);
 }
 function capState(id,wi){ if(S.done[id]) return 'done'; return wi<=currentWeek()?'open':'lock'; }
@@ -1636,7 +1742,8 @@ function viewRoute(main){
       '<div class="kpi"><span>Avance</span><b>'+pct+'<small>%</small></b></div>'+
     '</div></section><section class="rhero"><div class="rh-main">';
   if(wk){
-    html+='<div class="thisweek"><div class="tw-head"><h2>Esta semana</h2><span>'+doneIn+' de 3</span></div><div class="tw-bar"><i style="width:'+(doneIn/3*100)+'%"></i></div><div class="tw-list">'+
+    var waitNext=doneIn===3 && cw+1<total && cw>=calWeek();
+    html+='<div class="thisweek"><div class="tw-head"><h2>Esta semana</h2><span>'+doneIn+' de 3</span></div><div class="tw-bar"><i style="width:'+(doneIn/3*100)+'%"></i></div>'+(waitNext?'<p class="tw-lock">¡Completaste tu vuelta! La siguiente se abre el '+esc(fmtOpen(nextOpenDate()))+'. Mientras tanto, aplica tus prácticas y escribe en tu diario.</p>':'')+'<div class="tw-list">'+
       wk.map(function(id){ var c=CAP[id], st=capState(id,cw); return '<button type="button" class="tw-cap '+PILLARS[c.p].cls+(st==='done'?' done':'')+'" data-id="'+id+'"><span class="tw-dot"></span><span class="tw-tx"><span class="tw-k">'+PILLARS[c.p].name+' · '+dayFor(c.p)+'</span><span class="tw-t">'+esc(c.title)+'</span></span><span class="tw-st">'+(st==='done'?'Completada':capMin(c)+' min')+'</span><span class="tw-go" aria-hidden="true">'+(st==='done'?'✓':'→')+'</span></button>'; }).join('')+
       '</div></div>'+
       '<div class="practs"><div class="tw-head"><h2>Tus prácticas</h2><span>'+wk.filter(function(id){return S.practice[id];}).length+' de 3 asumidas</span></div>'+
@@ -1646,14 +1753,14 @@ function viewRoute(main){
     html+='<div class="thisweek"><h2>Contenido en preparación</h2><p class="goal">Completaste todas las cápsulas disponibles. Las siguientes vueltas de tu ruta se publican pronto.</p></div>';
   }
   html+='</div><div class="spcard"><div class="sp-head"><h2>Tu espiral</h2><div class="sp-leg"><span class="d-s"><i></i>Espíritu</span><span class="d-m"><i></i>Prosperidad</span><span class="d-v"><i></i>Vitalidad</span></div></div>'+
-    '<div class="sp-wrap">'+spiralSVG(total,cw)+'</div><div class="sp-detail" id="spd" aria-live="polite"></div></div></section>';
+    '<div class="sp-wrap">'+spiralSVG(total,cw)+'</div><div class="sp-detail" id="spd" aria-live="polite"></div></div></section>'+weekPlanCard();
   main.innerHTML=html;
   main.querySelectorAll('.tw-cap,.pr-row').forEach(function(b){ b.onclick=function(){ openCap(b.dataset.id); }; });
   var svg=main.querySelector('.spiral');
   function select(w){
     svg.querySelectorAll('.sw').forEach(function(g){ g.classList.toggle('sel',+g.dataset.w===w); });
     var ids=S.route[w], isDone=ids&&ids.every(function(id){return S.done[id];}), lockd=w>cw;
-    var status=!ids?'Se publica a medida que avanzas':isDone?'Completada':w===cw?'En curso':lockd?'Se desbloquea al completar la anterior':'Disponible';
+    var status=!ids?'Se publica a medida que avanzas':isDone?'Completada':w===cw?'En curso':lockd?(w===cw+1&&w>calWeek()?'Se abre el '+fmtOpen(nextOpenDate()):'Se abre una semana después de la anterior'):'Disponible';
     var box=main.querySelector('#spd');
     box.innerHTML='<div class="spd-head"><b>Vuelta '+(w+1)+'</b><span class="'+(w===cw&&!isDone?'now':'')+'">'+status+'</span></div>'+
       (ids?'<div class="spd-caps">'+ids.map(function(id){ var c=CAP[id], st=capState(id,w); return '<button type="button" class="spd-cap '+PILLARS[c.p].cls+(st==='done'?' done':'')+'" data-id="'+id+'" '+(st==='lock'?'disabled':'')+'><i></i><span>'+esc(c.title)+'</span></button>'; }).join('')+'</div>'
@@ -1736,6 +1843,245 @@ function viewProfile(main){
     '<div class="plogout"><button type="button" id="chpw">Cambiar contraseña</button></div>';
   var sp=main.querySelector('#seePlans'); if(sp) sp.onclick=paywall;
   main.querySelector('#chpw').onclick=changePw; main.querySelector('#pdEdit').onclick=editProfile;
+}
+
+/* ================= TU SEMANA: días y minutos elegidos ================= */
+/* Cada día elegido recibe una actividad: las 3 cápsulas van a 3 días y el resto son días de práctica y diario. */
+function weekPlan(){
+  var av=(S.diag&&S.diag.avail)||{}, sel=DAYS.filter(function(d){return av[d.k]!=null;});
+  var capNames=capDays(), wk=S.route&&S.route[currentWeek()];
+  return sel.map(function(d){
+    var nm=d.n.charAt(0).toUpperCase()+d.n.slice(1), caps=[];
+    ['s','m','v'].forEach(function(p,ix){ if(capNames[ix]===nm) caps.push(p); });
+    var capsMin=0, items=caps.map(function(p){ var id=wk&&wk[{s:0,m:1,v:2}[p]], c=id&&CAP[id], m=c?capMin(c):8; capsMin+=m; return {p:p,id:id,t:c?c.title:'',m:m}; });
+    return {d:d,name:nm,min:av[d.k],caps:items,rest:Math.max(0,av[d.k]-capsMin)};
+  });
+}
+function weekPlanCard(){
+  var plan=weekPlan(); if(!plan.length) return '';
+  return '<section class="wplan"><div class="tw-head"><h2>Tu semana</h2><span>'+fmtMin(totalMin(S.diag.avail))+' en total</span></div><div class="wp-list">'+
+    plan.map(function(x){
+      var acts=x.caps.map(function(c){ return '<span class="wp-act '+PILLARS[c.p].cls+'"><i></i>Cápsula de '+PILLARS[c.p].name+' · '+c.m+' min</span>'; }).join('');
+      if(x.caps.length && x.rest>0) acts+='<span class="wp-act wp-pr"><i></i>Práctica de la semana · '+x.rest+' min</span>';
+      if(!x.caps.length) acts='<span class="wp-act wp-pr"><i></i>Práctica de la semana · '+Math.max(5,x.min-10)+' min</span><span class="wp-act wp-di"><i></i>Diario personal · '+Math.min(10,x.min)+' min</span>';
+      return '<div class="wp-day"><div class="wp-d"><b>'+x.d.s+'</b><small>'+x.min+' min</small></div><div class="wp-acts">'+acts+'</div></div>';
+    }).join('')+'</div><p class="pr-note">Las cápsulas toman pocos minutos; el resto de tu tiempo es para aplicar la práctica. Los días sin cápsula son para practicar y escribir en tu diario.</p></section>';
+}
+
+/* ================= MENTOR ================= */
+/* Áurea guía con preguntas: el texto se escribe en su lugar fijo y debajo aparecen las opciones. */
+var BOOKS={
+ paz:[{t:'El poder del ahora',a:'Eckhart Tolle',y:'1997',why:'Enseña a salir del ruido mental y volver al presente, que es donde aparece la calma.'},{t:'Meditaciones',a:'Marco Aurelio',y:'siglo II',why:'Las notas personales de un emperador que buscaba serenidad en medio de guerras y grandes responsabilidades.'}],
+ proposito:[{t:'El hombre en busca de sentido',a:'Viktor Frankl',y:'1946',why:'Un psiquiatra que sobrevivió a los campos de concentración muestra que quien tiene un «para qué» puede enfrentar casi cualquier «cómo».'},{t:'Ikigai',a:'Héctor García y Francesc Miralles',y:'2016',why:'Explora la idea japonesa de tener una razón para levantarte cada mañana.'}],
+ relaciones:[{t:'Los cuatro acuerdos',a:'Miguel Ruiz',y:'1997',why:'Cuatro compromisos sencillos para relacionarte mejor y dejar de tomarte todo de forma personal.'},{t:'Comunicación no violenta',a:'Marshall Rosenberg',y:'1999',why:'Un método práctico para decir lo que sientes y necesitas sin atacar ni ponerte a la defensiva.'}],
+ finanzas:[{t:'La psicología del dinero',a:'Morgan Housel',y:'2020',why:'Muestra que manejar bien el dinero depende más de tu comportamiento que de cuánto sabes.'},{t:'El hombre más rico de Babilonia',a:'George S. Clason',y:'1926',why:'Historias sencillas sobre ahorrar, salir de deudas y hacer crecer lo que tienes.'}],
+ trabajo:[{t:'Hábitos atómicos',a:'James Clear',y:'2018',why:'Cómo pequeños cambios diarios se suman hasta transformar tus resultados.'},{t:'Mindset: la actitud del éxito',a:'Carol Dweck',y:'2006',why:'Explica por qué creer que puedes aprender cambia lo que logras.'}],
+ salud:[{t:'El secreto de las zonas azules',a:'Dan Buettner',y:'2008',why:'Cómo comen, se mueven y conviven las comunidades del mundo donde más personas llegan a los cien años con buena salud.'},{t:'Hábitos atómicos',a:'James Clear',y:'2018',why:'Para convertir el cuidado de tu cuerpo en una rutina que se mantiene sola.'}],
+ descanso:[{t:'Por qué dormimos',a:'Matthew Walker',y:'2017',why:'Un neurocientífico explica qué hace el sueño por tu cuerpo y tu mente, y cómo dormir mejor.'}],
+ emociones:[{t:'Inteligencia emocional',a:'Daniel Goleman',y:'1995',why:'Cómo reconocer y manejar tus emociones, y por qué eso pesa tanto como el talento.'},{t:'El poder del ahora',a:'Eckhart Tolle',y:'1997',why:'Ayuda a observar lo que sientes sin dejar que te arrastre.'}]
+};
+var AUTHORS=[
+ {n:'Marco Aurelio',k:'Emperador romano y filósofo estoico · 121–180',t:'Gobernó Roma durante casi veinte años de guerras y epidemias. Cada noche escribía notas para sí mismo sobre cómo ser mejor persona. Nunca pensó publicarlas: hoy las conocemos como «Meditaciones».',i:'No controlas lo que pasa, pero sí cómo respondes.'},
+ {n:'Séneca',k:'Filósofo estoico romano · c. 4 a. C.–65 d. C.',t:'Fue escritor, político y consejero del emperador Nerón. En sus cartas a su amigo Lucilio dejó consejos prácticos sobre el tiempo, la riqueza y la serenidad.',i:'El tiempo es lo único que de verdad nos pertenece: cuídalo.'},
+ {n:'Epicteto',k:'Filósofo estoico griego · c. 50–135',t:'Nació esclavo y llegó a ser uno de los maestros más influyentes de su época. Enseñaba que la libertad empieza en la mente.',i:'Separa lo que depende de ti de lo que no, y pon tu energía solo en lo primero.'},
+ {n:'Lao Tse',k:'Sabio chino del Taoísmo · según la tradición, siglo VI a. C.',t:'Se le atribuye el Tao Te Ching, un libro breve de 81 poemas sobre vivir en armonía con el ritmo natural de las cosas.',i:'El agua es suave y, aun así, vence a la piedra con constancia.'},
+ {n:'Siddhartha Gautama, el Buda',k:'Fundador del Budismo · c. siglo V a. C.',t:'Dejó una vida de príncipe para entender por qué sufrimos. Su respuesta: gran parte del sufrimiento nace de aferrarnos a lo que cambia.',i:'La atención al momento presente calma la mente.'},
+ {n:'Viktor Frankl',k:'Psiquiatra austriaco · 1905–1997',t:'Sobrevivió a los campos de concentración y creó la logoterapia, una forma de terapia centrada en encontrar sentido a la vida.',i:'Entre lo que te pasa y tu respuesta hay un espacio: ahí está tu libertad.'},
+ {n:'Carol Dweck',k:'Psicóloga de la Universidad de Stanford · 1946',t:'Tras décadas de investigación describió la «mentalidad de crecimiento»: creer que tus capacidades se desarrollan con esfuerzo y práctica.',i:'Todavía no lo logras: la palabra clave es «todavía».'}
+];
+var PHILOS=['estoicismo','budismo','taoismo','hermetismo','atencion','crecimiento','estilo'];
+var BELIEFS=[
+ {f:'No soy bueno con el dinero',r:'Estoy aprendiendo a manejar mi dinero, paso a paso.',e:'Piensa en una vez que pagaste algo a tiempo o guardaste aunque sea un poco. Eso ya es manejar dinero: se trata de practicarlo más seguido.'},
+ {f:'Ya es tarde para cambiar',r:'Hoy es un buen día para empezar algo pequeño.',e:'El cerebro sigue formando conexiones nuevas toda la vida. Muchas personas empiezan a estudiar, a ejercitarse o a emprender después de los 50 y 60 años.'},
+ {f:'No tengo tiempo para mí',r:'Puedo regalarme diez minutos al día.',e:'Revisa cuánto tiempo pasas en el celular sin un propósito. Diez minutos diarios son más de una hora a la semana dedicada a ti.'},
+ {f:'Si fallo, es porque no sirvo',r:'Fallar es parte de aprender.',e:'Las investigaciones de Carol Dweck muestran que quienes ven el error como información, y no como un juicio sobre su valor, avanzan más.'},
+ {f:'Así soy y no puedo cambiar',r:'Puedo elegir cómo responder hoy.',e:'Tu forma de ser también está hecha de hábitos, y los hábitos se pueden cambiar con repeticiones pequeñas.'},
+ {f:'No merezco que me vaya bien',r:'Merezco crecer, igual que cualquier persona.',e:'Esta idea suele venir de experiencias pasadas, no de los hechos de hoy. Pregúntate de quién la escuchaste por primera vez.'}
+];
+var mentorRun=0, diaPrefill=null;
+function viewMentor(main){
+  var my=++mentorRun, n=tc(S.reg.name), W=wheelNow().w, need=areasByNeed(W);
+  main.innerHTML='<section class="mt"><div class="mt-stage"><div class="mt-bg" aria-hidden="true"></div><p class="mt-k" id="mtK"></p><div class="mt-orb" id="mtOrb"></div>'+
+    '<h1 class="mt-q" id="mtQ" aria-live="polite"></h1><div class="mt-card" id="mtC" hidden></div><div class="mt-opts" id="mtO"></div></div>'+
+    '<aside class="mt-side" id="mtS"></aside></section>';
+  main.querySelector('#mtOrb').appendChild(makeOrb()); if(!reduce) requestAnimationFrame(drawOrbs);
+  var K=main.querySelector('#mtK'), Q=main.querySelector('#mtQ'), C=main.querySelector('#mtC'), O=main.querySelector('#mtO');
+  function side(){ var L=S.mentorSaved||[]; main.querySelector('#mtS').innerHTML='<h2>Tu lista de lecturas</h2>'+(L.length?'<ul>'+L.map(function(b,i){ return '<li><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small><button type="button" data-rm="'+i+'" aria-label="Quitar">✕</button></li>'; }).join('')+'</ul>':'<p>Cuando Áurea te recomiende un libro, puedes guardarlo aquí.</p>');
+    main.querySelectorAll('[data-rm]').forEach(function(b){ b.onclick=function(){ S.mentorSaved.splice(+b.dataset.rm,1); save(); side(); }; }); }
+  side();
+  /* Escribe uno o varios mensajes en el mismo lugar y luego muestra la tarjeta y las opciones */
+  function say(trail,msgs,card,opts){
+    if(my!==mentorRun) return; msgs=[].concat(msgs);
+    K.textContent=trail; O.innerHTML=''; C.hidden=true; C.innerHTML=''; C.classList.remove('in');
+    var hmax=0; msgs.forEach(function(m){ Q.textContent=m; hmax=Math.max(hmax,Q.offsetHeight); }); Q.textContent=''; Q.style.minHeight=hmax+'px';
+    var k=0;
+    (function nx(){ typeText(Q,msgs[k],30,function(){ if(my!==mentorRun) return; k++;
+      if(k<msgs.length){ setTimeout(function(){ if(my===mentorRun) nx(); }, reduce?0:animNow().paraPause*1000); return; }
+      if(card){ C.innerHTML=card; C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); }); }
+      O.innerHTML=opts.map(function(o,i){ return '<button type="button" class="mt-op'+(o.main?' main':'')+(o.cls?' '+o.cls:'')+'" style="--i:'+i+'">'+esc(o.l)+(o.tag?'<small>'+esc(o.tag)+'</small>':'')+'</button>'; }).join('');
+      O.querySelectorAll('.mt-op').forEach(function(b,i){ b.onclick=function(){ opts[i].go(); }; });
+    }); })();
+  }
+  var BACK={l:'Volver a los temas',go:function(){ home(true); }};
+  function home(again){
+    var first=!S.mentorMet; if(first){ S.mentorMet=true; save(); }
+    var msgs=first?['Hola, '+n+'. Soy Áurea, tu mentor personal.','Te acompañaré durante todo este proceso. ¿En qué quieres profundizar hoy?']
+      :[again?'¿Qué más quieres explorar, '+n+'?':'Qué bueno verte, '+n+'. ¿En qué quieres profundizar hoy?'];
+    say('Mentor',msgs,null,[
+      {l:'Libros',tag:'para cada área de tu vida',go:books},
+      {l:'Autores',tag:'quiénes inspiran el método',go:authors},
+      {l:'Filosofías',tag:'de dónde vienen las ideas',go:philos},
+      {l:'Los tres pilares',tag:'Espíritu, Prosperidad y Vitalidad',go:pillars},
+      {l:'Tu Rueda de la Vida',tag:'lo que dicen tus resultados',go:wheel},
+      {l:'Creencias limitantes',tag:'ideas que te frenan',go:beliefs},
+      {l:'Una idea para hoy',tag:'sorpréndeme',go:idea}]);
+  }
+  function books(){
+    var order=need.map(function(a){return a;});
+    say('Mentor · Libros','¿Sobre qué área de tu vida quieres leer? Te sugiero empezar por '+need[0].n+'.',null,
+      order.map(function(a,i){ return {l:a.n,tag:i===0?'recomendada para ti':'',main:i===0,go:function(){ bookOf(a,0); }}; }).concat([BACK]));
+  }
+  function bookOf(a,i){
+    var L=BOOKS[a.k]||[], b=L[i%L.length], saved=(S.mentorSaved||[]).some(function(x){return x.t===b.t;});
+    var card='<div class="mt-book"><div class="mt-cover '+PILLARS[a.p].cls+'"><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small></div><div><p class="mt-ck">'+esc(a.n)+' · '+esc(b.y)+'</p><h3>'+esc(b.t)+'</h3><p class="mt-by">'+esc(b.a)+'</p><p>'+esc(b.why)+'</p></div></div>';
+    var opts=[];
+    if(!saved) opts.push({l:'Guardar en mi lista',main:true,go:function(){ S.mentorSaved=(S.mentorSaved||[]).concat([{t:b.t,a:b.a}]); save(); side(); toast('Guardado en tu lista de lecturas.'); bookOf(a,i); }});
+    if(L.length>1) opts.push({l:'Otro libro',go:function(){ bookOf(a,i+1); }});
+    opts.push({l:'Otra área',go:books}, BACK);
+    say('Mentor · Libros · '+a.n,'Para '+a.n.toLowerCase()+', te recomiendo «'+b.t+'».',card,opts);
+  }
+  function authors(){ say('Mentor · Autores','¿A quién te gustaría conocer?',null,AUTHORS.map(function(x,i){ return {l:x.n,go:function(){ author(i); }}; }).concat([BACK])); }
+  function author(i){ var x=AUTHORS[i];
+    say('Mentor · Autores',x.n+'.','<div class="mt-info"><p class="mt-ck">'+esc(x.k)+'</p><p>'+esc(x.t)+'</p><blockquote>'+esc(x.i)+'</blockquote></div>',
+      [{l:'Otro autor',main:true,go:function(){ author((i+1)%AUTHORS.length); }},{l:'Ver todos',go:authors},{l:'Escribir sobre esto en mi diario',go:function(){ toDiary('¿Qué te enseña hoy esta idea de '+x.n+': «'+x.i+'»?'); }},BACK]); }
+  function philos(){ say('Mentor · Filosofías','¿Qué tradición quieres explorar?',null,PHILOS.map(function(k,i){ return {l:TRAD[k].n,go:function(){ philo(i); }}; }).concat([BACK])); }
+  function philo(i){ var T=TRAD[PHILOS[i]];
+    say('Mentor · Filosofías',T.n+'.','<div class="mt-info"><p>'+esc(T.t)+'</p></div>',[{l:'Otra filosofía',main:true,go:function(){ philo((i+1)%PHILOS.length); }},{l:'Ver todas',go:philos},BACK]); }
+  function pillars(){ say('Mentor · Pilares','Tu ruta gira sobre tres pilares. ¿Cuál quieres entender mejor?',null,['s','m','v'].map(function(p){ return {l:PILLARS[p].name,go:function(){ pillar(p); }}; }).concat([BACK])); }
+  function pillar(p){
+    var txt={s:'Espíritu es tu mundo interior: la calma, el sentido de lo que haces y la calidad de tus relaciones.',m:'Prosperidad es tu relación con el dinero y el trabajo: ganar, ahorrar, crecer y sentirte en paz con tus finanzas.',v:'Vitalidad es el cuidado de tu cuerpo: lo que comes, cómo te mueves, cómo descansas y cómo manejas el estrés.'}[p];
+    var ar=AREAS.filter(function(a){return a.p===p;}), wk=S.route&&S.route[currentWeek()], id=wk&&wk[{s:0,m:1,v:2}[p]];
+    var card='<div class="mt-info '+PILLARS[p].cls+'"><p class="mt-ck">Tus puntajes en este pilar</p>'+ar.map(function(a){ return '<div class="mt-bar"><span>'+esc(a.n)+'</span><i><em style="width:'+(W[a.k]*10)+'%"></em></i><b>'+W[a.k]+'</b></div>'; }).join('')+
+      (id?'<p class="mt-next">Tu cápsula de esta semana: <b>'+esc(CAP[id].title)+'</b> · '+dayFor(p)+'</p>':'')+'</div>';
+    var o=[]; if(id) o.push({l:'Abrir mi cápsula',main:true,go:function(){ openCap(id); }}); o.push({l:'Otro pilar',go:pillars},BACK);
+    say('Mentor · Pilares · '+PILLARS[p].name,txt,card,o);
+  }
+  function wheel(){
+    var hi=need[need.length-1];
+    say('Mentor · Rueda de la Vida',['Tu rueda es una foto de cómo te sientes hoy en cada área de tu vida.','Tu punto más fuerte es '+hi.n+'. Las áreas que más atención piden son '+need[0].n+' y '+need[1].n+'.'],
+      '<div class="mt-info mt-wheel">'+radarSVG([{w:W,cls:'rd-b'}],{label:'Tu rueda de la vida'})+'</div>',
+      [{l:'¿Cómo la uso?',main:true,go:function(){ say('Mentor · Rueda de la Vida','Úsala como una brújula, no como una nota.','<div class="mt-info"><p>Fue creada en los años sesenta por Paul J. Meyer, pionero del desarrollo personal. La idea es sencilla: una vida equilibrada se parece a una rueda redonda, y si un área queda muy baja, la rueda no gira bien.</p><p>Tus cápsulas empiezan por las áreas más bajas. Cada cuatro semanas vuelve a evaluarte y compara: lo importante no es llegar a 10, sino que la rueda sea más pareja.</p></div>',[{l:'Volver a evaluarme',main:true,go:reWheel},BACK]); }},
+       {l:'Volver a evaluarme',go:reWheel},BACK]);
+  }
+  function beliefs(){ say('Mentor · Creencias limitantes',['Una creencia limitante es una idea sobre ti que das por cierta y que te frena.','¿Cuál de estas frases te has dicho alguna vez?'],null,BELIEFS.map(function(b,i){ return {l:'«'+b.f+'»',go:function(){ belief(i); }}; }).concat([BACK])); }
+  function belief(i){ var b=BELIEFS[i];
+    say('Mentor · Creencias limitantes','Revisemos juntos «'+b.f+'».','<div class="mt-info"><p class="mt-ck">Lo que muestran los hechos</p><p>'+esc(b.e)+'</p><p class="mt-ck">Prueba decirlo así</p><blockquote>'+esc(b.r)+'</blockquote><p class="mt-tip">Repite la frase nueva cada mañana durante una semana y anota qué cambia.</p></div>',
+      [{l:'Trabajarla en mi diario',main:true,go:function(){ toDiary('Hoy reviso la idea «'+b.f+'». ¿Qué pruebas tengo de que no siempre es cierta?'); }},{l:'Otra frase',go:beliefs},BACK]); }
+  function idea(){ var ks=Object.keys(LEARN).filter(function(k){return LEARN[k].q;}), k=ks[Math.floor(Math.random()*ks.length)], L=LEARN[k];
+    say('Mentor · Una idea para hoy','«'+L.q+'»','<div class="mt-info"><p class="mt-ck">'+esc(L.qa)+'</p>'+(L.idea?'<p>'+esc(L.idea)+'</p>':'')+'</div>',
+      [{l:'Otra idea',main:true,go:idea},{l:'Escribir sobre esto en mi diario',go:function(){ toDiary('¿Qué significa para ti esta frase: «'+L.q+'»?'); }},BACK]); }
+  function toDiary(p){ diaPrefill=p; renderApp('diario'); window.scrollTo(0,0); }
+  home(false);
+}
+
+/* ================= DIARIO PERSONAL ================= */
+/* Privado: en la nube se guarda en users/{uid}/diario, que solo puede leer su dueño (ni el administrador). */
+var DIA=null;
+function diaLocalKey(){ return 'aurea-diario-'+mailKey(S.reg.email); }
+function diaLoad(){
+  if(DIA) return Promise.resolve();
+  if(cloud()&&fbUser) return FB.f.getDocs(FB.f.collection(FB.db,'users',fbUser.uid,'diario')).then(function(snap){ DIA={}; snap.forEach(function(d){ DIA[d.id]=d.data(); }); });
+  DIA=jget(diaLocalKey(),{}); return Promise.resolve();
+}
+function diaPut(k,e){
+  DIA[k]=e;
+  if(cloud()&&fbUser) return FB.f.setDoc(FB.f.doc(FB.db,'users',fbUser.uid,'diario',k),e);
+  var all=jget(diaLocalKey(),{}); all[k]=e; jset(diaLocalKey(),all); return Promise.resolve();
+}
+function dKey(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function diaStreak(){ var n=0, d=new Date(); if(!DIA[dKey(d)]) d.setDate(d.getDate()-1); while(DIA[dKey(d)]){ n++; d.setDate(d.getDate()-1); } return n; }
+var MOODS=[{v:1,l:'Difícil'},{v:2,l:'Bajo'},{v:3,l:'Normal'},{v:4,l:'Bien'},{v:5,l:'Pleno'}];
+var DIA_Q={
+ s:['¿Qué te dio paz hoy, aunque haya sido algo pequeño?','¿Con quién te sentiste en conexión hoy y por qué?','¿Qué le dirías a tu yo de hace un año?','¿Qué estás cargando que podrías soltar?'],
+ m:['¿Qué decisión tomaste hoy pensando en tu yo del futuro?','¿Qué aprendiste hoy que te hace más valioso o valiosa en tu trabajo?','¿Cómo te sentiste hoy con el dinero? ¿Por qué?','¿Qué gasto de esta semana te acercó a tu meta, y cuál te alejó?'],
+ v:['¿Cómo trataste a tu cuerpo hoy?','¿Qué te dio energía hoy y qué te la quitó?','¿Qué pequeño hábito de salud quieres sostener mañana?','¿Cómo dormiste anoche y qué podrías hacer distinto hoy?'],
+ g:['¿Qué te hizo sonreír hoy?','¿Qué paso, por pequeño que sea, diste hoy hacia tu meta?','¿Qué situación de hoy pudiste manejar mejor y cómo?','¿De qué te sientes orgulloso u orgullosa esta semana?']
+};
+function diaPrompt(){
+  var d=new Date(), nm=DAYS[(d.getDay()+6)%7].n, cn=capDays(), ix=cn.map(function(x){return x.toLowerCase();}).indexOf(nm);
+  var p=ix>=0?['s','m','v'][ix]:'g', L=DIA_Q[p], doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+  return {p:p,q:L[doy%L.length]};
+}
+var DIA_STORIES=[
+ {n:'Marco Aurelio',y:'Siglo II',t:'El emperador más poderoso de su tiempo escribía cada noche para sí mismo: cómo mantener la calma, ser justo y aceptar lo que no podía cambiar. Esas notas, las «Meditaciones», nunca fueron pensadas para publicarse y hoy son uno de los libros de sabiduría práctica más leídos del mundo.'},
+ {n:'Leonardo da Vinci',y:'1452–1519',t:'Llenó miles de páginas con dibujos, preguntas e ideas: desde máquinas voladoras hasta el cuerpo humano. Sus cuadernos muestran que escribir era su forma de pensar.'},
+ {n:'Benjamin Franklin',y:'1706–1790',t:'Siendo joven eligió trece virtudes, como el orden y la templanza, y cada día anotaba en una tabla cómo le había ido con ellas. Decía que ese registro le hizo mejor persona.'},
+ {n:'Charles Darwin',y:'1809–1882',t:'Durante su viaje alrededor del mundo anotó todo lo que observaba. Esos cuadernos fueron la semilla de la teoría de la evolución, que cambió la ciencia.'},
+ {n:'Ana Frank',y:'1929–1945',t:'Escondida con su familia durante la Segunda Guerra Mundial, escribió su diario entre los 13 y los 15 años. Hoy es uno de los libros más leídos de la historia y un testimonio de esperanza.'},
+ {n:'Frida Kahlo',y:'1907–1954',t:'En sus últimos diez años llevó un diario con textos y dibujos de colores donde expresó su dolor, su amor y su fuerza creativa.'}
+];
+function viewDiary(main){
+  if(!S.diarioIntro){ diaryIntro(main); return; }
+  main.innerHTML='<div class="boot-load" role="status"><span></span>Abriendo tu diario…</div>';
+  diaLoad().then(function(){ if(main.isConnected) diaryBook(main); }).catch(function(e){ main.innerHTML='<p class="err">No pude abrir tu diario. '+esc(fbErr(e))+'</p>'; });
+}
+function diaryIntro(main){
+  main.innerHTML='<section class="banner dia-hero"><div class="bn-txt"><p class="eyebrow">Diario personal</p><h1>Escribir te ordena por dentro.</h1><p class="goal">Antes de empezar, conoce por qué algunas de las personas más influyentes de la historia escribían un diario, y cómo puede ayudarte en tu ruta.</p></div></section>'+
+    '<section class="dia-tl"><h2>Diarios que cambiaron la historia</h2><ol>'+DIA_STORIES.map(function(s,i){ return '<li style="--i:'+i+'"><span class="dt-y">'+esc(s.y)+'</span><div><b>'+esc(s.n)+'</b><p>'+esc(s.t)+'</p></div></li>'; }).join('')+'</ol></section>'+
+    '<div class="pg-grid"><section class="pcard"><h2>Lo que dice la ciencia</h2><p>En los años ochenta, el psicólogo James Pennebaker descubrió que escribir unos minutos sobre lo que sentimos ayuda a procesar las emociones y reduce el estrés. Más tarde, los investigadores Robert Emmons y Michael McCullough encontraron que anotar cada semana aquello que agradecemos mejora el ánimo y el optimismo.</p></section>'+
+    '<section class="pcard"><h2>Cómo te ayuda en tu ruta</h2><ul class="dia-why"><li><b>Claridad.</b> Escribir tu intención cada mañana te recuerda tu meta.</li><li><b>Patrones.</b> Al releerte, descubres qué te da energía y qué te la quita.</li><li><b>Cambio profundo.</b> La revisión de la noche, que ya practicaba Séneca, convierte cada día en aprendizaje.</li></ul></section></div>'+
+    '<div class="dia-start"><button class="btn btn-primary" type="button" id="diaGo">Abrir mi diario</button><p>Solo tú puedes leer lo que escribes aquí.</p></div>';
+  main.querySelector('#diaGo').onclick=function(){ S.diarioIntro=true; save(); renderApp('diario'); window.scrollTo(0,0); };
+}
+function diaryBook(main){
+  var today=dKey(), e=Object.assign({mood:0,intent:'',answer:'',good:'',better:'',grat:['','',''],prompt:''},DIA[today]||{});
+  var P=diaPrompt(); if(!e.prompt) e.prompt=diaPrefill||P.q; else if(diaPrefill) e.prompt=diaPrefill; diaPrefill=null;
+  var night=new Date().getHours()>=17, mode=night?'noche':'manana';
+  var dlabel=new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
+  main.innerHTML='<section class="dia-top"><div><p class="eyebrow">Diario personal</p><h1>'+esc(dlabel.charAt(0).toUpperCase()+dlabel.slice(1))+'</h1></div>'+
+      '<div class="dia-stats"><div><b id="dStreak">'+diaStreak()+'</b><span>días seguidos</span></div><div><b id="dCount">'+Object.keys(DIA).length+'</b><span>páginas</span></div><button type="button" class="pd-ed" id="dWhy">Por qué un diario</button></div></section>'+
+    '<div class="dia-grid"><section class="dia-page"><div class="dia-mode" role="tablist"><button type="button" role="tab" data-m="manana">Mañana · Intención</button><button type="button" role="tab" data-m="noche">Noche · Revisión</button></div>'+
+      '<div class="dia-mood"><span>¿Cómo te sientes?</span><div>'+MOODS.map(function(m){ return '<button type="button" class="mo mo'+m.v+'" data-v="'+m.v+'"><i></i>'+m.l+'</button>'; }).join('')+'</div></div>'+
+      '<div id="dBody"></div><p class="dia-saved" id="dSaved" aria-live="polite"></p></section>'+
+      '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>Páginas anteriores</h2><div id="dPast"></div></section><p class="dia-priv">🔒 Solo tú puedes leer tu diario. Ni el equipo de Áurea tiene acceso.</p></aside></div>';
+  var body=main.querySelector('#dBody'), saved=main.querySelector('#dSaved'), T=null;
+  function persist(){ clearTimeout(T); saved.textContent='Guardando…'; T=setTimeout(function(){ e.updatedAt=Date.now(); diaPut(today,JSON.parse(JSON.stringify(e))).then(function(){ saved.textContent='Guardado'; main.querySelector('#dStreak').textContent=diaStreak(); main.querySelector('#dCount').textContent=Object.keys(DIA).length; cal(); past(); }).catch(function(er){ saved.textContent='No se pudo guardar. '+fbErr(er); }); },700); }
+  function area(id,label,val,ph,rows){ return '<label class="dia-f"><span>'+label+'</span><textarea id="'+id+'" rows="'+(rows||3)+'" placeholder="'+esc(ph)+'">'+esc(val||'')+'</textarea></label>'; }
+  function draw(){
+    main.querySelectorAll('[data-m]').forEach(function(b){ b.setAttribute('aria-selected',b.dataset.m===mode?'true':'false'); });
+    if(mode==='manana'){
+      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+'Áurea pregunta</span><p class="dia-q" id="dQ"></p></div>'+area('dAns','Tu respuesta',e.answer,'Escribe con calma, sin corregirte…',5)+area('dInt','Mi intención para hoy',e.intent,'Por ejemplo: responder con calma aunque el día se complique',2);
+      var q=body.querySelector('#dQ'); typeText(q,e.prompt,30,function(){});
+    } else {
+      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+'La revisión de la noche</span><p class="dia-q" id="dQ"></p></div>'+
+        area('dGood','¿Qué hice bien hoy?',e.good,'Una acción, una conversación, una decisión…',3)+area('dBetter','¿Qué haría distinto?',e.better,'Sin culparte: solo lo que aprendiste',3)+
+        '<div class="dia-f"><span>Tres cosas que agradezco hoy</span><div class="dia-grat">'+[0,1,2].map(function(i){ return '<label><b>'+(i+1)+'</b><input type="text" data-g="'+i+'" maxlength="120" value="'+esc(e.grat[i]||'')+'" placeholder="'+['Una persona','Un momento','Algo de ti'][i]+'"></label>'; }).join('')+'</div></div>';
+      typeText(body.querySelector('#dQ'),'Antes de dormir, Séneca se preguntaba qué había hecho bien y qué podía mejorar. Hagamos lo mismo.',30,function(){});
+    }
+    var map={dAns:'answer',dInt:'intent',dGood:'good',dBetter:'better'};
+    body.querySelectorAll('textarea').forEach(function(t){ t.oninput=function(){ e[map[t.id]]=t.value; persist(); }; });
+    body.querySelectorAll('[data-g]').forEach(function(t){ t.oninput=function(){ e.grat[+t.dataset.g]=t.value; persist(); }; });
+  }
+  main.querySelectorAll('[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.dataset.m; draw(); }; });
+  function moods(){ main.querySelectorAll('.mo').forEach(function(b){ b.classList.toggle('on',+b.dataset.v===e.mood); b.setAttribute('aria-pressed',+b.dataset.v===e.mood?'true':'false'); }); }
+  main.querySelectorAll('.mo').forEach(function(b){ b.onclick=function(){ e.mood=+b.dataset.v; moods(); persist(); }; });
+  function cal(){ var d=new Date(), y=d.getFullYear(), m=d.getMonth(), first=(new Date(y,m,1).getDay()+6)%7, nd=new Date(y,m+1,0).getDate();
+    var ml=d.toLocaleDateString('es',{month:'long',year:'numeric'}); main.querySelector('#dCalH').textContent=ml.charAt(0).toUpperCase()+ml.slice(1);
+    var h=DAYS.map(function(x){return '<span class="dc-h">'+x.c+'</span>';}).join(''); for(var i=0;i<first;i++) h+='<span></span>';
+    for(var k=1;k<=nd;k++){ var key=dKey(new Date(y,m,k)), en=DIA[key]; h+='<span class="dc'+(en?' has mo'+(en.mood||3):'')+(k===d.getDate()?' today':'')+'" title="'+(en?'Escribiste este día':'')+'">'+k+'</span>'; }
+    main.querySelector('#dCal').innerHTML=h; }
+  function past(){ var ks=Object.keys(DIA).filter(function(k){return k!==today;}).sort().reverse().slice(0,12);
+    var box=main.querySelector('#dPast');
+    box.innerHTML=ks.length?ks.map(function(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'); return '<button type="button" class="dp" data-k="'+k+'"><i class="mo'+(x.mood||3)+'"></i><span><b>'+esc(dd.toLocaleDateString('es',{weekday:'short',day:'numeric',month:'short'}))+'</b><small>'+esc(String(x.intent||x.answer||x.good||'').slice(0,60))+'</small></span></button>'; }).join('')
+      :'<p class="dia-empty">Tus páginas aparecerán aquí. Escribir un poco cada día vale más que escribir mucho de vez en cuando.</p>';
+    box.querySelectorAll('.dp').forEach(function(b){ b.onclick=function(){ readPage(b.dataset.k); }; }); }
+  function readPage(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'), M=MOODS.filter(function(m){return m.v===x.mood;})[0];
+    var sec=function(t,v){ return v?'<h4>'+t+'</h4><p>'+esc(v)+'</p>':''; };
+    modal(M?'Te sentías: '+M.l.toLowerCase():'Tu página','<p class="eyebrow">'+esc(dd.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</p><div class="dia-read">'+
+      (x.prompt&&x.answer?'<blockquote>'+esc(x.prompt)+'</blockquote>':'')+sec('Tu respuesta',x.answer)+sec('Tu intención',x.intent)+sec('Lo que hiciste bien',x.good)+sec('Lo que harías distinto',x.better)+
+      ((x.grat||[]).filter(Boolean).length?'<h4>Agradeciste</h4><ul>'+x.grat.filter(Boolean).map(function(g){return '<li>'+esc(g)+'</li>';}).join('')+'</ul>':'')+'</div>'); }
+  main.querySelector('#dWhy').onclick=function(){ S.diarioIntro=false; save(); renderApp('diario'); window.scrollTo(0,0); };
+  draw(); moods(); cal(); past();
 }
 
 /* ---- Cápsula ---- */
