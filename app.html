@@ -461,7 +461,7 @@ body{background:var(--bg)}
 .topbar .chips{display:flex;gap:8px;align-items:center;flex-wrap:nowrap}
 .chip{background:var(--surface);border-color:var(--line);font-weight:600;color:var(--fg)}
 .chip.pts i{width:8px;height:8px;border-radius:50%;background:var(--matter);box-shadow:0 0 0 3px color-mix(in srgb,var(--matter) 25%,transparent)}
-.chip.tb-trial{border-color:color-mix(in srgb,var(--accent) 50%,var(--line));color:var(--accent)}
+.chip.tb-trial{font:inherit;cursor:pointer;background:none;border-color:color-mix(in srgb,var(--accent) 50%,var(--line));color:var(--accent)}
 .avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:1.05rem;color:#fff;background:linear-gradient(135deg,var(--spirit),var(--accent));flex:none}
 .app-main{max-width:1180px;margin:0 auto;padding-block:24px 110px;display:grid;gap:24px}
 .bnav{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border-radius:22px;
@@ -489,7 +489,9 @@ body{background:var(--bg)}
   .slv-top b{font-family:var(--f-display);font-weight:400;font-size:1.5rem;color:#fff}
   .slv-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}.slv-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--glow),#8E7BFF)}
   .side-lv small{color:#A9B0CC;font-size:.78rem}
-  .side-trial{font-size:.8rem;color:#CFE9E2;padding:10px 14px;border-radius:12px;background:rgba(43,212,180,.12);border:1px solid rgba(43,212,180,.25);text-align:center;font-weight:600}
+  .side-trial{font:inherit;font-size:.8rem;color:#CFE9E2;padding:10px 14px;border-radius:12px;background:rgba(43,212,180,.12);border:1px solid rgba(43,212,180,.25);text-align:center;font-weight:600;cursor:pointer;width:100%;transition:background .2s,border-color .2s}
+  .side-trial:hover{background:rgba(43,212,180,.2);border-color:rgba(43,212,180,.5)}
+  .side-trial small{display:block;font-weight:500;font-size:.72rem;opacity:.75;margin-top:2px}
 }
 
 /* ---- Banner (cabecera de cada sección) ---- */
@@ -876,6 +878,9 @@ body{background:var(--bg)}
 .dia-read{display:grid;gap:6px}.dia-read h4{margin:10px 0 0;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.dia-read p{margin:0;line-height:1.6;white-space:pre-wrap}
 .dia-read blockquote{margin:0;padding:8px 12px;border-left:3px solid var(--accent);font-family:var(--f-display);font-style:italic}
 .tw-f{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}.cap-f{margin:-4px 0 6px;font-size:.9rem;color:var(--muted)}.cap-f b{color:var(--fg)}
+.pph-btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;margin-top:18px;padding:.85em 1.2em;border:0;border-radius:999px;background:#6A1BD1;color:#fff;font:inherit;cursor:pointer;transition:filter .2s,transform .2s}
+.pph-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}.pph-btn:disabled{opacity:.7;cursor:default}
+.pph-l{font-size:1.05rem;font-weight:600}.pph-l b{font-weight:800;letter-spacing:-.01em}.pph-btn small{font-size:.75rem;opacity:.85}
 .pay-or{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.8rem;margin:12px 0 4px}.pay-or::before,.pay-or::after{content:'';flex:1;height:1px;background:var(--line)}
 .pp-box{min-height:52px;margin-top:8px;display:grid;align-items:center}.pp-wait{color:var(--muted);font-size:.85rem;text-align:center}
 </style>
@@ -1819,9 +1824,9 @@ function renderApp(t){
   var el=document.createElement('div'); el.className='app';
   el.innerHTML='<aside class="side"><div class="brand">'+logo(24)+'Áurea</div><nav class="snav" aria-label="Secciones">'+nav('snav-b')+'</nav>'+
       '<div class="side-lv"><div class="slv-top"><span>Nivel '+L.n+'</span><b>'+esc(L.name)+'</b></div><div class="slv-bar"><i style="width:'+lp+'%"></i></div><small>'+(N?'Siguiente: '+esc(N.name)+' · '+(N.w-w)+' '+((N.w-w)===1?'vuelta':'vueltas'):'Nivel máximo alcanzado')+'</small></div>'+
-      '<div class="side-trial">'+(S.subscribed?'Suscripción activa':(left>0?'Prueba gratuita · '+left+' '+(left===1?'día':'días'):'Prueba gratuita terminada'))+'</div></aside>'+
+      '<button type="button" class="side-trial" id="sideSub">'+(S.subscribed?'Suscripción activa<small>Ver mi plan</small>':(left>0?'Prueba gratuita · '+left+' '+(left===1?'día':'días'):'Prueba gratuita terminada')+'<small>Ver planes</small>')+'</button></aside>'+
     '<div class="shell"><header class="topbar gutter"><div class="brand tb-brand">'+logo(22)+'Áurea</div><span class="tb-date">'+esc(today.charAt(0).toUpperCase()+today.slice(1))+'</span>'+
-      '<div class="chips"><span class="chip pts"><i></i>'+points()+' pts</span><span class="chip tb-trial">'+(S.subscribed?'Activa':(left>0?left+' días gratis':'Prueba terminada'))+'</span></div>'+
+      '<div class="chips"><span class="chip pts"><i></i>'+points()+' pts</span><button type="button" class="chip tb-trial" id="chipSub">'+(S.subscribed?'Activa':(left>0?left+' días gratis':'Prueba terminada'))+'</button></div>'+
       '<div class="umenu"><button type="button" class="ubtn" id="ubtn" aria-haspopup="menu" aria-expanded="false"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><span class="uname">'+esc(tc(S.reg.name))+'</span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>'+
       '<div class="udrop" id="udrop" role="menu" hidden><div class="ud-h"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><div><b>'+esc(tc(S.reg.name))+'</b><small>'+esc(S.reg.email)+'</small></div></div>'+
       '<button type="button" role="menuitem" data-u="perfil">'+uIc('M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0')+'Mi perfil</button>'+
@@ -1947,11 +1952,12 @@ function viewProfile(main){
       '<section class="pcard pdata"><div class="pd-h"><h2>Datos personales</h2><button type="button" class="pd-ed" id="pdEdit">Editar</button></div>'+row('Nombre',tc(r.name))+row('Correo',r.email)+row('Edad',r.age+' años')+row('Sexo',r.sex)+row('País',tc(r.country))+row('Ciudad',tc(r.city))+'</section>'+
     '</div>'+
     '<section class="pcard psub"><div><h2>Suscripción</h2>'+
-      (S.subscribed?'<p><span class="pstat ok">Activa</span> Plan '+(S.plan==='anual'?'anual · $'+fmtP(cfg().priceA)+' USD al año':'mensual · $'+fmtP(cfg().priceM)+' USD al mes')+'</p>'+(subEnd()?'<p class="note">'+(SUB&&SUB.autoRenew?'Se renueva sola el '+subEnd()+'. <button type="button" class="pd-ed" id="subCancel">Cancelar renovación</button>':'Vigente hasta el '+subEnd()+'. Antes de esa fecha podrás renovarla.')+'</p>':'')
+      (S.subscribed?'<p><span class="pstat ok">Activa</span> Plan '+(S.plan==='anual'?'anual · $'+fmtP(cfg().priceA)+' USD al año':'mensual · $'+fmtP(cfg().priceM)+' USD al mes')+'</p>'+(subEnd()?'<p class="note">'+(SUB&&SUB.autoRenew?'Se renueva sola el '+subEnd()+'. <button type="button" class="pd-ed" id="subCancel">Cancelar renovación</button>':(SUB&&SUB.provider==='payphone'?'Pagado con Payphone. Vigente hasta el '+subEnd()+'. Este pago no se renueva solo: cuando se acerque la fecha, renuévalo aquí mismo. <button type="button" class="pd-ed" id="subRenew">Renovar ahora</button>':'Vigente hasta el '+subEnd()+'. La renovación automática está cancelada. <button type="button" class="pd-ed" id="subRenew">Volver a suscribirme</button>'))+'</p>':'')
         :'<p><span class="pstat">Prueba gratuita</span> Te '+(left===1?'queda 1 día':'quedan '+left+' días')+' de prueba.</p><div class="ptrial"><i style="width:'+Math.round((cfg().trialDays-left)/cfg().trialDays*100)+'%"></i></div>')+
       '</div>'+(S.subscribed?'':'<button class="btn btn-primary" id="seePlans" type="button">Ver planes</button>')+'</section>'+
     '<div class="plogout"><button type="button" id="chpw">Cambiar contraseña</button></div>';
   var sp=main.querySelector('#seePlans'); if(sp) sp.onclick=paywall;
+  var sr=main.querySelector('#subRenew'); if(sr) sr.onclick=paywall;
   var sc=main.querySelector('#subCancel'); if(sc) sc.onclick=function(){ askOk('Cancelar renovación','Tu suscripción ya no se renovará sola. Conservas tu acceso hasta el '+subEnd()+'.','Sí, cancelar',function(){
     sc.disabled=true; fnCall('subCancel').then(loadSub).then(function(){ toast('Renovación cancelada. Tu acceso sigue hasta el '+subEnd()+'.'); renderApp('perfil'); })
       .catch(function(e){ sc.disabled=false; toast((e&&e.message)||'No pude cancelar ahora. Intenta de nuevo.'); }); }); };
@@ -2279,10 +2285,10 @@ function paywall(){
     '<div style="display:flex;justify-content:center" id="orbSlot"></div><p class="paytext" id="pt"></p>'+
     '<div class="plans"><button type="button" class="plan" data-p="mensual" aria-pressed="'+(S.plan==='mensual')+'"><span class="mono">Mensual</span><b>$'+fmtP(cfg().priceM)+'</b><small>USD al mes</small></button><button type="button" class="plan" data-p="anual" aria-pressed="'+(S.plan==='anual')+'"><span class="mono">Anual · Mejor valor</span><b>$'+fmtP(cfg().priceA)+'</b><small>USD al año · $'+fmtP(Math.round(cfg().priceA/12*100)/100)+' al mes</small></button></div>'+
     (!cloud()?'<button class="btn btn-primary big-cta" id="sub" type="button">Suscribirme con tarjeta</button>':
-      (cfg().payPayphone?'<button class="btn btn-primary big-cta" id="sub" type="button">Pagar con tarjeta</button>':'')+
+      (cfg().payPayphone?'<button class="pph-btn" id="sub" type="button"><span class="pph-l">Pagar con <b>payphone</b></span><small>Tarjeta de crédito o débito</small></button>':'')+
       (cfg().payPayphone&&cfg().payPaypal?'<p class="pay-or"><span>o</span></p>':'')+
       (cfg().payPaypal?'<div id="ppBtn" class="pp-box"><span class="pp-wait">Cargando PayPal…</span></div>':'')+
-      (cfg().payPayphone||cfg().payPaypal?'<p class="note">'+(cfg().payPayphone?'Tarjeta: pago seguro con Payphone (Ecuador). ':'')+(cfg().payPaypal?'PayPal: desde cualquier país, con tu cuenta o tarjeta, y se renueva solo. ':'')+'Áurea no ve ni guarda los datos de tu tarjeta.</p>':'<p class="note">Muy pronto podrás suscribirte aquí con tarjeta o PayPal.</p>')+
+      (cfg().payPayphone||cfg().payPaypal?'<p class="note">'+(cfg().payPayphone?'Payphone: pago único por el plan que elijas, sin renovación automática. ':'')+(cfg().payPaypal?'PayPal: desde cualquier país, con tu cuenta o tarjeta, y se renueva solo. ':'')+'Áurea no ve ni guarda los datos de tu tarjeta.</p>':'<p class="note">Muy pronto podrás suscribirte aquí con tarjeta o PayPal.</p>')+
       '<p class="note err" id="payErr" hidden></p>')+'<p class="note" id="payNote" hidden>En la versión final, este botón abre el pago seguro con tarjeta de crédito (Stripe). Ningún dato de tarjeta pasa por esta vista previa. <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">Simular pago aprobado</button></p></article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   ov.querySelector('#orbSlot').appendChild(makeOrb());
@@ -2292,9 +2298,9 @@ function paywall(){
   if(ppb) paypalMount(ppb,ov.querySelector('#payErr'),function(){ ov.remove(); document.body.style.overflow=''; renderApp(); toast('Suscripción activa con PayPal. Tu ruta continúa.'); });
   var sb=ov.querySelector('#sub'); if(sb) sb.onclick=function(){
     if(!cloud()||!fbUser){ ov.querySelector('#payNote').hidden=false; return; }
-    var b=this, er=ov.querySelector('#payErr'); b.disabled=true; b.textContent='Abriendo el pago seguro…'; er.hidden=true;
+    var b=this, er=ov.querySelector('#payErr'); b._h=b.innerHTML; b.disabled=true; b.textContent='Abriendo Payphone…'; er.hidden=true;
     payStart(S.plan==='mensual'?'mensual':'anual').then(function(r){ location.href=r.url; })
-      .catch(function(e){ b.disabled=false; b.textContent='Pagar con tarjeta'; er.textContent=(e&&e.message)||'No pude abrir el pago. Intenta de nuevo.'; er.hidden=false; });
+      .catch(function(e){ b.disabled=false; b.innerHTML=b._h; er.textContent=(e&&e.message)||'No pude abrir el pago. Intenta de nuevo.'; er.hidden=false; });
   };
   ov.querySelector('#simPay').onclick=function(){ S.subscribed=true; save(); ov.remove(); document.body.style.overflow=''; renderApp(); toast('Suscripción activa. Tu ruta continúa.'); };
   var msg= ended ? n+', tu prueba gratuita ha terminado. Completaste '+doneCount()+' cápsulas y llegaste al nivel '+level().name+'. Para continuar tu ruta, elige tu plan.' : n+', estos son los planes para continuar tu ruta cuando termine tu prueba gratuita.';
@@ -2365,6 +2371,7 @@ function changePw(){
   });
 }
 function wireUserMenu(el){
+  ['#sideSub','#chipSub'].forEach(function(q){ var x=el.querySelector(q); if(x) x.onclick=function(){ if(S.subscribed){ renderApp('perfil'); window.scrollTo(0,0); } else paywall(); }; });
   var b=el.querySelector('#ubtn'), d=el.querySelector('#udrop');
   function set(open){ d.hidden=!open; b.setAttribute('aria-expanded',String(open)); if(open){ document.addEventListener('mousedown',out); document.addEventListener('keydown',esck); } else { document.removeEventListener('mousedown',out); document.removeEventListener('keydown',esck); } }
   function out(e){ if(!el.querySelector('.umenu').contains(e.target)) set(false); }
@@ -2718,7 +2725,7 @@ function paypalMount(box,er,done){
 function payReturn(){
   var m=/[?&]pago=(\w+)/.exec(location.search); if(!m) return;
   try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
-  var t={ok:'Pago aprobado. Tu suscripción está activa.',cancelado:'Cerraste el pago. No se hizo ningún cobro.',rechazado:'El banco no aprobó el pago. Puedes intentar con otra tarjeta.',error:'No pude confirmar el pago. Si se hizo el cobro, escríbenos a info@aureamentor.com.'}[m[1]];
+  var t={ok:'Pago aprobado con Payphone. Tu suscripción está activa.',cancelado:'Cerraste el pago. No se hizo ningún cobro.',rechazado:'El banco no aprobó el pago. Puedes intentar con otra tarjeta.',error:'No pude confirmar el pago. Si se hizo el cobro, escríbenos a info@aureamentor.com.'}[m[1]];
   if(t) setTimeout(function(){ toast(t); },600);
 }
 function loadSettings(){
