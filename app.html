@@ -1952,10 +1952,9 @@ function viewProfile(main){
       '</div>'+(S.subscribed?'':'<button class="btn btn-primary" id="seePlans" type="button">Ver planes</button>')+'</section>'+
     '<div class="plogout"><button type="button" id="chpw">Cambiar contraseña</button></div>';
   var sp=main.querySelector('#seePlans'); if(sp) sp.onclick=paywall;
-  var sc=main.querySelector('#subCancel'); if(sc) sc.onclick=function(){
-    if(!confirm('¿Cancelar la renovación automática? Conservas tu acceso hasta el '+subEnd()+'.')) return;
+  var sc=main.querySelector('#subCancel'); if(sc) sc.onclick=function(){ askOk('Cancelar renovación','Tu suscripción ya no se renovará sola. Conservas tu acceso hasta el '+subEnd()+'.','Sí, cancelar',function(){
     sc.disabled=true; fnCall('subCancel').then(loadSub).then(function(){ toast('Renovación cancelada. Tu acceso sigue hasta el '+subEnd()+'.'); renderApp('perfil'); })
-      .catch(function(e){ sc.disabled=false; toast((e&&e.message)||'No pude cancelar ahora. Intenta de nuevo.'); }); };
+      .catch(function(e){ sc.disabled=false; toast((e&&e.message)||'No pude cancelar ahora. Intenta de nuevo.'); }); }); };
   main.querySelector('#chpw').onclick=changePw; main.querySelector('#pdEdit').onclick=editProfile;
 }
 
@@ -2315,6 +2314,10 @@ function modal(title,body,mount){
   mount&&mount(ov,close);
   return ov;
 }
+function askOk(title,text,okLabel,go){
+  modal(title,'<p class="ad-sub" style="margin:.4em 0 1.2em">'+esc(text)+'</p><div style="display:flex;gap:.6em;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn btn-ghost" id="akNo">Volver</button><button type="button" class="btn btn-primary" id="akOk">'+esc(okLabel)+'</button></div>',
+    function(ov,close){ ov.querySelector('#akNo').onclick=close; ov.querySelector('#akOk').onclick=function(){ close(); go(); }; ov.querySelector('#akOk').focus(); });
+}
 function fld(id,label,val,type,extra){ return '<label><span>'+label+'</span><input class="lfield" id="'+id+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'" '+(extra||'')+'></label>'; }
 function pwFld(id,label,ac){ return '<label><span>'+label+'</span><div class="pwbox"><input class="lfield" id="'+id+'" type="password" maxlength="64" autocomplete="'+ac+'"><button type="button" class="pw-eye" aria-label="Mostrar contraseña">Mostrar</button></div></label>'; }
 function wireEyes(root){ root.querySelectorAll('.pw-eye').forEach(function(b){ b.onclick=function(){ var i=b.previousElementSibling, s=i.type==='password'; i.type=s?'text':'password'; b.textContent=s?'Ocultar':'Mostrar'; }; }); }
@@ -2479,12 +2482,12 @@ function userDetail(key){
     if(cloud()){
       ov.querySelector('#adExt').onclick=function(){ var s2=JSON.parse(JSON.stringify(u)); var id=s2._id; delete s2._id; s2.dayOffset=(s2.dayOffset||0)-7;
         FB.f.updateDoc(userRef(id),{state:JSON.stringify(s2),updatedAt:Date.now()}).then(function(){ close(); adminPanel('usuarios'); toast('Se agregaron 7 días de prueba.'); }).catch(function(e){ toast(fbErr(e)); }); };
-      ov.querySelector('#adDel').onclick=function(){ if(!confirm('¿Eliminar los datos de '+tc(r.name)+'? Se borrarán sus respuestas y su progreso. Esta acción no se puede deshacer.')) return;
-        FB.f.deleteDoc(userRef(u._id)).then(function(){ close(); adminPanel('usuarios'); toast('Datos eliminados. Su acceso se borra en Firebase → Authentication.'); }).catch(function(e){ toast(fbErr(e)); }); };
+      ov.querySelector('#adDel').onclick=function(){ askOk('Eliminar datos','Se borrarán las respuestas y el progreso de '+tc(r.name)+'. Esta acción no se puede deshacer.','Eliminar',function(){
+        FB.f.deleteDoc(userRef(u._id)).then(function(){ close(); adminPanel('usuarios'); toast('Datos eliminados. Su acceso se borra en Firebase → Authentication.'); }).catch(function(e){ toast(fbErr(e)); }); }); };
       return; }
     ov.querySelector('#adExt').onclick=function(){ var all=users(); all[key].dayOffset=(all[key].dayOffset||0)-7; jset(UKEY,all); if(mailKey(S.reg.email)===key){ S.dayOffset=all[key].dayOffset; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} } close(); adminPanel('usuarios'); userDetail(key); toast('Se agregaron 7 días de prueba.'); };
-    ov.querySelector('#adDel').onclick=function(){ if(!confirm('¿Eliminar a '+tc(r.name)+'? Se borrarán su cuenta, sus respuestas y su progreso. Esta acción no se puede deshacer.')) return;
-      var all=users(); delete all[key]; jset(UKEY,all); if(mailKey(S.reg.email)===key){ S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} setAuth(false); } close(); adminPanel('usuarios'); toast('Usuario eliminado.'); };
+    ov.querySelector('#adDel').onclick=function(){ askOk('Eliminar usuario','Se borrarán la cuenta, las respuestas y el progreso de '+tc(r.name)+'. Esta acción no se puede deshacer.','Eliminar',function(){
+      var all=users(); delete all[key]; jset(UKEY,all); if(mailKey(S.reg.email)===key){ S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} setAuth(false); } close(); adminPanel('usuarios'); toast('Usuario eliminado.'); }); };
   });
 }
 function admAnim(m){
