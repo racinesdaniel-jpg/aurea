@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <script src="firebase-config.js"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111833">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Áurea">
+<script>if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <style>html,body{margin:0;padding:0;height:100%}</style>
 </head>
 <body>
@@ -374,6 +383,38 @@ footer .adm-link:hover{color:var(--accent)}
 .dia-notes p{color:var(--muted);font-size:.92rem}
 @media (max-width:820px){.dia-cards,.dia-notes{grid-template-columns:1fr}}
 @media (max-width:560px){.dcard::after{display:none}}
+
+/* ---- Instalar en el celular ---- */
+.getapp{border-top:1px solid var(--line)}
+.getapp .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+.getapp h2{font-size:var(--s4);line-height:1.08;margin-top:16px}
+.getapp .lead{margin-top:18px}
+.ga-btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.ga-btn{display:inline-flex;align-items:center;gap:12px;padding:.75em 1.3em;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;cursor:pointer;text-align:left;transition:transform .2s,border-color .2s}
+.ga-btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.ga-btn svg{flex:none}
+.ga-btn span{display:grid;line-height:1.2}.ga-btn small{color:var(--muted);font-size:.75rem}.ga-btn b{font-weight:600;font-size:1rem}
+.ga-note{margin-top:18px;color:var(--muted);font-size:.9rem;max-width:52ch}
+.ga-done{display:none;margin-top:28px;color:var(--accent);font-weight:600}
+.is-standalone .ga-btns,.is-standalone .ga-note{display:none}.is-standalone .ga-done{display:block}
+.ga-phone{justify-self:center;width:240px;aspect-ratio:9/18.5;border-radius:38px;padding:12px;background:#0B0F1E;box-shadow:0 40px 80px -40px rgba(10,14,30,.55),inset 0 0 0 2px #252E4D}
+.ga-screen{height:100%;border-radius:28px;background:var(--grad);display:grid;grid-template-columns:repeat(4,1fr);align-content:start;gap:18px 10px;padding:46px 16px}
+.ga-screen i{aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,.12)}
+.ga-screen .me{background:none;display:grid;place-items:center;position:relative}
+.ga-screen .me img{width:100%;border-radius:12px;box-shadow:0 0 0 2px #2BD4B4,0 0 24px rgba(43,212,180,.6)}
+.ga-screen .me b{position:absolute;top:104%;font-size:.62rem;color:#fff;font-weight:500}
+.ga-ov{position:fixed;inset:0;z-index:60;display:grid;place-items:end center;padding:16px;background:rgba(10,14,30,.55)}
+.ga-ov[hidden]{display:none}
+.ga-sheet{width:100%;max-width:440px;background:var(--surface);color:var(--fg);border-radius:24px;padding:26px 24px 22px;position:relative;box-shadow:0 40px 90px -30px rgba(10,14,30,.6)}
+@media (min-width:640px){.ga-ov{place-items:center}}
+.ga-sheet h3{font-family:var(--f-display);font-weight:400;font-size:1.6rem;margin:0 0 14px}
+.ga-sheet ol{margin:0;padding:0;list-style:none;display:grid;gap:14px;counter-reset:s}
+.ga-sheet li{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;counter-increment:s}
+.ga-sheet li::before{content:counter(s);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:700;font-size:.9rem}
+.ga-sheet li svg{vertical-align:-4px;color:var(--accent)}
+.ga-sheet .x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--fg);cursor:pointer;font-size:1rem}
+.ga-sheet .tip{margin:16px 0 0;color:var(--muted);font-size:.85rem}
+@media (max-width:900px){.getapp .wrap{grid-template-columns:1fr;gap:40px}.ga-phone{width:200px}}
 </style>
 
 <nav class="top">
@@ -389,6 +430,7 @@ footer .adm-link:hover{color:var(--accent)}
       <a href="#diario">Diario</a>
       <a href="#niveles">Niveles</a>
       <a href="#precio">Precio</a>
+      <a href="#app">App</a>
     </div>
     <a class="btn btn-primary" href="app.html#login">Entrar a la app</a>
   </div>
@@ -678,6 +720,24 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
+<section class="getapp" id="app">
+  <div class="wrap">
+    <div class="rv">
+      <p class="eyebrow">Áurea en tu celular</p>
+      <h2>Instálala como una app, <em>sin tiendas</em>.</h2>
+      <p class="lead">Lleva tu ruta, tu diario y a Áurea Mentor en la pantalla de inicio. Se abre a pantalla completa, se actualiza sola y no ocupa casi espacio.</p>
+      <div class="ga-btns">
+        <button type="button" class="ga-btn" id="gaAndroid"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22a11.4 11.4 0 0 0-9.84 0L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52ZM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"/></svg><span><small>Instalar en</small><b>Android</b></span></button>
+        <button type="button" class="ga-btn" id="gaIos"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.5 2-3.7 2.1-3.8a4.6 4.6 0 0 0-3.6-2c-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.8a4.9 4.9 0 0 0-4.1 2.5c-1.8 3.1-.5 7.6 1.3 10.1.8 1.2 1.8 2.6 3.1 2.5 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4a10.6 10.6 0 0 0 1.4-2.8 4.3 4.3 0 0 1-2.5-4.2ZM14 5.2a4.4 4.4 0 0 0 1-3.2 4.5 4.5 0 0 0-2.9 1.5 4.2 4.2 0 0 0-1.1 3.1 3.7 3.7 0 0 0 3-1.4Z"/></svg><span><small>Instalar en</small><b>iPhone</b></span></button>
+      </div>
+      <p class="ga-note">Gratis y seguro. No necesitas Play Store ni App Store: se instala directo desde esta página.</p>
+      <p class="ga-done">Ya estás usando Áurea como app. 🌿</p>
+    </div>
+    <div class="ga-phone rv" aria-hidden="true"><div class="ga-screen"><i></i><i></i><i></i><i></i><i></i><span class="me"><img src="icons/aurea-192.png" alt=""><b>Áurea</b></span><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  </div>
+</section>
+<div class="ga-ov" id="gaOv" hidden><div class="ga-sheet" role="dialog" aria-modal="true" aria-labelledby="gaT"><button class="x" type="button" aria-label="Cerrar">✕</button><h3 id="gaT"></h3><div id="gaB"></div></div></div>
+
 <section class="faq">
   <div class="wrap">
     <div class="rv">
@@ -916,6 +976,37 @@ footer .adm-link:hover{color:var(--accent)}
 })();
 </script>
 
+
+<script>
+(function(){
+  var standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(standalone) document.documentElement.classList.add('is-standalone');
+  var ua=navigator.userAgent, isIOS=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var isSafari=isIOS&&!/CriOS|FxiOS|EdgiOS|GSA/.test(ua);
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; });
+  window.addEventListener('appinstalled',function(){ deferred=null; document.documentElement.classList.add('is-standalone'); });
+  var ov=document.getElementById('gaOv'), T=document.getElementById('gaT'), B=document.getElementById('gaB');
+  if(!ov) return;
+  function open(t,b){ T.textContent=t; B.innerHTML=b; ov.hidden=false; document.body.style.overflow='hidden'; ov.querySelector('.x').focus(); }
+  function close(){ ov.hidden=true; document.body.style.overflow=''; }
+  ov.querySelector('.x').onclick=close; ov.addEventListener('mousedown',function(e){ if(e.target===ov) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
+  var share='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+  var plus='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+  var dots='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+  document.getElementById('gaIos').onclick=function(){
+    open('Instalar en iPhone', (isIOS&&!isSafari?'<p class="tip" style="margin:0 0 14px">Abre esta página en <b>Safari</b>: en iPhone, solo Safari permite instalar apps desde la web.</p>':'')+
+      '<ol><li><span>Abre <b>aureamentor.com</b> en <b>Safari</b>.</span></li><li><span>Toca el botón <b>Compartir</b> '+share+' en la barra de abajo.</span></li><li><span>Elige <b>Agregar a inicio</b> '+plus+'. Si no lo ves, desliza la lista hacia arriba.</span></li><li><span>Toca <b>Agregar</b>. Áurea aparecerá en tu pantalla de inicio.</span></li></ol>'+
+      (!isIOS?'<p class="tip">Estás en una computadora: haz estos pasos desde tu iPhone.</p>':''));
+  };
+  document.getElementById('gaAndroid').onclick=function(){
+    if(deferred){ deferred.prompt(); deferred.userChoice.finally(function(){ deferred=null; }); return; }
+    open('Instalar en Android','<ol><li><span>Abre <b>aureamentor.com</b> en <b>Chrome</b>.</span></li><li><span>Toca el menú '+dots+' arriba a la derecha.</span></li><li><span>Elige <b>Instalar app</b> o <b>Agregar a pantalla principal</b>.</span></li><li><span>Confirma con <b>Instalar</b>. Áurea quedará junto a tus apps.</span></li></ol>'+
+      (isIOS?'<p class="tip">Estás en un iPhone: usa la opción «Instalar en iPhone».</p>':'<p class="tip">Si estás en una computadora, haz estos pasos desde tu celular Android.</p>'));
+  };
+})();
+</script>
 
 </body>
 </html>

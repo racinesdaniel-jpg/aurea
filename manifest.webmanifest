@@ -1,0 +1,18 @@
+{
+  "name": "Áurea · La Espiral de la Plenitud",
+  "short_name": "Áurea",
+  "description": "Tu mentoría personal: ruta de cápsulas, diario y Áurea Mentor.",
+  "lang": "es",
+  "id": "app.html",
+  "start_url": "app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111833",
+  "theme_color": "#111833",
+  "icons": [
+    { "src": "icons/aurea-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/aurea-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/aurea-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

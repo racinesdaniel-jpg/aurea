@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <script src="firebase-config.js"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111833">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Áurea">
+<script>if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <style>html,body{margin:0;padding:0;height:100%}#root{height:100%}</style>
 </head>
 <body>
@@ -878,6 +887,22 @@ body{background:var(--bg)}
 .dia-read{display:grid;gap:6px}.dia-read h4{margin:10px 0 0;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.dia-read p{margin:0;line-height:1.6;white-space:pre-wrap}
 .dia-read blockquote{margin:0;padding:8px 12px;border-left:3px solid var(--accent);font-family:var(--f-display);font-style:italic}
 .tw-f{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}.cap-f{margin:-4px 0 6px;font-size:.9rem;color:var(--muted)}.cap-f b{color:var(--fg)}
+.pw-h{display:flex;align-items:center;gap:14px}.pw-orb{flex:none;width:52px;height:52px;display:grid;place-items:center;border-radius:50%;background:var(--accent-soft);color:var(--accent)}
+.pw-h .eyebrow{margin:0 0 2px}.pw-t{font-family:var(--f-display);font-weight:400;font-size:clamp(1.6rem,4vw,2.1rem);line-height:1.1;margin:0}
+.paytext.pw-msg{font-size:.82rem;min-height:0;color:var(--muted);margin:0}
+.pw-plans .plan{position:relative;padding:18px 18px 16px 46px}.pw-dot{position:absolute;left:18px;top:21px;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface)}
+.plan[aria-pressed="true"] .pw-dot{border-color:var(--accent);box-shadow:inset 0 0 0 4px var(--surface);background:var(--accent)}
+.pw-save{font-style:normal;margin-left:6px;padding:.15em .6em;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:.7rem;letter-spacing:.04em;text-transform:none;font-weight:600}
+.pw-inc{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.85rem;color:var(--muted)}.pw-inc li{display:flex;align-items:center;gap:7px}
+.pw-inc li::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230E8C78' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center/10px no-repeat}
+.pw-lbl{margin:4px 0 -6px;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.pw-pay{display:grid;gap:10px}
+.pw-card{height:48px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:999px;border:1.5px solid var(--fg);background:var(--fg);color:var(--surface);font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.pw-card:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 22px -12px color-mix(in srgb,var(--fg) 70%,transparent)}.pw-card:disabled{opacity:.7;cursor:default}
+.pw-pph{font-style:normal;font-weight:700;font-size:.78rem;letter-spacing:-.01em;padding:.2em .7em;border-radius:999px;background:color-mix(in srgb,var(--surface) 16%,transparent);opacity:.9}
+.pw-pay .pp-box{margin:0;min-height:48px}
+.pw-fine{display:flex;gap:8px;align-items:flex-start;margin:0;font-size:.78rem;line-height:1.5;color:var(--muted)}.pw-fine svg{flex:none;margin-top:2px}.pw-fine a{color:var(--accent)}
+@media (max-width:520px){.ov .pw-plans{grid-template-columns:1fr 1fr;gap:10px}.pw-plans .plan{padding:38px 12px 14px 14px}.pw-dot{left:14px;top:14px}.pw-plans .plan b{font-size:1.55rem}.pw-plans .plan small{font-size:.72rem}.pw-save{display:block;margin:4px 0 0;width:max-content}.pw-inc{flex-direction:column;gap:6px}}
 .pph-btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;margin-top:18px;padding:.85em 1.2em;border:0;border-radius:999px;background:#6A1BD1;color:#fff;font:inherit;cursor:pointer;transition:filter .2s,transform .2s}
 .pph-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}.pph-btn:disabled{opacity:.7;cursor:default}
 .pph-l{font-size:1.05rem;font-weight:600}.pph-l b{font-weight:800;letter-spacing:-.01em}.pph-btn small{font-size:.75rem;opacity:.85}
@@ -2277,28 +2302,32 @@ function openCap(id){
 function toast(msg){ var t=document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }
 
 /* ---- Fin del mes gratuito ---- */
+function pwSave(){ var m=+cfg().priceM, a=+cfg().priceA; return m>0&&a>0?Math.max(0,Math.round((1-a/(m*12))*100)):0; }
 function paywall(){
   if(document.querySelector('.ov.pay')) return;
   var n=S.reg.name, ended=trialLeft()<=0;
   var ov=document.createElement('div'); ov.className='ov pay gutter';
   ov.innerHTML='<article class="sheet" role="dialog" aria-modal="true" aria-label="Suscripción">'+(ended?'':'<button class="close" type="button" aria-label="Cerrar">✕</button>')+
-    '<div style="display:flex;justify-content:center" id="orbSlot"></div><p class="paytext" id="pt"></p>'+
-    '<div class="plans"><button type="button" class="plan" data-p="mensual" aria-pressed="'+(S.plan==='mensual')+'"><span class="mono">Mensual</span><b>$'+fmtP(cfg().priceM)+'</b><small>USD al mes</small></button><button type="button" class="plan" data-p="anual" aria-pressed="'+(S.plan==='anual')+'"><span class="mono">Anual · Mejor valor</span><b>$'+fmtP(cfg().priceA)+'</b><small>USD al año · $'+fmtP(Math.round(cfg().priceA/12*100)/100)+' al mes</small></button></div>'+
+    '<header class="pw-h"><div class="pw-orb">'+logo(26)+'</div><div><p class="eyebrow">Tu suscripción</p><h2 class="pw-t">'+(ended?'Continúa tu ruta':'Elige tu plan')+'</h2></div></header><p class="paytext pw-msg" id="pt"></p>'+
+    '<div class="plans pw-plans" role="radiogroup" aria-label="Plan">'+
+      '<button type="button" class="plan" role="radio" data-p="mensual" aria-pressed="'+(S.plan==='mensual')+'"><span class="pw-dot" aria-hidden="true"></span><span class="mono">Mensual</span><b>$'+fmtP(cfg().priceM)+'</b><small>USD al mes</small></button>'+
+      '<button type="button" class="plan" role="radio" data-p="anual" aria-pressed="'+(S.plan!=='mensual')+'"><span class="pw-dot" aria-hidden="true"></span><span class="mono">Anual'+(pwSave()>0?' <em class="pw-save">Ahorras '+pwSave()+'%</em>':'')+'</span><b>$'+fmtP(cfg().priceA)+'</b><small>USD al año · $'+fmtP(Math.round(cfg().priceA/12*100)/100)+' al mes</small></button></div>'+
+    '<ul class="pw-inc"><li>Tu ruta completa de cápsulas</li><li>Áurea Mentor y tu diario</li><li>Cancelas cuando quieras</li></ul>'+
     (!cloud()?'<button class="btn btn-primary big-cta" id="sub" type="button">Suscribirme con tarjeta</button>':
-      (cfg().payPayphone?'<button class="pph-btn" id="sub" type="button"><span class="pph-l">Pagar con <b>payphone</b></span><small>Tarjeta de crédito o débito</small></button>':'')+
-      (cfg().payPayphone&&cfg().payPaypal?'<p class="pay-or"><span>o</span></p>':'')+
+      (cfg().payPayphone||cfg().payPaypal?'<p class="pw-lbl">Forma de pago</p><div class="pw-pay">':'')+
+      (cfg().payPayphone?'<button class="pw-card" id="sub" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg><span>Tarjeta de crédito o débito</span><i class="pw-pph">payphone</i></button>':'')+
       (cfg().payPaypal?'<div id="ppBtn" class="pp-box"><span class="pp-wait">Cargando PayPal…</span></div>':'')+
-      (cfg().payPayphone||cfg().payPaypal?'<p class="note">'+(cfg().payPayphone?'Payphone: pago único por el plan que elijas, sin renovación automática. ':'')+(cfg().payPaypal?'PayPal: desde cualquier país, con tu cuenta o tarjeta, y se renueva solo. ':'')+'Áurea no ve ni guarda los datos de tu tarjeta.</p>':'<p class="note">Muy pronto podrás suscribirte aquí con tarjeta o PayPal.</p>')+
-      '<p class="note err" id="payErr" hidden></p>')+'<p class="note" id="payNote" hidden>En la versión final, este botón abre el pago seguro con tarjeta de crédito (Stripe). Ningún dato de tarjeta pasa por esta vista previa. <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">Simular pago aprobado</button></p></article>';
+      (cfg().payPayphone||cfg().payPaypal?'</div><p class="pw-fine"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Pago seguro. Áurea no ve ni guarda los datos de tu tarjeta.'+(cfg().payPayphone?' Con tarjeta pagas el periodo elegido.':'')+(cfg().payPaypal?' Con PayPal se renueva solo y puedes cancelar cuando quieras.':'')+' <a href="terminos.html" target="_blank" rel="noopener">Términos</a></span></p>':'<p class="note">Muy pronto podrás suscribirte aquí con tarjeta o PayPal.</p>')+
+      '<p class="note err" id="payErr" hidden></p>')+'<p class="note" id="payNote" hidden>En la versión final, este botón abre el pago seguro con tarjeta. Ningún dato de tarjeta pasa por esta vista previa. <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">Simular pago aprobado</button></p></article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
-  ov.querySelector('#orbSlot').appendChild(makeOrb());
+  
   var cl=ov.querySelector('.close'); if(cl) cl.onclick=function(){ ov.remove(); document.body.style.overflow=''; };
   ov.querySelectorAll('.plan').forEach(function(b){ b.onclick=function(){ S.plan=b.dataset.p; save(); ov.querySelectorAll('.plan').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));}); }; });
   var ppb=ov.querySelector('#ppBtn');
   if(ppb) paypalMount(ppb,ov.querySelector('#payErr'),function(){ ov.remove(); document.body.style.overflow=''; renderApp(); toast('Suscripción activa con PayPal. Tu ruta continúa.'); });
   var sb=ov.querySelector('#sub'); if(sb) sb.onclick=function(){
     if(!cloud()||!fbUser){ ov.querySelector('#payNote').hidden=false; return; }
-    var b=this, er=ov.querySelector('#payErr'); b._h=b.innerHTML; b.disabled=true; b.textContent='Abriendo Payphone…'; er.hidden=true;
+    var b=this, er=ov.querySelector('#payErr'); b._h=b.innerHTML; b.disabled=true; b.innerHTML='<span>Abriendo el pago seguro…</span>'; er.hidden=true;
     payStart(S.plan==='mensual'?'mensual':'anual').then(function(r){ location.href=r.url; })
       .catch(function(e){ b.disabled=false; b.innerHTML=b._h; er.textContent=(e&&e.message)||'No pude abrir el pago. Intenta de nuevo.'; er.hidden=false; });
   };
@@ -2713,7 +2742,7 @@ function paypalSdk(clientId){
 }
 function paypalMount(box,er,done){
   fnCall('paypalPlan',{plan:S.plan==='mensual'?'mensual':'anual'}).then(function(cf){ return paypalSdk(cf.clientId).then(function(pp){
-    box.innerHTML=''; return pp.Buttons({style:{layout:'horizontal',shape:'pill',label:'subscribe',tagline:false,height:48},
+    box.innerHTML=''; return pp.Buttons({style:{layout:'horizontal',shape:'pill',label:'subscribe',tagline:false,height:48,color:'gold'},
       createSubscription:function(d,a){ return fnCall('paypalPlan',{plan:S.plan==='mensual'?'mensual':'anual'}).then(function(r){ return a.subscription.create({plan_id:r.planId,custom_id:r.uid}); }); },
       onApprove:function(d){ er.hidden=true; return fnCall('paypalConfirm',{subscriptionID:d.subscriptionID}).then(function(){ return loadSub(); }).then(done)
         .catch(function(e){ er.textContent=(e&&e.message)||'No pude confirmar el pago.'; er.hidden=false; }); },
