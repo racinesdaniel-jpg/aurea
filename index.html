@@ -390,11 +390,12 @@ footer .adm-link:hover{color:var(--accent)}
 
 /* ---- Selector de idioma ---- */
 .lang-sw{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;margin-left:-4px;flex:none;font-size:12px;font-weight:600;letter-spacing:.04em}
-.lang-sw a{padding:5px 9px;border-radius:999px;color:var(--muted);text-decoration:none;line-height:1}
-.lang-sw a.on{background:var(--fg);color:var(--bg)}
+.lang-sw{text-decoration:none;cursor:pointer}
+.lang-sw span{padding:5px 9px;border-radius:999px;color:var(--muted);line-height:1}
+.lang-sw span.on{background:var(--fg);color:var(--bg)}
 nav.top .navlinks{margin-left:auto}
 nav.top .wrap>.btn{margin-left:auto}
-.lang-sw a:not(.on):hover{color:var(--fg)}
+.lang-sw:hover span:not(.on){color:var(--fg)}
 /* ---- Instalar en el celular ---- */
 .getapp{border-top:1px solid var(--line)}
 .getapp .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
@@ -837,9 +838,9 @@ nav.top .wrap>.btn{margin-left:auto}
   var TITLE0=document.title, DESC0=metaD?metaD.getAttribute('content'):'';
   /* Selector Español / English en el menú superior (no en el editor) */
   function langBtn(){ if(EDIT) return; var w=wrapOf(secEl('nav')||document.body); if(!w||w.querySelector('.lang-sw')) return;
-    var d=document.createElement('div'); d.className='lang-sw'; d.setAttribute('role','group'); d.setAttribute('aria-label',LE?'Language':'Idioma');
-    ['es','en'].forEach(function(l){ var b=document.createElement('a'); b.href='?lang='+l+location.hash; b.textContent=l.toUpperCase(); b.setAttribute('lang',l); b.title=l==='es'?'Español':'English';
-      if(l===LANG){ b.className='on'; b.setAttribute('aria-current','true'); } d.appendChild(b); });
+    var o=LANG==='en'?'es':'en', d=document.createElement('a'); d.className='lang-sw'; d.href='?lang='+o+location.hash;
+    d.title=o==='en'?'Cambiar a English':'Switch to Español'; d.setAttribute('aria-label',o==='en'?'Idioma: Español. Cambiar a English':'Language: English. Switch to Español');
+    ['es','en'].forEach(function(l){ var b=document.createElement('span'); b.textContent=l.toUpperCase(); b.setAttribute('lang',l); if(l===LANG) b.className='on'; d.appendChild(b); });
     w.appendChild(d); }
   document.addEventListener('aurea:landing',langBtn);
   var DEF={}, ORDER0=[], LOCKS={};

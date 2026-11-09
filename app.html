@@ -634,10 +634,10 @@ body{background:var(--bg)}
 .pd-ed:hover{border-color:var(--accent)}
 .toplink{background:none;border:0;font:inherit;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
 .toplink:hover{color:var(--accent)}
-.lang-pick{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px;background:color-mix(in srgb,var(--surface) 60%,transparent)}
-.lang-pick button{background:none;border:0;font:inherit;font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--muted);padding:5px 9px;border-radius:999px;cursor:pointer;line-height:1}
-.lang-pick button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
-.lang-pick button:hover{color:var(--fg)}
+.lang-pick{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px;background:color-mix(in srgb,var(--surface) 60%,transparent);font:inherit;cursor:pointer;color:inherit}
+.lang-pick span{font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--muted);padding:5px 9px;border-radius:999px;line-height:1;transition:background .2s,color .2s}
+.lang-pick span.on{background:var(--accent-soft);color:var(--accent)}
+.lang-pick:hover span:not(.on){color:var(--fg)}
 .tb-r{display:flex;align-items:center;gap:10px}
 .bot-top .lang-pick{order:9}
 @media (max-width:440px){.bot-top .phase{display:none}}
@@ -1018,7 +1018,7 @@ function langSync(){ if(!S||!S.reg||!S.reg.registeredAt) return false;
     if(lsSet('aurea-lang',S.lang) && lsSet('aurea-lang-at',String(+S.langAt||0))){ location.reload(); return true; } }
   if(S.lang!==LANG && !(window.AUREA_LANG==='en'&&LANG==='es')){ S.lang=LANG; S.langAt=la||Date.now(); save(); }
   return false; }
-function langPick(){ return '<div class="lang-pick" role="group" aria-label="Idioma · Language"><button type="button" data-lg="es" aria-pressed="'+(LANG==='es')+'" lang="es" title="Español">ES</button><button type="button" data-lg="en" aria-pressed="'+(LANG==='en')+'" lang="en" title="English">EN</button></div>'; }
+function langPick(){ var o=LANG==='en'?'es':'en'; return '<button type="button" class="lang-pick" data-lg="'+o+'" title="'+(o==='en'?'Cambiar a English':'Switch to Español')+'" aria-label="'+(o==='en'?'Idioma: Español. Cambiar a English':'Language: English. Switch to Español')+'"><span'+(LANG==='es'?' class="on"':'')+' lang="es">ES</span><span'+(LANG==='en'?' class="on"':'')+' lang="en">EN</span></button>'; }
 function wireLang(el){ el.querySelectorAll('[data-lg]').forEach(function(b){ b.onclick=function(){ setLang(b.dataset.lg); }; }); }
 var KEY='aurea-demo-v1';
 var S = load() || fresh();
