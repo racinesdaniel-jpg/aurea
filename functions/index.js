@@ -56,6 +56,7 @@ exports.mentor = onCall(
     const c = settingsFrom((await db.doc("settings/app").get()).data());
     if (!c.aiEnabled) throw new HttpsError("failed-precondition", "El mentor con inteligencia artificial está desactivado por ahora.");
 
+    const en = !!(req.data && req.data.lang === "en");
     const message = clip(req.data && req.data.message, 800).trim();
     if (message.length < 2) throw new HttpsError("invalid-argument", "Escribe tu pregunta.");
 
@@ -121,7 +122,7 @@ exports.mentor = onCall(
         output_config: { effort: "low" },
         system: [
           { type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } },
-          { type: "text", text: `Datos de la persona con quien hablas:\n${profile}` },
+          { type: "text", text: `Datos de la persona con quien hablas:\n${profile}` + (en ? "\n\nIMPORTANTE: esta persona usa la aplicación en inglés. Responde siempre en inglés natural (sin importar el idioma de los datos), con el mismo tono. Llama al método «The Spiral of Fulfillment» y a la espiral «the spiral»." : "") },
         ],
         messages,
       });
@@ -135,10 +136,10 @@ exports.mentor = onCall(
 
     let text = "";
     if (resp.stop_reason === "refusal") {
-      text = "Prefiero no responder a eso. Si quieres, conversemos sobre tu ruta, tus cápsulas o el área de tu vida que más te importa hoy.";
+      text = en ? "I'd rather not answer that. If you like, let's talk about your path, your capsules or the area of your life that matters most to you today." : "Prefiero no responder a eso. Si quieres, conversemos sobre tu ruta, tus cápsulas o el área de tu vida que más te importa hoy.";
     } else {
       text = resp.content.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
-      if (!text) text = "Necesito un poco más de contexto. ¿Me cuentas un poco más?";
+      if (!text) text = en ? "I need a little more context. Could you tell me a bit more?" : "Necesito un poco más de contexto. ¿Me cuentas un poco más?";
     }
 
     const u = resp.usage || {};

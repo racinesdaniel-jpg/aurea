@@ -14,7 +14,9 @@
 <meta name="apple-mobile-web-app-title" content="Áurea">
 <script>if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <style>html,body{margin:0;padding:0;height:100%}.lc-wait body{opacity:0}body{transition:opacity .2s}</style>
-<script>/* mientras llega el contenido editado de la landing (solo la primera visita) */try{if(window.AUREA_FIREBASE&&!localStorage.getItem("aurea-landing")&&!/[?&]editar=1/.test(location.search)){document.documentElement.classList.add("lc-wait");setTimeout(function(){document.documentElement.classList.remove("lc-wait");},1600);}}catch(e){}</script>
+<script>/* idioma: ?lang= (no se guarda en el editor), lo elegido antes, o el del navegador */(function(){var E=/[?&]editar=1/.test(location.search),l=null,m=/[?&]lang=(es|en)(&|$)/.exec(location.search);try{if(m){l=m[1];if(!E){localStorage.setItem('aurea-lang',l);localStorage.setItem('aurea-lang-at',String(Date.now()));}}else l=localStorage.getItem('aurea-lang');}catch(e){if(m)l=m[1];}
+if(l!=='es'&&l!=='en')l=/^en/i.test(navigator.language||'')?'en':'es';window.AUREA_LANG=l;document.documentElement.lang=l;if(l==='en')document.write('<script src="landing-en.js"><\/script>');})();</script>
+<script>/* mientras llega el contenido editado de la landing (solo la primera visita) */try{if(window.AUREA_FIREBASE&&!localStorage.getItem(window.AUREA_LANG==='en'?"aurea-landing-en":"aurea-landing")&&!/[?&]editar=1/.test(location.search)){document.documentElement.classList.add("lc-wait");setTimeout(function(){document.documentElement.classList.remove("lc-wait");},1600);}}catch(e){}</script>
 </head>
 <body>
 <title>La Espiral de la Plenitud</title>
@@ -386,6 +388,12 @@ footer .adm-link:hover{color:var(--accent)}
 @media (max-width:820px){.dia-cards,.dia-notes{grid-template-columns:1fr}}
 @media (max-width:560px){.dcard::after{display:none}}
 
+/* ---- Selector de idioma ---- */
+.lang-sw{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;margin-left:auto;margin-right:-6px;flex:none;font-size:12px;font-weight:600;letter-spacing:.04em}
+.lang-sw a{padding:5px 9px;border-radius:999px;color:var(--muted);text-decoration:none;line-height:1}
+.lang-sw a.on{background:var(--fg);color:var(--bg)}
+nav.top .navlinks{margin-left:auto}
+.lang-sw a:not(.on):hover{color:var(--fg)}
 /* ---- Instalar en el celular ---- */
 .getapp{border-top:1px solid var(--line)}
 .getapp .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
@@ -813,14 +821,26 @@ footer .adm-link:hover{color:var(--accent)}
    Las partes animadas (data-lock) nunca se reemplazan: se conservan vivas aunque cambie el texto alrededor. */
 (function(){
   var EDIT=/[?&]editar=1(&|$)/.test(location.search) && window.parent!==window;
-  var KEY='aurea-landing', F=window.AUREA_FIREBASE, root=document.documentElement;
+  var LE=window.AUREA_LANG==='en'?window.AUREA_LANDING_EN:null, LANG=LE?'en':'es';
+  var KEY=LE?'aurea-landing-en':'aurea-landing', DOC=LE?'contenido_en':'contenido', F=window.AUREA_FIREBASE, root=document.documentElement;
   if(EDIT) root.classList.add('lc-edit');
   var foot=document.querySelector('footer[data-sec]');
-  var TITLE0=document.title, metaD=document.querySelector('meta[name="description"]'), DESC0=metaD?metaD.getAttribute('content'):'';
+  var metaD=document.querySelector('meta[name="description"]');
   function each(list,fn){ [].forEach.call(list,fn); }
   function secs(){ return [].slice.call(document.querySelectorAll('[data-sec]')); }
   function secEl(id){ var r=null; secs().forEach(function(s){ if(s.getAttribute('data-sec')===id) r=s; }); return r; }
   function wrapOf(s){ for(var c=s.firstElementChild;c;c=c.nextElementSibling) if(c.classList.contains('wrap')) return c; return null; }
+  /* Versión en inglés: se cambia el contenido original antes de tomarlo como base */
+  if(LE){ root.lang='en'; document.title=LE.title; if(metaD) metaD.setAttribute('content',LE.desc);
+    secs().forEach(function(s){ var w=wrapOf(s), h=LE.html[s.getAttribute('data-sec')]; if(w&&h!=null) w.innerHTML=h; }); }
+  var TITLE0=document.title, DESC0=metaD?metaD.getAttribute('content'):'';
+  /* Selector Español / English en el menú superior (no en el editor) */
+  function langBtn(){ if(EDIT) return; var w=wrapOf(secEl('nav')||document.body); if(!w||w.querySelector('.lang-sw')) return;
+    var d=document.createElement('div'); d.className='lang-sw'; d.setAttribute('role','group'); d.setAttribute('aria-label',LE?'Language':'Idioma');
+    ['es','en'].forEach(function(l){ var b=document.createElement('a'); b.href='?lang='+l+location.hash; b.textContent=l.toUpperCase(); b.setAttribute('lang',l); b.title=l==='es'?'Español':'English';
+      if(l===LANG){ b.className='on'; b.setAttribute('aria-current','true'); } d.appendChild(b); });
+    var cta=w.querySelector('.btn'); if(cta) w.insertBefore(d,cta); else w.appendChild(d); }
+  document.addEventListener('aurea:landing',langBtn);
   var DEF={}, ORDER0=[], LOCKS={};
   secs().forEach(function(s){ var id=s.getAttribute('data-sec'), w=wrapOf(s);
     DEF[id]={html:w?w.innerHTML:'', cls:s.className, style:s.getAttribute('style')||'', name:s.getAttribute('data-sec-name')||id, fixed:s.hasAttribute('data-fixed')};
@@ -889,14 +909,15 @@ footer .adm-link:hover{color:var(--accent)}
     try{ document.dispatchEvent(new CustomEvent('aurea:landing')); }catch(e){}
     if(!EDIT&&window.__aureaApplyCfg) window.__aureaApplyCfg();
   }
-  window.AureaLanding={edit:EDIT,DEF:DEF,ORDER0:ORDER0,LOCKS:LOCKS,IMG:IMG,apply:apply,getImg:getImg,fixImgs:fixImgs,wrapOf:wrapOf};
+  langBtn();
+  window.AureaLanding={edit:EDIT,lang:LANG,DEF:DEF,ORDER0:ORDER0,LOCKS:LOCKS,IMG:IMG,apply:apply,getImg:getImg,fixImgs:fixImgs,wrapOf:wrapOf};
   if(EDIT) return;
   function done(){ root.classList.remove('lc-wait'); }
   var raw=null; try{ raw=localStorage.getItem(KEY); }catch(e){}
   if(raw){ try{ apply(JSON.parse(raw)); }catch(e){ raw=null; } }
   if(!(F&&F.projectId&&F.apiKey&&window.fetch)){ done(); return; }
   setTimeout(done,1500);
-  fetch('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(F.projectId)+'/databases/(default)/documents/landing/contenido?key='+encodeURIComponent(F.apiKey))
+  fetch('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(F.projectId)+'/databases/(default)/documents/landing/'+DOC+'?key='+encodeURIComponent(F.apiKey))
     .then(function(r){ return r.ok?r.json():(r.status===404?{}:null); })
     .then(function(j){ if(!j){ done(); return; } var v=(j.fields&&j.fields.data&&j.fields.data.stringValue)||'';
       if(v!==(raw||'')){ try{ apply(v?JSON.parse(v):{}); if(v) localStorage.setItem(KEY,v); else localStorage.removeItem(KEY); }catch(e){} }
@@ -907,6 +928,7 @@ footer .adm-link:hover{color:var(--accent)}
 <script>
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var LEN=window.AUREA_LANG==='en'?window.AUREA_LANDING_EN:null;
   document.documentElement.classList.add('js');
   function tok(n){ return getComputedStyle(document.querySelector('.hero')||document.documentElement).getPropertyValue(n).trim(); }
 
@@ -925,7 +947,7 @@ footer .adm-link:hover{color:var(--accent)}
     ctx.globalAlpha=wide?.55:.4; ctx.lineWidth=1.4; ctx.strokeStyle=pal.a; ctx.beginPath();
     for(var a=0;a<=turns*2*Math.PI;a+=.03){var r=5*Math.exp(b*a);var x=cx+r*Math.cos(a+rot),y=cy+r*Math.sin(a+rot);a?ctx.lineTo(x,y):ctx.moveTo(x,y);}
     ctx.stroke();
-    var cols=[pal.s,pal.m,pal.v], names=['ESPÍRITU','PROSPERIDAD','VITALIDAD'], mono=tok('--f-mono')||'monospace', n=Math.floor(turns*3);
+    var cols=[pal.s,pal.m,pal.v], names=window.AUREA_LANDING_EN&&AUREA_LANG==='en'?AUREA_LANDING_EN.spiral:['ESPÍRITU','PROSPERIDAD','VITALIDAD'], mono=tok('--f-mono')||'monospace', n=Math.floor(turns*3);
     for(var k=1;k<=n;k++){
       var a2=k*(2*Math.PI/3), r2=5*Math.exp(b*a2);
       var x2=cx+r2*Math.cos(a2+rot), y2=cy+r2*Math.sin(a2+rot);
@@ -975,10 +997,11 @@ footer .adm-link:hover{color:var(--accent)}
     var q=document.getElementById('bmQ'), h=document.getElementById('bmH'), ans=document.getElementById('bmA'), dots=document.getElementById('bmD'), oc=document.getElementById('bmOrb');
     if(!q) return;
     var scenes=[
-      {q:'PARA EMPEZAR, ¿CÓMO TE GUSTA QUE TE LLAMEN?', h:'ASÍ TE LLAMARÉ DURANTE TU RUTA.', a:'<div class="bm-field">TU NOMBRE</div>', d:1},
+      {q:'PARA EMPEZAR, ¿CÓMO TE GUSTA QUE TE LLAMEN?', h:'ASÍ TE LLAMARÉ DURANTE TU RUTA.', a:'<div class="bm-field">'+(LEN?LEN.scenes[0].f:'TU NOMBRE')+'</div>', d:1},
       {q:'DEL 1 AL 10, ¿CUÁNTA PAZ INTERIOR SIENTES HOY?', h:'NO HAY RESPUESTAS CORRECTAS.', a:'<div class="bm-scale">'+[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<span'+(n===6?' class="on"':'')+'>'+n+'</span>';}).join('')+'</div>', d:3},
-      {q:'¿QUÉ DÍAS Y CUÁNTO TIEMPO PUEDES DEDICARLE A TU CRECIMIENTO?', h:'TU RUTA SE AJUSTA A TU DISPONIBILIDAD.', a:'<div class="bm-cards bm-days">'+[['L',60],['M',0],['X',30],['J',0],['V',60],['S',90],['D',0]].map(function(d){return '<span'+(d[1]?' class="on"':'')+'><b>'+d[0]+'</b>'+(d[1]?'<small>'+d[1]+' min</small>':'<small>—</small>')+'</span>';}).join('')+'</div>', d:2}
+      {q:'¿QUÉ DÍAS Y CUÁNTO TIEMPO PUEDES DEDICARLE A TU CRECIMIENTO?', h:'TU RUTA SE AJUSTA A TU DISPONIBILIDAD.', a:'<div class="bm-cards bm-days">'+[['L',60],['M',0],['X',30],['J',0],['V',60],['S',90],['D',0]].map(function(d,i){ return LEN?[LEN.days[i],d[1]]:d; }).map(function(d){return '<span'+(d[1]?' class="on"':'')+'><b>'+d[0]+'</b>'+(d[1]?'<small>'+d[1]+' min</small>':'<small>—</small>')+'</span>';}).join('')+'</div>', d:2}
     ];
+    if(LEN) scenes.forEach(function(sc,i){ sc.q=LEN.scenes[i].q; sc.h=LEN.scenes[i].h; });
     var si=0, busy=false;
     function typeG(el,text,speed,done){
       if(reduce){ el.textContent=text; return done(); }
@@ -1019,6 +1042,8 @@ footer .adm-link:hover{color:var(--accent)}
       {q:'Últimamente me siento sin rumbo. Trabajo mucho, pero no sé para qué.',
        a:'Te entiendo, Ana. Propósito es hoy tu área más baja, y por eso tu ruta empieza ahí. Una idea para hoy: escribe tres momentos del último mes en los que perdiste la noción del tiempo. Ahí suele asomar lo que te importa. Si quieres, te recomiendo un libro para acompañar esta semana.',left:36}
     ];
+    if(LEN) convs=LEN.convs;
+    function leftTx(n){ return LEN?LEN.left(n):'Te quedan '+n+' consultas este mes'; }
     var ci=0; q.textContent=convs[0].q;
     function typeG(el,text,speed,done){
       if(reduce){ el.textContent=text; return done(); }
@@ -1027,8 +1052,8 @@ footer .adm-link:hover{color:var(--accent)}
       var i=0; (function st(){ i++; sh.textContent=text.slice(0,i); rs.textContent=text.slice(i); if(i<text.length) setTimeout(st, /[.?,:]/.test(text[i-1])?speed*7:speed); else { c.remove(); done(); } })();
     }
     function play(){
-      var cv=convs[ci]; b.classList.add('wait'); a.innerHTML='<span class="bm-ghost">'+cv.a+'</span>'; q.textContent=cv.q; l.textContent='Te quedan '+(cv.left+1)+' consultas este mes';
-      setTimeout(function(){ typeG(a, cv.a, 22, function(){ b.classList.remove('wait'); l.textContent='Te quedan '+cv.left+' consultas este mes'; ci=(ci+1)%convs.length; if(!reduce) setTimeout(play, 5200); }); }, 900);
+      var cv=convs[ci]; b.classList.add('wait'); a.innerHTML='<span class="bm-ghost">'+cv.a+'</span>'; q.textContent=cv.q; l.textContent=leftTx(cv.left+1);
+      setTimeout(function(){ typeG(a, cv.a, 22, function(){ b.classList.remove('wait'); l.textContent=leftTx(cv.left); ci=(ci+1)%convs.length; if(!reduce) setTimeout(play, 5200); }); }, 900);
     }
     if('IntersectionObserver' in window){ new IntersectionObserver(function(es,o){ es.forEach(function(e){ if(e.isIntersecting){ play(); o.disconnect(); } }); },{threshold:.3}).observe(a); } else play();
     var ot=0;
@@ -1055,7 +1080,7 @@ footer .adm-link:hover{color:var(--accent)}
   eqOrigins(); window.addEventListener('resize',eqOrigins); document.addEventListener('aurea:landing',eqOrigins); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(eqOrigins);
 
   /* ---------- Planificador ---------- */
-  var weeksBy={3:13,6:26,12:52}, rankBy={3:'Constancia',6:'Claridad',12:'Plenitud'};
+  var weeksBy={3:13,6:26,12:52}, rankBy=LEN?LEN.rankBy:{3:'Constancia',6:'Claridad',12:'Plenitud'};
   var ribbon=document.getElementById('ribbon');
   function setPlan(m){
     document.querySelectorAll('.seg button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.m==m?'true':'false'); });
@@ -1085,14 +1110,15 @@ footer .adm-link:hover{color:var(--accent)}
   var c=null; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'null'); }catch(e){} if(!c) c=window.__aureaCfg||null;
   if(!c) return;
   window.__aureaSpin=c.spinSpeed>0?c.spinSpeed/100:1;
-  function fmt(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
+  var LEN=window.AUREA_LANG==='en'?window.AUREA_LANDING_EN:null;
+  function fmt(n){ n=+n; var t=Math.round(n*100)%100?n.toFixed(2):String(Math.round(n)); return LEN?t:t.replace('.',','); }
   function all(sel,fn){ [].forEach.call(document.querySelectorAll(sel),fn); }
   var d=c.trialDays>0?Math.round(c.trialDays):15, mes=(d===30);
   all('[data-trial-days]',function(e){ e.textContent=d; });
-  all('[data-trial-cta]',function(e){ e.textContent=mes?'Comenzar mes gratuito':'Comenzar prueba gratuita'; });
-  all('[data-trial-h2]',function(e){ e.textContent=mes?'Comienza con un mes sin costo.':'Comienza con '+d+(d===1?' día':' días')+' sin costo.'; });
-  all('[data-trial-li]',function(e){ e.textContent=mes?'Primer mes sin costo':(d===1?'Primer día sin costo':'Primeros '+d+' días sin costo'); });
-  all('[data-trial-faq]',function(e){ e.textContent=mes?'¿Qué ocurre al terminar el mes gratuito?':'¿Qué ocurre al terminar la prueba gratuita?'; });
+  all('[data-trial-cta]',function(e){ e.textContent=LEN?LEN.cta(mes):mes?'Comenzar mes gratuito':'Comenzar prueba gratuita'; });
+  all('[data-trial-h2]',function(e){ e.textContent=LEN?LEN.h2(mes,d):mes?'Comienza con un mes sin costo.':'Comienza con '+d+(d===1?' día':' días')+' sin costo.'; });
+  all('[data-trial-li]',function(e){ e.textContent=LEN?LEN.li(mes,d):mes?'Primer mes sin costo':(d===1?'Primer día sin costo':'Primeros '+d+' días sin costo'); });
+  all('[data-trial-faq]',function(e){ e.textContent=LEN?LEN.faq(mes):mes?'¿Qué ocurre al terminar el mes gratuito?':'¿Qué ocurre al terminar la prueba gratuita?'; });
   if(c.aiTrialMonth>0) all('[data-ai-trial]',function(e){ e.textContent=Math.round(c.aiTrialMonth); });
   if(c.aiPaidMonth>0) all('[data-ai-paid]',function(e){ e.textContent=Math.round(c.aiPaidMonth); });
   if(c.priceM>0) all('[data-price-m]',function(e){ e.textContent=fmt(c.priceM); });
@@ -1136,13 +1162,17 @@ footer .adm-link:hover{color:var(--accent)}
   var share='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
   var plus='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
   var dots='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+  var LEN=window.AUREA_LANG==='en'?window.AUREA_LANDING_EN:null;
+  function openEn(t){ var i=t.indexOf('|'); open(t.slice(0,i),t.slice(i+1)); }
   document.getElementById('gaIos').onclick=function(){
+    if(LEN) return openEn(LEN.ios(isIOS,isSafari,share,plus));
     open('Instalar en iPhone', (isIOS&&!isSafari?'<p class="tip" style="margin:0 0 14px">Abre esta página en <b>Safari</b>: en iPhone, solo Safari permite instalar apps desde la web.</p>':'')+
       '<ol><li><span>Abre <b>aureamentor.com</b> en <b>Safari</b>.</span></li><li><span>Toca el botón <b>Compartir</b> '+share+' en la barra de abajo.</span></li><li><span>Elige <b>Agregar a inicio</b> '+plus+'. Si no lo ves, desliza la lista hacia arriba.</span></li><li><span>Toca <b>Agregar</b>. Áurea aparecerá en tu pantalla de inicio.</span></li></ol>'+
       (!isIOS?'<p class="tip">Estás en una computadora: haz estos pasos desde tu iPhone.</p>':''));
   };
   document.getElementById('gaAndroid').onclick=function(){
     if(deferred){ deferred.prompt(); deferred.userChoice.finally(function(){ deferred=null; }); return; }
+    if(LEN) return openEn(LEN.android(isIOS,dots));
     open('Instalar en Android','<ol><li><span>Abre <b>aureamentor.com</b> en <b>Chrome</b>.</span></li><li><span>Toca el menú '+dots+' arriba a la derecha.</span></li><li><span>Elige <b>Instalar app</b> o <b>Agregar a pantalla principal</b>.</span></li><li><span>Confirma con <b>Instalar</b>. Áurea quedará junto a tus apps.</span></li></ol>'+
       (isIOS?'<p class="tip">Estás en un iPhone: usa la opción «Instalar en iPhone».</p>':'<p class="tip">Si estás en una computadora, haz estos pasos desde tu celular Android.</p>'));
   };
