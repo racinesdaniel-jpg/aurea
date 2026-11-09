@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <script src="firebase-config.js"></script>
+<script>/* Idioma de la app: español o inglés. Se elige en la primera pantalla o en el perfil, y se recuerda. */
+(function(){var l=null,m=/[?&]lang=(es|en)(&|$)/.exec(location.search);try{if(m){l=m[1];localStorage.setItem('aurea-lang',l);localStorage.setItem('aurea-lang-at',String(Date.now()));}else l=localStorage.getItem('aurea-lang');}catch(e){if(m)l=m[1];}
+if(l!=='es'&&l!=='en')l=/^en/i.test(navigator.language||'')?'en':'es';window.AUREA_LANG=l;document.documentElement.lang=l;if(l==='en')document.write('<script src="app-en.js"><\/script>');})();</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#111833">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -631,6 +634,11 @@ body{background:var(--bg)}
 .pd-ed:hover{border-color:var(--accent)}
 .toplink{background:none;border:0;font:inherit;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
 .toplink:hover{color:var(--accent)}
+.lang-pick{display:inline-flex;flex:none;border:1px solid var(--line);border-radius:999px;padding:2px;gap:2px;background:color-mix(in srgb,var(--surface) 60%,transparent)}
+.lang-pick button{background:none;border:0;font:inherit;font-size:.72rem;font-weight:700;letter-spacing:.06em;color:var(--muted);padding:5px 9px;border-radius:999px;cursor:pointer;line-height:1}
+.lang-pick button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.lang-pick button:hover{color:var(--fg)}
+@media (max-width:440px){.bot-top .phase{display:none}.bot-top .lang-pick{margin-left:auto}}
 .bot-top{gap:14px}.bot-top .phase{margin-left:auto}
 /* ===== Administración ===== */
 .adm{min-height:100%;background:var(--bg)}
@@ -986,9 +994,32 @@ body{background:var(--bg)}
 'use strict';
 var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var root = document.getElementById('root');
+/* Idioma: LANG es 'es' o 'en'. El texto en inglés del contenido vive en app-en.js (AUREA_EN). */
+var LANG=(window.AUREA_LANG==='en'&&window.AUREA_EN)?'en':'es', EN=LANG==='en'?window.AUREA_EN:null, LOC=LANG==='en'?'en-US':'es';
+function LX(es,en){ return LANG==='en'?en:es; }
+function ovl(d,s){ if(!s||!d) return d; Object.keys(s).forEach(function(k){ var a=d[k], b=s[k];
+  if(Array.isArray(b)&&Array.isArray(a)&&b.length&&b[0]&&typeof b[0]==='object'){ b.forEach(function(x,i){ if(a[i]&&typeof a[i]==='object') ovl(a[i],x); else a[i]=x; }); }
+  else if(b&&typeof b==='object'&&!Array.isArray(b)&&a&&typeof a==='object'&&!Array.isArray(a)) ovl(a,b);
+  else d[k]=b; }); return d; }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); return localStorage.getItem(k)===v; }catch(e){ return false; } }
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+/* Cambiar de idioma: se guarda en este equipo y en el perfil (se sincroniza con sus otros dispositivos) y la app se vuelve a abrir en ese idioma */
+function setLang(l){ if(l!=='es'&&l!=='en') return; var at=Date.now();
+  lsSet('aurea-lang',l); lsSet('aurea-lang-at',String(at));
+  S.lang=l; S.langAt=at; save(); var sync=typeof cloud==='function'&&cloud()&&fbUser&&S.reg&&S.reg.registeredAt; if(sync) cloudPush(true);
+  if(l===LANG) return; document.body.style.opacity='.4'; setTimeout(function(){ location.reload(); }, sync?450:60); }
+/* Al cargar el perfil (de la nube o de este equipo): la elección más reciente manda */
+function langSync(){ if(!S||!S.reg||!S.reg.registeredAt) return false;
+  var la=+lsGet('aurea-lang-at')||0;
+  if((S.lang==='es'||S.lang==='en') && S.lang!==LANG && (+S.langAt||0)>la){
+    if(lsSet('aurea-lang',S.lang) && lsSet('aurea-lang-at',String(+S.langAt||0))){ location.reload(); return true; } }
+  if(S.lang!==LANG && !(window.AUREA_LANG==='en'&&LANG==='es')){ S.lang=LANG; S.langAt=la||Date.now(); save(); }
+  return false; }
+function langPick(){ return '<div class="lang-pick" role="group" aria-label="Idioma · Language"><button type="button" data-lg="es" aria-pressed="'+(LANG==='es')+'" lang="es" title="Español">ES</button><button type="button" data-lg="en" aria-pressed="'+(LANG==='en')+'" lang="en" title="English">EN</button></div>'; }
+function wireLang(el){ el.querySelectorAll('[data-lg]').forEach(function(b){ b.onclick=function(){ setLang(b.dataset.lg); }; }); }
 var KEY='aurea-demo-v1';
 var S = load() || fresh();
-function fresh(){ return {stage:'reg', reg:{}, diag:{}, route:null, done:{}, practice:{}, dayOffset:0, subscribed:false, plan:'anual'}; }
+function fresh(){ return {stage:'reg', reg:{}, diag:{}, route:null, done:{}, practice:{}, dayOffset:0, subscribed:false, plan:'anual', lang:LANG}; }
 function load(){ try{ var s=localStorage.getItem(KEY); return s?JSON.parse(s):null; }catch(e){ return null; } }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
   if(typeof cloud==='function' && cloud()){ cloudPush(); return; }
@@ -1011,6 +1042,7 @@ function up(s){ return String(s||'').toUpperCase(); }
 
 /* ================= CONTENIDO ================= */
 var PILLARS={s:{name:'Espíritu',cls:'d-s',day:'Lunes'},m:{name:'Prosperidad',cls:'d-m',day:'Miércoles'},v:{name:'Vitalidad',cls:'d-v',day:'Viernes'}};
+if(EN) ovl(PILLARS,EN.pillars);
 var CAPS=[
  /* ---- ESPÍRITU ---- */
  {id:'s1',p:'s',t:['ansiedad','calma'],title:'Enfócate en lo que depende de ti',min:4,
@@ -1188,6 +1220,7 @@ var CAPS=[
   practice:'Cuando sientas estrés esta semana, escribe el pensamiento que lo acompaña y busca una forma más amable y realista de decirlo.',
   origin:'Metafísica y Psicología',ref:'«Como un hombre piensa, así es su vida», de James Allen (1903), y la terapia cognitiva.'}
 ];
+if(EN) CAPS.forEach(function(c){ ovl(c,EN.caps[c.id]); });
 var CAP={}; CAPS.forEach(function(c){CAP[c.id]=c;});
 /* ---- Contexto de cada filosofía o disciplina (se muestra al terminar la cápsula) ---- */
 var TRAD={
@@ -1375,11 +1408,14 @@ var DEEP={
  v14:{more:['Entre lo que pasa y lo que sientes hay un pensamiento, aunque sea muy rápido. Si alguien no te responde un mensaje, puedes pensar «no le importo» o «estará ocupado», y cada idea trae una emoción distinta.','Aprender a ver ese pensamiento te da la posibilidad de elegir uno más justo contigo y con los demás.'],
   steps:['Cuando sientas estrés, detente y escribe qué pasó.','Anota el pensamiento que tuviste en ese momento.','Escribe otra forma posible de verlo, más amable y realista.']}
 };
+if(EN){ ovl(TRAD,EN.trad); ovl(LEARN,EN.learn); ovl(DEEP,EN.deep); }
 function capMin(c){ return c.min+(DEEP[c.id]?3:0); }
 var LEVELS=[{n:'I',name:'Origen',w:0,d:'Comienzas tu ruta.'},{n:'II',name:'Despertar',w:4,d:'4 semanas completas.'},{n:'III',name:'Práctica',w:8,d:'8 semanas y tus primeros hábitos.'},{n:'IV',name:'Constancia',w:13,d:'13 semanas. Ruta de 3 meses.'},{n:'V',name:'Claridad',w:26,d:'26 semanas. Ruta de 6 meses.'},{n:'VI',name:'Maestría',w:39,d:'39 semanas de práctica.'},{n:'VII',name:'Plenitud',w:52,d:'52 semanas. La espiral completa.'}];
 var WEEKS={3:13,6:26,12:52};
 var DAYS=[{k:'lun',s:'Lun',c:'L',n:'lunes'},{k:'mar',s:'Mar',c:'M',n:'martes'},{k:'mie',s:'Mié',c:'X',n:'miércoles'},{k:'jue',s:'Jue',c:'J',n:'jueves'},{k:'vie',s:'Vie',c:'V',n:'viernes'},{k:'sab',s:'Sáb',c:'S',n:'sábado'},{k:'dom',s:'Dom',c:'D',n:'domingo'}];
-var ROUTE_NAME={3:'intensiva',6:'profunda',12:'gradual'};
+if(EN){ ovl(LEVELS,EN.levels); ovl(DAYS,EN.days); }
+var ROUTE_NAME=LX({3:'intensiva',6:'profunda',12:'gradual'},{3:'intensive',6:'deep',12:'gradual'});
+function routeLabel(m){ return LX('Ruta '+(ROUTE_NAME[m]||'')+' de '+m+' meses','A '+m+'-month '+(ROUTE_NAME[m]||'')+' path'); }
 function totalMin(v){ return Object.keys(v||{}).reduce(function(a,k){return a+v[k];},0); }
 /* Más tiempo disponible = ruta más corta e intensa */
 function monthsFor(min){ return min>=240?3:(min>=120?6:12); }
@@ -1393,7 +1429,7 @@ function capDays(){
   return idx.map(function(i){ var nm=sel[i].n; return nm.charAt(0).toUpperCase()+nm.slice(1); });
 }
 function dayFor(p){ return capDays()[{s:0,m:1,v:2}[p]]; }
-var COUNTRIES=['Argentina','Bolivia','Chile','Colombia','Costa Rica','Cuba','Ecuador','El Salvador','España','Estados Unidos','Guatemala','Honduras','México','Nicaragua','Panamá','Paraguay','Perú','Puerto Rico','República Dominicana','Uruguay','Venezuela'];
+var COUNTRIES=EN?EN.countries:['Argentina','Bolivia','Chile','Colombia','Costa Rica','Cuba','Ecuador','El Salvador','España','Estados Unidos','Guatemala','Honduras','México','Nicaragua','Panamá','Paraguay','Perú','Puerto Rico','República Dominicana','Uruguay','Venezuela'];
 
 /* ================= ORBE DEL MENTOR ================= */
 var orbState={speed:1}, orbCanvases=[];
@@ -1480,9 +1516,10 @@ function botScreen(opts){
   var el=document.createElement('div'); el.className='bot';
   el.innerHTML='<div class="bot-bg"></div>'+
    '<div class="bot-top gutter"><div class="brand">'+logo(22)+'Áurea</div><span class="mono phase">'+esc(opts.phase)+'</span></div>'+
-   '<div class="bot-main gutter"><div class="orb-slot"></div><h1 class="q" id="q" aria-live="polite"></h1><p class="hint" id="hint"></p><div class="answer wait" id="answer"></div><p class="tap" id="tap">Toca el texto para mostrarlo completo</p></div>'+
-   '<div class="bot-foot gutter"><button class="btn btn-ghost" id="back" type="button">← Anterior</button><div class="dots" id="dots"></div><button class="btn btn-primary" id="next" type="button">Siguiente</button></div>';
+   '<div class="bot-main gutter"><div class="orb-slot"></div><h1 class="q" id="q" aria-live="polite"></h1><p class="hint" id="hint"></p><div class="answer wait" id="answer"></div><p class="tap" id="tap">'+LX('Toca el texto para mostrarlo completo','Tap the text to show it all')+'</p></div>'+
+   '<div class="bot-foot gutter"><button class="btn btn-ghost" id="back" type="button">'+LX('← Anterior','← Back')+'</button><div class="dots" id="dots"></div><button class="btn btn-primary" id="next" type="button">'+LX('Siguiente','Next')+'</button></div>';
   root.appendChild(el);
+  if(!opts.noLang){ var tp=el.querySelector('.bot-top'); tp.insertAdjacentHTML('beforeend',langPick()); wireLang(tp); }
   el.querySelector('.orb-slot').appendChild(makeOrb());
   return el;
 }
@@ -1499,7 +1536,7 @@ function runSteps(cfg){
     var sec=st.sec||'', qs=[]; cfg.steps.forEach(function(x,k){ if(x.type!=='info' && (x.sec||'')===sec) qs.push(k); });
     if(st.type==='info'){ dots.innerHTML=st.label?'<span>'+esc(st.label)+'</span>':''; }
     else { var pos=qs.indexOf(i), bars=''; qs.forEach(function(k,j){ bars+='<i class="'+(j===pos?'on':(j<pos?'done':''))+'"></i>'; });
-      dots.innerHTML='<div class="bar">'+bars+'</div><span>Pregunta '+(pos+1)+' de '+qs.length+'</span>'; }
+      dots.innerHTML='<div class="bar">'+bars+'</div><span>'+LX('Pregunta '+(pos+1)+' de '+qs.length,'Question '+(pos+1)+' of '+qs.length)+'</span>'; }
     back.disabled=(i===0 && !cfg.onBackFirst);
     if(i===0 && cfg.firstBackLabel){ back.textContent=cfg.firstBackLabel; back.classList.add('back-login'); }
     back.onclick=function(){ if(i>0){ i--; show(); } else if(cfg.onBackFirst) cfg.onBackFirst(); };
@@ -1519,13 +1556,13 @@ function runSteps(cfg){
     } else if(st.type==='password'){
       // la contraseña nunca se guarda en texto: al avanzar se guarda solo su huella
       var pw=document.createElement('div'); pw.className='pwbox';
-      pw.innerHTML='<input class="field pw" id="f-'+st.key+'" type="password" autocomplete="new-password" maxlength="64" placeholder="Mínimo 8 caracteres"><button type="button" class="pw-eye" aria-label="Mostrar contraseña">Mostrar</button>';
+      pw.innerHTML='<input class="field pw" id="f-'+st.key+'" type="password" autocomplete="new-password" maxlength="64" placeholder="'+LX('Mínimo 8 caracteres','At least 8 characters')+'"><button type="button" class="pw-eye" aria-label="'+LX('Mostrar contraseña','Show password')+'">'+LX('Mostrar','Show')+'</button>';
       var pin=pw.querySelector('input'), eye=pw.querySelector('.pw-eye');
       var rules=document.createElement('ul'); rules.className='pw-rules';
-      var RULES=[['len','8 caracteres o más',function(v){return v.length>=8;}],['let','Una letra',function(v){return /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(v);}],['num','Un número',function(v){return /\d/.test(v);}]];
+      var RULES=[['len',LX('8 caracteres o más','8 characters or more'),function(v){return v.length>=8;}],['let',LX('Una letra','A letter'),function(v){return /[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(v);}],['num',LX('Un número','A number'),function(v){return /\d/.test(v);}]];
       rules.innerHTML=RULES.map(function(r){return '<li data-r="'+r[0]+'">'+r[1]+'</li>';}).join('');
       function paintRules(){ var v=pin.value; RULES.forEach(function(r){ rules.querySelector('[data-r="'+r[0]+'"]').classList.toggle('ok',r[2](v)); }); }
-      eye.onclick=function(){ var show=pin.type==='password'; pin.type=show?'text':'password'; eye.textContent=show?'Ocultar':'Mostrar'; eye.setAttribute('aria-label',show?'Ocultar contraseña':'Mostrar contraseña'); pin.focus({preventScroll:true}); };
+      eye.onclick=function(){ var show=pin.type==='password'; pin.type=show?'text':'password'; eye.textContent=show?LX('Ocultar','Hide'):LX('Mostrar','Show'); eye.setAttribute('aria-label',show?LX('Ocultar contraseña','Hide password'):LX('Mostrar contraseña','Show password')); pin.focus({preventScroll:true}); };
       pin.oninput=function(){ err.textContent=''; paintRules(); setVal(pin.value); };
       pin.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); next.click(); } };
       ans.appendChild(pw); ans.appendChild(rules); value=''; setVal('');
@@ -1554,7 +1591,7 @@ function runSteps(cfg){
         var col=document.createElement('div'); col.className='dcol';
         var b=document.createElement('button'); b.type='button'; b.className='dbtn'; b.innerHTML='<span class="dl">'+dy.s+'</span><span class="ds">'+dy.c+'</span>'; b.setAttribute('aria-label',dy.n);
         var stp=document.createElement('div'); stp.className='stp';
-        stp.innerHTML='<button type="button" class="plus" aria-label="Más tiempo el '+dy.n+'">+</button><b></b><small>min</small><button type="button" class="minus" aria-label="Menos tiempo el '+dy.n+'">−</button>';
+        stp.innerHTML='<button type="button" class="plus" aria-label="'+LX('Más tiempo el '+dy.n,'More time on '+dy.n)+'">+</button><b></b><small>min</small><button type="button" class="minus" aria-label="'+LX('Menos tiempo el '+dy.n,'Less time on '+dy.n)+'">−</button>';
         function paint(){ var on=cur[dy.k]!=null; b.setAttribute('aria-pressed',String(on)); col.classList.toggle('on',on); stp.querySelector('b').textContent=on?cur[dy.k]:'—'; refresh(); }
         b.onclick=function(){ if(cur[dy.k]!=null) delete cur[dy.k]; else cur[dy.k]=30; paint(); };
         stp.querySelector('.plus').onclick=function(){ if(cur[dy.k]==null) cur[dy.k]=30; else cur[dy.k]=Math.min(240,cur[dy.k]+30); paint(); };
@@ -1563,9 +1600,9 @@ function runSteps(cfg){
       });
       function refresh(){
         var keys=Object.keys(cur), tot=keys.reduce(function(a,k){return a+cur[k];},0);
-        if(!keys.length){ sum.innerHTML='Elige al menos un día'; setVal(null); return; }
+        if(!keys.length){ sum.innerHTML=LX('Elige al menos un día','Choose at least one day'); setVal(null); return; }
         var m=monthsFor(tot);
-        sum.innerHTML='<span>'+keys.length+' '+(keys.length===1?'día':'días')+' · '+fmtMin(tot)+' por semana</span><b>Ruta '+ROUTE_NAME[m]+' de '+m+' meses</b>';
+        sum.innerHTML='<span>'+keys.length+' '+(keys.length===1?LX('día','day'):LX('días','days'))+' · '+fmtMin(tot)+LX(' por semana',' per week')+'</span><b>'+routeLabel(m)+'</b>';
         setVal(JSON.parse(JSON.stringify(cur)));
       }
       wrap.appendChild(grid); wrap.appendChild(sum); ans.appendChild(wrap);
@@ -1574,9 +1611,9 @@ function runSteps(cfg){
       var sc=document.createElement('div'); sc.className='scale';
       for(var n=1;n<=10;n++){ (function(n){ var b=document.createElement('button'); b.type='button'; b.className='opt'; b.textContent=n; b.setAttribute('aria-pressed',String(value===n)); b.onclick=function(){ sc.querySelectorAll('.opt').forEach(function(x){x.setAttribute('aria-pressed','false');}); b.setAttribute('aria-pressed','true'); setVal(n); setTimeout(function(){ next.click(); },260); }; sc.appendChild(b); })(n); }
       ans.appendChild(sc);
-      var lg=document.createElement('div'); lg.className='scale-legend'; lg.innerHTML='<span>'+esc(st.low||'Muy bajo')+'</span><span>'+esc(st.high||'Excelente')+'</span>'; ans.appendChild(lg);
+      var lg=document.createElement('div'); lg.className='scale-legend'; lg.innerHTML='<span>'+esc(st.low||LX('Muy bajo','Very low'))+'</span><span>'+esc(st.high||LX('Excelente','Excellent'))+'</span>'; ans.appendChild(lg);
       setVal(value);
-    } else if(st.type==='info'){ setVal(true); next.textContent=st.cta||'Continuar'; }
+    } else if(st.type==='info'){ setVal(true); next.textContent=st.cta||LX('Continuar','Continue'); }
     ans.appendChild(err);
     next.onclick=function(){
       if(next.disabled) return;
@@ -1601,19 +1638,22 @@ function runSteps(cfg){
 }
 
 /* ================= 1. REGISTRO ================= */
+/* El sexo se guarda siempre con el valor en español (lo usa la analítica); solo cambia lo que se muestra */
+var SEXES=[['Mujer','Woman'],['Hombre','Man'],['Prefiero no decirlo','Prefer not to say']];
+function sexLabel(v){ for(var i=0;i<SEXES.length;i++) if(SEXES[i][0]===v) return LX(SEXES[i][0],SEXES[i][1]); return v||''; }
 var REG=[
- {key:'_intro',type:'info',q:'Te doy la bienvenida. Soy tu mentor.',hint:'Te acompañaré en tu ruta de crecimiento en tres pilares: Espíritu, Prosperidad y Vitalidad. Primero, creemos tu cuenta.',cta:'Comenzar'},
- {key:'name',type:'text',q:'Para empezar, ¿cómo te gusta que te llamen?',ph:'Tu nombre',ac:'given-name',max:30,
-  validate:function(v){ return String(v).trim().length<2?'Escribe al menos dos letras.':''; }},
- {key:'email',type:'email',q:function(){return 'Un gusto, '+S.reg.name+'. ¿Cuál es tu correo electrónico?';},hint:'Lo usarás para entrar a tu cuenta.',ph:'tucorreo@ejemplo.com',ac:'email',max:80,
-  validate:function(v){ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim())) return 'Revisa tu correo: parece que falta algo.'; var x=cloud()?null:users()[mailKey(v)]; if(x && x!==S && x.reg && x.reg.registeredAt && !S.reg.registeredAt) return 'Ya existe una cuenta con este correo. Inicia sesión con él.'; return ''; }},
- {key:'pw',type:'password',q:'Crea una contraseña para tu cuenta.',hint:'La usarás junto con tu correo para iniciar sesión.',
-  validate:function(v){ v=String(v||''); if(v.length<8) return 'Usa al menos 8 caracteres.'; if(!/[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(v)||!/\d/.test(v)) return 'Combina letras y números.'; return ''; }},
- {key:'age',type:'number',q:'¿Qué edad tienes?',ph:'Edad',
-  validate:function(v){ var n=parseInt(v,10); if(!n||n<1||n>110) return 'Escribe tu edad en números.'; if(n<18) return 'Áurea es para personas de 18 años o más.'; return ''; }},
- {key:'sex',type:'options',q:'¿Con qué sexo te identificas?',options:[{v:'Mujer',l:'Mujer'},{v:'Hombre',l:'Hombre'},{v:'Prefiero no decirlo',l:'Prefiero no decirlo'}]},
- {key:'country',type:'country',q:'¿En qué país vives?',ph:'País',max:40,validate:function(v){ return String(v).trim().length<3?'Escribe tu país.':''; }},
- {key:'city',type:'text',q:'¿Y en qué ciudad?',ph:'Ciudad',max:40,validate:function(v){ return String(v).trim().length<2?'Escribe tu ciudad.':''; }}
+ {key:'_intro',type:'info',q:LX('Te doy la bienvenida. Soy tu mentor.','Welcome. I am your mentor.'),hint:LX('Te acompañaré en tu ruta de crecimiento en tres pilares: Espíritu, Prosperidad y Vitalidad. Primero, creemos tu cuenta.','I will guide you along your path of growth in three pillars: Spirit, Prosperity and Vitality. First, let’s create your account.'),cta:LX('Comenzar','Begin')},
+ {key:'name',type:'text',q:LX('Para empezar, ¿cómo te gusta que te llamen?','To begin, what would you like me to call you?'),ph:LX('Tu nombre','Your name'),ac:'given-name',max:30,
+  validate:function(v){ return String(v).trim().length<2?LX('Escribe al menos dos letras.','Write at least two letters.'):''; }},
+ {key:'email',type:'email',q:function(){return LX('Un gusto, '+S.reg.name+'. ¿Cuál es tu correo electrónico?','Nice to meet you, '+S.reg.name+'. What is your email address?');},hint:LX('Lo usarás para entrar a tu cuenta.','You will use it to sign in to your account.'),ph:LX('tucorreo@ejemplo.com','you@example.com'),ac:'email',max:80,
+  validate:function(v){ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim())) return LX('Revisa tu correo: parece que falta algo.','Check your email: something seems to be missing.'); var x=cloud()?null:users()[mailKey(v)]; if(x && x!==S && x.reg && x.reg.registeredAt && !S.reg.registeredAt) return LX('Ya existe una cuenta con este correo. Inicia sesión con él.','An account with this email already exists. Sign in with it.'); return ''; }},
+ {key:'pw',type:'password',q:LX('Crea una contraseña para tu cuenta.','Create a password for your account.'),hint:LX('La usarás junto con tu correo para iniciar sesión.','You will use it with your email to sign in.'),
+  validate:function(v){ v=String(v||''); if(v.length<8) return LX('Usa al menos 8 caracteres.','Use at least 8 characters.'); if(!/[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(v)||!/\d/.test(v)) return LX('Combina letras y números.','Combine letters and numbers.'); return ''; }},
+ {key:'age',type:'number',q:LX('¿Qué edad tienes?','How old are you?'),ph:LX('Edad','Age'),
+  validate:function(v){ var n=parseInt(v,10); if(!n||n<1||n>110) return LX('Escribe tu edad en números.','Write your age in numbers.'); if(n<18) return LX('Áurea es para personas de 18 años o más.','Áurea is for people aged 18 or over.'); return ''; }},
+ {key:'sex',type:'options',q:LX('¿Con qué sexo te identificas?','What sex do you identify with?'),options:SEXES.map(function(x){ return {v:x[0],l:sexLabel(x[0])}; })},
+ {key:'country',type:'country',q:LX('¿En qué país vives?','What country do you live in?'),ph:LX('País','Country'),max:40,validate:function(v){ return String(v).trim().length<3?LX('Escribe tu país.','Write your country.'):''; }},
+ {key:'city',type:'text',q:LX('¿Y en qué ciudad?','And in what city?'),ph:LX('Ciudad','City'),max:40,validate:function(v){ return String(v).trim().length<2?LX('Escribe tu ciudad.','Write your city.'):''; }}
 ];
 /* ---- Cuenta y sesión (prototipo: en la versión real esto lo hace el servidor) ---- */
 function pwHash(pw,email){ var str='aurea|'+String(email||'').trim().toLowerCase()+'|'+pw, h1=0x811c9dc5, h2=0x01000193;
@@ -1625,15 +1665,15 @@ function isAuth(){ if(cloud()) return !!fbUser && mailKey(fbUser.email)===mailKe
 function setAuth(on){ authMem=on; try{ if(on) sessionStorage.setItem(AUTH_KEY,'1'); else sessionStorage.removeItem(AUTH_KEY); }catch(e){} }
 function logout(){ DIA=null; if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
 function loginScreen(){
-  var el=botScreen({phase:'Iniciar sesión'}); el.classList.add('compact');
+  var el=botScreen({phase:LX('Iniciar sesión','Sign in')}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
-  tap.remove(); back.textContent='Crear cuenta nueva'; next.textContent='Ingresar';
-  dots.innerHTML='<button type="button" class="forgot" id="forgot">¿Olvidaste tu contraseña?</button>';
-  ans.innerHTML='<form class="login" novalidate><label><span>Correo</span><input class="lfield" id="lmail" type="email" autocomplete="email" maxlength="80" placeholder="tucorreo@ejemplo.com"></label>'+
-    '<label><span>Contraseña</span><div class="pwbox"><input class="lfield" id="lpw" type="password" autocomplete="current-password" maxlength="64" placeholder="Tu contraseña"><button type="button" class="pw-eye" aria-label="Mostrar contraseña">Mostrar</button></div></label><p class="err" id="lerr"></p>'+
+  tap.remove(); back.textContent=LX('Crear cuenta nueva','Create a new account'); next.textContent=LX('Ingresar','Sign in');
+  dots.innerHTML='<button type="button" class="forgot" id="forgot">'+LX('¿Olvidaste tu contraseña?','Forgot your password?')+'</button>';
+  ans.innerHTML='<form class="login" novalidate><label><span>'+LX('Correo','Email')+'</span><input class="lfield" id="lmail" type="email" autocomplete="email" maxlength="80" placeholder="'+LX('tucorreo@ejemplo.com','you@example.com')+'"></label>'+
+    '<label><span>'+LX('Contraseña','Password')+'</span><div class="pwbox"><input class="lfield" id="lpw" type="password" autocomplete="current-password" maxlength="64" placeholder="'+LX('Tu contraseña','Your password')+'"><button type="button" class="pw-eye" aria-label="'+LX('Mostrar contraseña','Show password')+'">'+LX('Mostrar','Show')+'</button></div></label><p class="err" id="lerr"></p>'+
     '</form>';
   var mail=ans.querySelector('#lmail'), pw=ans.querySelector('#lpw'), err=ans.querySelector('#lerr'), eye=ans.querySelector('.pw-eye');
-  eye.onclick=function(){ var show=pw.type==='password'; pw.type=show?'text':'password'; eye.textContent=show?'Ocultar':'Mostrar'; };
+  eye.onclick=function(){ var show=pw.type==='password'; pw.type=show?'text':'password'; eye.textContent=show?LX('Ocultar','Hide'):LX('Mostrar','Show'); };
   function ok(){ next.disabled=!(mail.value.trim()&&pw.value); }
   mail.oninput=pw.oninput=function(){ err.textContent=''; ok(); }; ok();
   ans.querySelector('form').onsubmit=function(e){ e.preventDefault(); next.click(); };
@@ -1642,29 +1682,29 @@ function loginScreen(){
   next.onclick=function(){
     if(next.disabled) return;
     if(cloud()){ next.disabled=true; err.textContent='';
-      cloudLogin(mail.value,pw.value).then(function(){ boot(); }).catch(function(e){ tries++; err.textContent=fbErr(e)+(tries>=3?' Puedes usar «¿Olvidaste tu contraseña?».':''); pw.value=''; ok(); pw.focus({preventScroll:true}); });
+      cloudLogin(mail.value,pw.value).then(function(){ boot(); }).catch(function(e){ tries++; err.textContent=fbErr(e)+(tries>=3?LX(' Puedes usar «¿Olvidaste tu contraseña?».',' You can use “Forgot your password?”.'):''); pw.value=''; ok(); pw.focus({preventScroll:true}); });
       return; }
     var m=mailKey(mail.value), u=users()[m];
     if(!u && m===mailKey(S.reg.email)) u=S;
     if(u && u.reg && u.reg.pw && pwHash(pw.value,u.reg.email)===u.reg.pw){ S=u; save(); setAuth(true); boot(); return; }
-    tries++; err.textContent=tries>=3?'Los datos no coinciden. Revisa tu correo y tu contraseña, o usa «¿Olvidaste tu contraseña?».':'El correo o la contraseña no son correctos.';
+    tries++; err.textContent=tries>=3?LX('Los datos no coinciden. Revisa tu correo y tu contraseña, o usa «¿Olvidaste tu contraseña?».','The details don’t match. Check your email and password, or use “Forgot your password?”.'):LX('El correo o la contraseña no son correctos.','The email or password is not correct.');
     pw.value=''; ok(); pw.focus({preventScroll:true});
   };
   el.querySelector('#forgot').onclick=function(){ err.textContent='';
-    if(cloud()){ var em=mail.value.trim(); if(!em){ err.textContent='Escribe tu correo arriba y vuelve a tocar «¿Olvidaste tu contraseña?».'; mail.focus(); return; }
-      FB.a.sendPasswordResetEmail(FB.auth,em).then(function(){ hint.textContent='Si existe una cuenta con '+em+', te llegará un correo con un enlace para crear una contraseña nueva.'; }).catch(function(e){ err.textContent=fbErr(e); }); return; } hint.textContent='En la versión final recibirás en tu correo un enlace para crear una contraseña nueva.'; };
+    if(cloud()){ var em=mail.value.trim(); if(!em){ err.textContent=LX('Escribe tu correo arriba y vuelve a tocar «¿Olvidaste tu contraseña?».','Write your email above and tap “Forgot your password?” again.'); mail.focus(); return; }
+      FB.a.sendPasswordResetEmail(FB.auth,em).then(function(){ hint.textContent=LX('Si existe una cuenta con '+em+', te llegará un correo con un enlace para crear una contraseña nueva.','If an account exists for '+em+', you will receive an email with a link to create a new password.'); }).catch(function(e){ err.textContent=fbErr(e); }); return; } hint.textContent=LX('En la versión final recibirás en tu correo un enlace para crear una contraseña nueva.','In the final version you will receive an email with a link to create a new password.'); };
   back.disabled=false;
   back.onclick=function(){ S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} setAuth(false); startReg(); };
   admLink(el);
-  typeQA(q,up('Qué bueno verte de nuevo'+(S.reg.name&&S.reg.registeredAt?', '+S.reg.name:'')+'.'),hint,'Ingresa tu correo y tu contraseña para continuar.',function(){ ans.classList.remove('wait'); mail.focus({preventScroll:true}); });
+  typeQA(q,up(LX('Qué bueno verte de nuevo','Good to see you again')+(S.reg.name&&S.reg.registeredAt?', '+S.reg.name:'')+'.'),hint,LX('Ingresa tu correo y tu contraseña para continuar.','Enter your email and password to continue.'),function(){ ans.classList.remove('wait'); mail.focus({preventScroll:true}); });
 }
 /* Cuentas creadas antes de existir la contraseña: se pide crearla una vez */
 function createPwScreen(){
-  runSteps({phase:'Seguridad',steps:[{key:'pw',type:'password',q:'Protege tu cuenta, '+S.reg.name+'. Crea una contraseña.',hint:'La usarás junto con tu correo para iniciar sesión.',validate:REG.filter(function(x){return x.key==='pw';})[0].validate}],store:S.reg,single:true,onDone:function(){ setAuth(true); boot(); }});
+  runSteps({phase:LX('Seguridad','Security'),steps:[{key:'pw',type:'password',q:LX('Protege tu cuenta, '+S.reg.name+'. Crea una contraseña.','Protect your account, '+S.reg.name+'. Create a password.'),hint:LX('La usarás junto con tu correo para iniciar sesión.','You will use it with your email to sign in.'),validate:REG.filter(function(x){return x.key==='pw';})[0].validate}],store:S.reg,single:true,onDone:function(){ setAuth(true); boot(); }});
 }
-function startReg(){ S.stage='reg'; save(); runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary,onBackFirst:function(){ loginScreen(); },firstBackLabel:'Ya tengo cuenta'});
-  var top=root.querySelector('.bot-top'); if(top){ var b=document.createElement('button'); b.type='button'; b.className='toplink'; b.textContent='Iniciar sesión'; b.onclick=function(){ loginScreen(); }; top.appendChild(b); } }
-function admLink(el){ var top=el.querySelector('.bot-top'); var b=document.createElement('button'); b.type='button'; b.className='toplink'; b.textContent='Administración'; b.onclick=adminEntry; top.appendChild(b); }
+function startReg(){ S.stage='reg'; save(); runSteps({phase:LX('Registro','Sign up'),steps:REG,store:S.reg,onDone:regSummary,onBackFirst:function(){ loginScreen(); },firstBackLabel:LX('Ya tengo cuenta','I have an account')});
+  var top=root.querySelector('.bot-top'); if(top){ var b=document.createElement('button'); b.type='button'; b.className='toplink'; b.textContent=LX('Iniciar sesión','Sign in'); b.onclick=function(){ loginScreen(); }; top.appendChild(b); } }
+function admLink(el){ var top=el.querySelector('.bot-top'); var b=document.createElement('button'); b.type='button'; b.className='toplink'; b.textContent=LX('Administración','Admin'); b.onclick=adminEntry; top.appendChild(b); }
 var ICONS={
   name:'<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0"/>',
   email:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
@@ -1676,27 +1716,27 @@ var ICONS={
 };
 function icon(k){ return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[k]+'</svg>'; }
 function regSummary(){
-  var el=botScreen({phase:'Registro'}); el.classList.add('compact');
+  var el=botScreen({phase:LX('Registro','Sign up')}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
   var bars=''; for(var k=0;k<REG.length;k++) bars+='<i class="done"></i>';
-  dots.innerHTML='<div class="bar">'+bars+'</div><span>Último paso</span>';
+  dots.innerHTML='<div class="bar">'+bars+'</div><span>'+LX('Último paso','Last step')+'</span>';
   tap.remove();
-  next.textContent='Registrar'; next.classList.add('big-cta'); next.style.padding='.85em 2.2em';
-  back.onclick=function(){ runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary,start:REG.length-1}); };
+  next.textContent=LX('Registrar','Sign up'); next.classList.add('big-cta'); next.style.padding='.85em 2.2em';
+  back.onclick=function(){ runSteps({phase:LX('Registro','Sign up'),steps:REG,store:S.reg,onDone:regSummary,start:REG.length-1}); };
   var r=S.reg;
-  var fields=[['name','Nombre',r.name,true],['email','Correo',r.email,true],['pw','Contraseña','••••••••'],['age','Edad',r.age+' años'],['sex','Sexo',r.sex,true],['country','País',r.country,true],['city','Ciudad',r.city,true]];
+  var fields=[['name',LX('Nombre','Name'),r.name,true],['email',LX('Correo','Email'),r.email,true],['pw',LX('Contraseña','Password'),'••••••••'],['age',LX('Edad','Age'),r.age+LX(' años',' years')],['sex',LX('Sexo','Sex'),sexLabel(r.sex),true],['country',LX('País','Country'),r.country,true],['city',LX('Ciudad','City'),r.city,true]];
   ans.innerHTML='<div class="reg-grid">'+fields.map(function(f,k){
-    return '<button type="button" class="rcard'+(f[3]?' wide':'')+'" style="--k:'+k+'" data-k="'+f[0]+'" aria-label="Editar '+f[1]+'"><span class="ic">'+icon(f[0])+'</span><span class="tx"><span>'+f[1]+'</span><b>'+esc(up(f[2]))+'</b></span><span class="ed"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></svg></span></button>';
+    return '<button type="button" class="rcard'+(f[3]?' wide':'')+'" style="--k:'+k+'" data-k="'+f[0]+'" aria-label="'+LX('Editar ','Edit ')+f[1]+'"><span class="ic">'+icon(f[0])+'</span><span class="tx"><span>'+f[1]+'</span><b>'+esc(up(f[2]))+'</b></span><span class="ed"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></svg></span></button>';
   }).join('')+'</div>';
-  ans.querySelectorAll('.rcard').forEach(function(c){ c.onclick=function(){ var idx=REG.map(function(s){return s.key;}).indexOf(c.dataset.k); runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary,start:idx,single:true}); }; });
+  ans.querySelectorAll('.rcard').forEach(function(c){ c.onclick=function(){ var idx=REG.map(function(s){return s.key;}).indexOf(c.dataset.k); runSteps({phase:LX('Registro','Sign up'),steps:REG,store:S.reg,onDone:regSummary,start:idx,single:true}); }; });
   next.onclick=function(){
-    if(cloud()){ next.disabled=true; hint.textContent='Creando tu cuenta…';
+    if(cloud()){ next.disabled=true; hint.textContent=LX('Creando tu cuenta…','Creating your account…');
       cloudRegister(function(){ S.reg.registeredAt=Date.now(); S.stage='diag'; save(); welcomeDiag(); },function(e){ next.disabled=false;
-        if(e.code==='need-pw'){ runSteps({phase:'Registro',steps:REG,store:S.reg,onDone:regSummary,start:REG.map(function(x){return x.key;}).indexOf('pw'),single:true}); return; }
+        if(e.code==='need-pw'){ runSteps({phase:LX('Registro','Sign up'),steps:REG,store:S.reg,onDone:regSummary,start:REG.map(function(x){return x.key;}).indexOf('pw'),single:true}); return; }
         hint.textContent=fbErr(e); if(e.code==='auth/email-already-in-use'){ setTimeout(loginScreen,2200); } });
       return; }
     S.reg.registeredAt=Date.now(); S.stage='diag'; save(); setAuth(true); welcomeDiag(); };
-  typeQA(q,up('Revisa tus datos, '+r.name+'.'),hint,'Si todo está bien, presiona Registrar. Toca un dato para corregirlo.',function(){ ans.classList.remove('wait'); });
+  typeQA(q,up(LX('Revisa tus datos, '+r.name+'.','Check your details, '+r.name+'.')),hint,LX('Si todo está bien, presiona Registrar. Toca un dato para corregirlo.','If everything looks right, press Sign up. Tap any detail to correct it.'),function(){ ans.classList.remove('wait'); });
 }
 
 /* ================= RUEDA DE LA VIDA ================= */
@@ -1711,8 +1751,9 @@ var AREAS=[
  {k:'descanso',p:'v',n:'Descanso',tags:['sueno','energia'],q:'¿Qué tan bien descansas y cuánta energía tienes?',h:'Piensa en cómo duermes y en cómo llegas al final del día.',lo:'Muy poca',hi:'Mucha'},
  {k:'emociones',p:'v',n:'Emociones',tags:['estres','calma'],q:'¿Qué tan bien manejas el estrés y tus emociones?',h:'Piensa en cómo reaccionas cuando las cosas se complican o no salen como esperabas.',lo:'Muy mal',hi:'Muy bien'}
 ];
+if(EN) ovl(AREAS,EN.areas);
 var PSCORE={s:'sScore',m:'mScore',v:'vScore'};
-function wheelSteps(){ return AREAS.map(function(a,i){ return {key:'w_'+a.k,type:'scale',phase:'Rueda de la Vida',q:'Del 1 al 10: '+a.q.charAt(0).toLowerCase()+a.q.slice(1),hint:a.h,low:a.lo,high:a.hi,area:a.k}; }); }
+function wheelSteps(){ return AREAS.map(function(a,i){ return {key:'w_'+a.k,type:'scale',phase:LX('Rueda de la Vida','Wheel of Life'),q:LX('Del 1 al 10: '+a.q.charAt(0).toLowerCase()+a.q.slice(1),'From 1 to 10: '+a.q.charAt(0).toLowerCase()+a.q.slice(1)),hint:a.h,low:a.lo,high:a.hi,area:a.k}; }); }
 function wheelFrom(o){ var w={}; AREAS.forEach(function(a){ w[a.k]=o['w_'+a.k]; }); return w; }
 function wheelOf(d){ d=d||{}; if(d.wheel) return d.wheel; var w={}; AREAS.forEach(function(a){ w[a.k]=d[PSCORE[a.p]]||5; }); return w; }
 function wheelStart(){ return {t:S.diag.wheelAt||S.reg.registeredAt, w:wheelOf(S.diag)}; }
@@ -1741,17 +1782,17 @@ function radarSVG(series,opt){
   AREAS.forEach(function(a,i){ var ang=-Math.PI/2+i*2*Math.PI/N, lx=Math.cos(ang)*(R+18), ly=Math.sin(ang)*(R+18);
     var anc=Math.abs(lx)<8?'middle':(lx>0?'start':'end'), dy=ly<-60?-4:(ly>60?12:4);
     g+='<text class="rd-lb" x="'+lx.toFixed(1)+'" y="'+(ly+dy).toFixed(1)+'" text-anchor="'+anc+'"><tspan class="rd-n '+PILLARS[a.p].cls+'">'+esc(a.n)+'</tspan>'+(opt.vals===false?'':' <tspan class="rd-v">'+(last.w[a.k]||0)+'</tspan>')+'</text>'; });
-  return '<svg class="radar" viewBox="-212 -134 424 270" role="img" aria-label="'+esc(opt.label||'Rueda de la vida')+': '+AREAS.map(function(a){return a.n+' '+(last.w[a.k]||0);}).join(', ')+'">'+g+'</svg>';
+  return '<svg class="radar" viewBox="-212 -134 424 270" role="img" aria-label="'+esc(opt.label||LX('Rueda de la vida','Wheel of life'))+': '+AREAS.map(function(a){return a.n+' '+(last.w[a.k]||0);}).join(', ')+'">'+g+'</svg>';
 }
-function fdateL(t){ return t?new Date(t).toLocaleDateString('es',{day:'numeric',month:'long'}):''; }
+function fdateL(t){ return t?new Date(t).toLocaleDateString(LOC,{day:'numeric',month:'long'}):''; }
 /* Volver a evaluar la rueda: se guarda en el historial y la ruta pendiente se reordena */
 function reWheel(){
   var tmp={};
-  runSteps({phase:'Tu rueda de la vida',steps:[{key:'_i',type:'info',q:'Veamos cómo está hoy tu rueda, '+S.reg.name+'.',hint:'Son las mismas 8 preguntas del inicio. Responde según cómo te sientes ahora, con lo primero que te venga a la mente.',cta:'Comenzar'}].concat(wheelSteps()),store:tmp,onBackFirst:function(){ renderApp('perfil'); },
+  runSteps({phase:LX('Tu rueda de la vida','Your wheel of life'),steps:[{key:'_i',type:'info',q:LX('Veamos cómo está hoy tu rueda, '+S.reg.name+'.','Let’s see how your wheel looks today, '+S.reg.name+'.'),hint:LX('Son las mismas 8 preguntas del inicio. Responde según cómo te sientes ahora, con lo primero que te venga a la mente.','They are the same 8 questions from the start. Answer according to how you feel now, with the first thing that comes to mind.'),cta:LX('Comenzar','Begin')}].concat(wheelSteps()),store:tmp,onBackFirst:function(){ renderApp('perfil'); },
     onDone:function(){
       var w=wheelFrom(tmp); S.wheelHist=(S.wheelHist||[]).concat([{t:Date.now()+S.dayOffset*86400000,w:w}]);
       reorderRoute(w); save(); renderApp('perfil'); window.scrollTo(0,0);
-      toast('Tu rueda se actualizó y tus próximas cápsulas se ajustaron.');
+      toast(LX('Tu rueda se actualizó y tus próximas cápsulas se ajustaron.','Your wheel was updated and your next capsules were adjusted.'));
     }});
 }
 function reorderRoute(w){
@@ -1765,13 +1806,14 @@ function wheelCard(){
   var a=wheelStart(), b=wheelNow(), re=S.wheelHist&&S.wheelHist.length;
   var since=Math.floor((Date.now()+S.dayOffset*86400000-b.t)/86400000), due=since>=28;
   var rows=areasByNeed(b.w).map(function(x){ var d=b.w[x.k]-a.w[x.k]; return '<div class="wd-row '+PILLARS[x.p].cls+'"><i></i><span>'+esc(x.n)+'</span><div class="wd-bar"><em style="width:'+a.w[x.k]*10+'%"></em><b style="width:'+b.w[x.k]*10+'%"></b></div><strong>'+b.w[x.k]+'</strong><small class="'+(d>0?'up':(d<0?'down':''))+'">'+(re?(d>0?'+'+d:(d<0?d:'=')):'')+'</small></div>'; }).join('');
-  return '<section class="pcard wheel-card"><div class="wc-h"><div><h2>Tu rueda de la vida</h2><p>Una foto de cómo está cada área de tu vida. Mientras más redonda y amplia sea la figura, más equilibrio hay.</p></div><button type="button" class="btn '+(due||!re?'btn-primary':'btn-ghost')+'" id="reWheel">Volver a evaluarme</button></div>'+
-    '<div class="wc-grid"><figure><figcaption><b>Cómo empezaste</b><span>'+fdateL(a.t)+'</span></figcaption>'+radarSVG([{w:a.w,cls:'rd-a'}],{label:'Tu rueda al empezar'})+'<p class="wc-gap">Diferencia entre tu área más alta y la más baja: <b>'+gap(a.w)+' puntos</b></p></figure>'+
-    '<figure><figcaption><b>'+(re?'Hoy':'Tu rueda actual')+'</b><span>'+(re?fdateL(b.t):'Aún sin nueva evaluación')+'</span></figcaption>'+radarSVG(re?[{w:a.w,cls:'rd-ghost'},{w:b.w,cls:'rd-b'}]:[{w:b.w,cls:'rd-b'}],{label:'Tu rueda hoy'})+
-      '<p class="wc-gap">'+(re?'Diferencia entre tu área más alta y la más baja: <b>'+gap(b.w)+' puntos</b>'+(gap(b.w)<gap(a.w)?' · tu rueda está más equilibrada':''):'Vuelve a evaluarte cada 4 semanas para ver cómo se equilibra.')+'</p></figure></div>'+
-    '<div class="wc-legend"><span><i class="lg-a"></i>Al empezar</span><span><i class="lg-b"></i>Hoy</span></div>'+
-    '<div class="wd"><p class="wd-h">Tus áreas, de la que más atención necesita a la más fuerte</p>'+rows+'</div>'+
-    '<details class="wc-orig"><summary>¿De dónde viene la Rueda de la Vida?</summary><p>Es una herramienta de autoevaluación que se atribuye a Paul J. Meyer, pionero del desarrollo personal, en los años sesenta. Hoy la usan psicólogos y coaches en todo el mundo porque convierte algo difícil de ver, el equilibrio de tu vida, en una imagen clara. No mide si tu vida es buena o mala: muestra dónde poner atención primero. Volver a hacerla cada cierto tiempo permite ver los cambios que, día a día, pasan desapercibidos.</p></details></section>';
+  var GAP=LX('Diferencia entre tu área más alta y la más baja: ','Gap between your highest and lowest area: '), PTS=LX(' puntos',' points');
+  return '<section class="pcard wheel-card"><div class="wc-h"><div><h2>'+LX('Tu rueda de la vida','Your wheel of life')+'</h2><p>'+LX('Una foto de cómo está cada área de tu vida. Mientras más redonda y amplia sea la figura, más equilibrio hay.','A snapshot of each area of your life. The rounder and wider the shape, the more balance there is.')+'</p></div><button type="button" class="btn '+(due||!re?'btn-primary':'btn-ghost')+'" id="reWheel">'+LX('Volver a evaluarme','Assess myself again')+'</button></div>'+
+    '<div class="wc-grid"><figure><figcaption><b>'+LX('Cómo empezaste','How you started')+'</b><span>'+fdateL(a.t)+'</span></figcaption>'+radarSVG([{w:a.w,cls:'rd-a'}],{label:LX('Tu rueda al empezar','Your wheel at the start')})+'<p class="wc-gap">'+GAP+'<b>'+gap(a.w)+PTS+'</b></p></figure>'+
+    '<figure><figcaption><b>'+(re?LX('Hoy','Today'):LX('Tu rueda actual','Your current wheel'))+'</b><span>'+(re?fdateL(b.t):LX('Aún sin nueva evaluación','No new assessment yet'))+'</span></figcaption>'+radarSVG(re?[{w:a.w,cls:'rd-ghost'},{w:b.w,cls:'rd-b'}]:[{w:b.w,cls:'rd-b'}],{label:LX('Tu rueda hoy','Your wheel today')})+
+      '<p class="wc-gap">'+(re?GAP+'<b>'+gap(b.w)+PTS+'</b>'+(gap(b.w)<gap(a.w)?LX(' · tu rueda está más equilibrada',' · your wheel is more balanced'):''):LX('Vuelve a evaluarte cada 4 semanas para ver cómo se equilibra.','Assess yourself again every 4 weeks to see how it balances out.'))+'</p></figure></div>'+
+    '<div class="wc-legend"><span><i class="lg-a"></i>'+LX('Al empezar','At the start')+'</span><span><i class="lg-b"></i>'+LX('Hoy','Today')+'</span></div>'+
+    '<div class="wd"><p class="wd-h">'+LX('Tus áreas, de la que más atención necesita a la más fuerte','Your areas, from the one that needs most attention to the strongest')+'</p>'+rows+'</div>'+
+    '<details class="wc-orig"><summary>'+LX('¿De dónde viene la Rueda de la Vida?','Where does the Wheel of Life come from?')+'</summary><p>'+LX('Es una herramienta de autoevaluación que se atribuye a Paul J. Meyer, pionero del desarrollo personal, en los años sesenta. Hoy la usan psicólogos y coaches en todo el mundo porque convierte algo difícil de ver, el equilibrio de tu vida, en una imagen clara. No mide si tu vida es buena o mala: muestra dónde poner atención primero. Volver a hacerla cada cierto tiempo permite ver los cambios que, día a día, pasan desapercibidos.','It is a self-assessment tool attributed to Paul J. Meyer, a pioneer of personal development, in the 1960s. Psychologists and coaches around the world use it today because it turns something hard to see, the balance of your life, into a clear picture. It does not measure whether your life is good or bad: it shows where to put your attention first. Doing it again from time to time lets you see the changes that, day by day, go unnoticed.')+'</p></details></section>';
 }
 
 /* ================= 2. DIAGNÓSTICO ================= */
@@ -1790,13 +1832,13 @@ var FOLLOW={
     high:{q:'Tu energía está muy bien. ¿Qué quieres optimizar?',h:'Iremos por el siguiente nivel de bienestar.',o:[{v:'sedentarismo',l:'Mi rendimiento físico'},{v:'alimentacion',l:'Mi nutrición'},{v:'sueno',l:'La calidad de mi descanso'},{v:'estres',l:'Mi equilibrio ante la presión'},{v:'energia',l:'Mi vitalidad todo el día'}]}}
 };
 function DIAG(){ var n=S.reg.name; return [
- {key:'_i',type:'info',q:'Tu cuenta está lista, '+n+'.',hint:'Ahora haremos tu Rueda de la Vida, una herramienta de autoevaluación usada en psicología y coaching. Muestra cómo te sientes hoy en 8 áreas de tu vida y cuáles piden más atención. Son 8 preguntas rápidas del 1 al 10. Responde con lo primero que sientas: no hay respuestas buenas ni malas.',cta:'Comenzar mi rueda',phase:'Rueda de la Vida'}
+ {key:'_i',type:'info',q:LX('Tu cuenta está lista, '+n+'.','Your account is ready, '+n+'.'),hint:LX('Ahora haremos tu Rueda de la Vida, una herramienta de autoevaluación usada en psicología y coaching. Muestra cómo te sientes hoy en 8 áreas de tu vida y cuáles piden más atención. Son 8 preguntas rápidas del 1 al 10. Responde con lo primero que sientas: no hay respuestas buenas ni malas.','Now we will do your Wheel of Life, a self-assessment tool used in psychology and coaching. It shows how you feel today in 8 areas of your life and which ones need more attention. There are 8 quick questions from 1 to 10. Answer with the first thing you feel: there are no right or wrong answers.'),cta:LX('Comenzar mi rueda','Start my wheel'),phase:LX('Rueda de la Vida','Wheel of Life')}
 ].concat(wheelSteps(),[
- {key:'_i2',type:'info',sec:'ruta',phase:'Tu ruta',q:'Tu rueda está completa, '+n+'.',hint:'Ahora, dos preguntas para armar tu ruta: qué días y cuánto tiempo puedes dedicarle, y qué te gustaría lograr. Con eso defino la duración de tu ruta y el ritmo de tus cápsulas.',cta:'Continuar'},
- {key:'avail',type:'schedule',sec:'ruta',phase:'Tu ruta',q:'¿Qué días y cuánto tiempo puedes dedicar a tu ruta?',hint:'Toca los días que eliges y ajusta los minutos de cada uno.',validate:function(v){ return (!v||!Object.keys(v).length)?'Elige al menos un día.':''; }},
- {key:'goal',type:'text',sec:'ruta',phase:'Tu ruta',q:'¿Cuál es la meta más importante que quieres lograr con tu ruta?',hint:'Escríbela en pocas palabras, como algo que quieres alcanzar. La tendré presente durante tu ruta.',ph:'Por ejemplo: vivir con calma y sin deudas',max:90,validate:function(v){ return String(v).trim().length<4?'Escribe al menos unas palabras.':''; }}
+ {key:'_i2',type:'info',sec:'ruta',phase:LX('Tu ruta','Your path'),q:LX('Tu rueda está completa, '+n+'.','Your wheel is complete, '+n+'.'),hint:LX('Ahora, dos preguntas para armar tu ruta: qué días y cuánto tiempo puedes dedicarle, y qué te gustaría lograr. Con eso defino la duración de tu ruta y el ritmo de tus cápsulas.','Now, two questions to build your path: which days and how much time you can give it, and what you would like to achieve. With that I set the length of your path and the rhythm of your capsules.'),cta:LX('Continuar','Continue')},
+ {key:'avail',type:'schedule',sec:'ruta',phase:LX('Tu ruta','Your path'),q:LX('¿Qué días y cuánto tiempo puedes dedicar a tu ruta?','Which days and how much time can you give your path?'),hint:LX('Toca los días que eliges y ajusta los minutos de cada uno.','Tap the days you choose and adjust the minutes for each one.'),validate:function(v){ return (!v||!Object.keys(v).length)?LX('Elige al menos un día.','Choose at least one day.'):''; }},
+ {key:'goal',type:'text',sec:'ruta',phase:LX('Tu ruta','Your path'),q:LX('¿Cuál es la meta más importante que quieres lograr con tu ruta?','What is the most important goal you want to reach with your path?'),hint:LX('Escríbela en pocas palabras, como algo que quieres alcanzar. La tendré presente durante tu ruta.','Write it in a few words, as something you want to achieve. I will keep it in mind throughout your path.'),ph:LX('Por ejemplo: vivir con calma y sin deudas','For example: to live calmly and debt-free'),max:90,validate:function(v){ return String(v).trim().length<4?LX('Escribe al menos unas palabras.','Write at least a few words.'):''; }}
 ]); }
-function welcomeDiag(){ S.stage='diag'; save(); runSteps({phase:'Diagnóstico',steps:DIAG(),store:S.diag,onDone:buildRoute}); }
+function welcomeDiag(){ S.stage='diag'; save(); runSteps({phase:LX('Diagnóstico','Assessment'),steps:DIAG(),store:S.diag,onDone:buildRoute}); }
 
 /* ================= 3. CREAR RUTA ================= */
 /* Ruta a la medida: dentro de cada pilar, las áreas con puntaje más bajo reciben más cápsulas y más temprano.
@@ -1837,12 +1879,12 @@ function buildRoute(){
   buildingScreen();
 }
 function buildingScreen(){
-  var el=botScreen({phase:'Trazando tu ruta'});
+  var el=botScreen({phase:LX('Trazando tu ruta','Drawing your path')});
   el.querySelector('.bot-foot').style.visibility='hidden';
   var q=el.querySelector('#q'), ans=el.querySelector('#answer'), tap=el.querySelector('#tap'); tap.style.visibility='hidden';
-  var lines=['Dibujando tu rueda de la vida','Encontrando las áreas que más atención necesitan','Ordenando tus cápsulas según tus resultados','Calculando tu línea de tiempo'];
+  var lines=LX(['Dibujando tu rueda de la vida','Encontrando las áreas que más atención necesitan','Ordenando tus cápsulas según tus resultados','Calculando tu línea de tiempo'],['Drawing your wheel of life','Finding the areas that need most attention','Ordering your capsules based on your results','Calculating your timeline']);
   ans.innerHTML='<div class="building" id="bl"></div>'; ans.classList.remove('wait');
-  typeText(q,up('Estoy trazando tu ruta…'),40);
+  typeText(q,up(LX('Estoy trazando tu ruta…','I am drawing your path…')),40);
   var bl=ans.querySelector('#bl'), k=0;
   (function tick(){ if(k<lines.length){ var p=document.createElement('p'); p.innerHTML='<span class="ok">✓</span> '+esc(lines[k]); bl.appendChild(p); k++; setTimeout(tick, reduce?60:650); } else setTimeout(routeIntro, reduce?100:700); })();
 }
@@ -1850,11 +1892,17 @@ function lowest(){ var d=S.diag, a=[['s',d.sScore],['m',d.mScore],['v',d.vScore]
 function routeIntro(){
   S.stage='intro'; save();
   var d=S.diag, n=S.reg.name, weeks=WEEKS[d.months]||13, low=lowest();
-  var el=botScreen({phase:'Tu ruta'}); el.classList.add('compact');
+  var el=botScreen({phase:LX('Tu ruta','Your path')}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
-  back.hidden=true; next.textContent='Ver mi ruta'; next.style.visibility='hidden'; dots.innerHTML='';
+  back.hidden=true; next.textContent=LX('Ver mi ruta','See my path'); next.style.visibility='hidden'; dots.innerHTML='';
   var W=wheelOf(d), need=areasByNeed(W), strong=W[need[0].k]>=8;
-  var msgs=[
+  var msgs=LANG==='en'?[
+    n+', your path is ready.',
+    'It will be '+d.months+' months in a spiral: '+weeks+' weeks, three capsules a week.',
+    'Spirit will arrive on '+dayFor('s')+', Prosperity on '+dayFor('m')+' and Vitality on '+dayFor('v')+'.',
+    strong ? 'Your wheel is strong and balanced. We will go deeper into each area.' : 'The areas that need most attention are '+need[0].n+' and '+need[1].n+'. Your first capsules start there.',
+    'Your goal: “'+d.goal+'”. I will keep it in mind on every turn.'
+  ]:[
     n+', tu ruta está lista.',
     'Serán '+d.months+' meses en espiral: '+weeks+' semanas, tres cápsulas por semana.',
     'Espíritu llegará el '+dayFor('s').toLowerCase()+', Prosperidad el '+dayFor('m').toLowerCase()+' y Vitalidad el '+dayFor('v').toLowerCase()+'.',
@@ -1862,7 +1910,7 @@ function routeIntro(){
     'Tu meta: «'+d.goal+'». La tendré presente en cada vuelta.'
   ];
   var r0=S.route[0];
-  ans.innerHTML='<div class="intro-grid"><div class="intro-radar"><p class="sum-h">Tu rueda de la vida</p>'+radarSVG([{w:W,cls:'rd-b'}],{label:'Tu rueda de la vida'})+'</div><div class="summary"><p class="sum-h">Tu primera semana</p>'+
+  ans.innerHTML='<div class="intro-grid"><div class="intro-radar"><p class="sum-h">'+LX('Tu rueda de la vida','Your wheel of life')+'</p>'+radarSVG([{w:W,cls:'rd-b'}],{label:LX('Tu rueda de la vida','Your wheel of life')})+'</div><div class="summary"><p class="sum-h">'+LX('Tu primera semana','Your first week')+'</p>'+
     r0.map(function(id){var c=CAP[id];return '<div><span>'+dayFor(c.p)+'</span><b>'+esc(c.title)+'</b></div>';}).join('')+
     '</div></div>';
   var k=0;
@@ -1893,7 +1941,7 @@ var WEEK_MS=7*864e5;
 function routeStart(){ return S.routeAt||S.reg.registeredAt||Date.now(); }
 function calWeek(){ return Math.max(0,Math.floor((Date.now()-routeStart())/WEEK_MS)); }
 function nextOpenDate(){ return new Date(routeStart()+(calWeek()+1)*WEEK_MS); }
-function fmtOpen(d){ var s=d.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'}); return s; }
+function fmtOpen(d){ var s=d.toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'}); return s; }
 function currentWeek(){ var w=weeksDone(); return Math.min(w, calWeek(), S.route.length-1); }
 function trialLeft(){ var days=Math.floor((Date.now()-S.reg.registeredAt)/86400000)+S.dayOffset; return Math.max(0,cfg().trialDays-days); }
 function locked(){ return !S.subscribed && trialLeft()<=0; }
@@ -1912,23 +1960,24 @@ function renderApp(t){
   root.innerHTML='';
   var L=level(), N=nextLevel(), w=weeksDone(), left=trialLeft();
   var lp=N?Math.round((w-L.w)/(N.w-L.w)*100):100;
-  var TABS=[['ruta','Mi ruta','Mi ruta'],['progreso','Progreso','Progreso'],['mentor','Mentor','Mentor'],['diario','Diario personal','Diario']];
+  var TABS=LX([['ruta','Mi ruta','Mi ruta'],['progreso','Progreso','Progreso'],['mentor','Mentor','Mentor'],['diario','Diario personal','Diario']],[['ruta','My path','Path'],['progreso','Progress','Progress'],['mentor','Mentor','Mentor'],['diario','Personal journal','Journal']]);
   var nav=function(cls){ return TABS.map(function(x){ return '<button type="button" class="'+cls+'" data-t="'+x[0]+'"'+(tab===x[0]?' aria-current="page"':'')+'>'+navIcon(x[0])+'<span>'+(cls==='bnav-b'?x[2]:x[1])+'</span></button>'; }).join(''); };
-  var today=new Date(Date.now()+S.dayOffset*86400000).toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
+  var today=new Date(Date.now()+S.dayOffset*86400000).toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'});
   var el=document.createElement('div'); el.className='app';
-  el.innerHTML='<aside class="side"><div class="brand">'+logo(24)+'Áurea</div><nav class="snav" aria-label="Secciones">'+nav('snav-b')+'</nav>'+
-      '<div class="side-lv"><div class="slv-top"><span>Nivel '+L.n+'</span><b>'+esc(L.name)+'</b></div><div class="slv-bar"><i style="width:'+lp+'%"></i></div><small>'+(N?'Siguiente: '+esc(N.name)+' · '+(N.w-w)+' '+((N.w-w)===1?'vuelta':'vueltas'):'Nivel máximo alcanzado')+'</small></div>'+
-      '<button type="button" class="side-trial" id="sideSub">'+(S.subscribed?'Suscripción activa<small>Ver mi plan</small>':(left>0?'Prueba gratuita · '+left+' '+(left===1?'día':'días'):'Prueba gratuita terminada')+'<small>Ver planes</small>')+'</button></aside>'+
+  el.innerHTML='<aside class="side"><div class="brand">'+logo(24)+'Áurea</div><nav class="snav" aria-label="'+LX('Secciones','Sections')+'">'+nav('snav-b')+'</nav>'+
+      '<div class="side-lv"><div class="slv-top"><span>'+LX('Nivel ','Level ')+L.n+'</span><b>'+esc(L.name)+'</b></div><div class="slv-bar"><i style="width:'+lp+'%"></i></div><small>'+(N?LX('Siguiente: ','Next: ')+esc(N.name)+' · '+(N.w-w)+' '+((N.w-w)===1?LX('vuelta','turn'):LX('vueltas','turns')):LX('Nivel máximo alcanzado','Highest level reached'))+'</small></div>'+
+      '<button type="button" class="side-trial" id="sideSub">'+(S.subscribed?LX('Suscripción activa<small>Ver mi plan</small>','Active subscription<small>See my plan</small>'):(left>0?LX('Prueba gratuita · ','Free trial · ')+left+' '+(left===1?LX('día','day'):LX('días','days')):LX('Prueba gratuita terminada','Free trial ended'))+'<small>'+LX('Ver planes','See plans')+'</small>')+'</button></aside>'+
     '<div class="shell"><header class="topbar gutter"><div class="brand tb-brand">'+logo(22)+'Áurea</div><span class="tb-date">'+esc(today.charAt(0).toUpperCase()+today.slice(1))+'</span>'+
-      '<div class="chips"><span class="chip pts"><i></i>'+points()+' pts</span><button type="button" class="chip tb-trial" id="chipSub">'+(S.subscribed?'Activa':(left>0?left+' días gratis':'Prueba terminada'))+'</button></div>'+
+      '<div class="chips"><span class="chip pts"><i></i>'+points()+' pts</span><button type="button" class="chip tb-trial" id="chipSub">'+(S.subscribed?LX('Activa','Active'):(left>0?left+LX(' días gratis',left===1?' free day':' free days'):LX('Prueba terminada','Trial ended')))+'</button></div>'+
       '<div class="umenu"><button type="button" class="ubtn" id="ubtn" aria-haspopup="menu" aria-expanded="false"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><span class="uname">'+esc(tc(S.reg.name))+'</span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>'+
       '<div class="udrop" id="udrop" role="menu" hidden><div class="ud-h"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><div><b>'+esc(tc(S.reg.name))+'</b><small>'+esc(S.reg.email)+'</small></div></div>'+
-      '<button type="button" role="menuitem" data-u="perfil">'+uIc('M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0')+'Mi perfil</button>'+
-      '<button type="button" role="menuitem" data-u="editar">'+uIc('M4 20h4L19 9l-4-4L4 16v4Z')+'Editar perfil</button>'+
-      '<button type="button" role="menuitem" data-u="pw">'+uIc('M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3')+'Cambiar contraseña</button>'+
-      '<button type="button" role="menuitem" data-u="salir" class="ud-out">'+uIc('M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10')+'Cerrar sesión</button></div></div></header>'+
+      '<button type="button" role="menuitem" data-u="perfil">'+uIc('M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0')+LX('Mi perfil','My profile')+'</button>'+
+      '<button type="button" role="menuitem" data-u="editar">'+uIc('M4 20h4L19 9l-4-4L4 16v4Z')+LX('Editar perfil','Edit profile')+'</button>'+
+      '<button type="button" role="menuitem" data-u="lang" lang="'+LX('en','es')+'">'+uIc('M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3.6 9h16.8M3.6 15h16.8M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18')+LX('English','Español')+'</button>'+
+      '<button type="button" role="menuitem" data-u="pw">'+uIc('M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3')+LX('Cambiar contraseña','Change password')+'</button>'+
+      '<button type="button" role="menuitem" data-u="salir" class="ud-out">'+uIc('M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10')+LX('Cerrar sesión','Sign out')+'</button></div></div></header>'+
     '<main class="app-main gutter" id="main"></main></div>'+
-    '<nav class="bnav" aria-label="Secciones">'+nav('bnav-b')+'</nav>';
+    '<nav class="bnav" aria-label="'+LX('Secciones','Sections')+'">'+nav('bnav-b')+'</nav>';
   root.appendChild(el);
   el.querySelectorAll('[data-t]').forEach(function(b){ b.onclick=function(){ renderApp(b.dataset.t); window.scrollTo(0,0); }; });
   wireUserMenu(el);
@@ -1942,26 +1991,26 @@ function viewRoute(main){
   var cw=currentWeek(), wk=S.route[cw], n=S.reg.name, total=S.route.length, d=S.diag, L=level();
   var doneIn = wk? wk.filter(function(id){return S.done[id];}).length : 0;
   var capsTotal=total*3, capsDone=doneCount(), pct=Math.round(capsDone/capsTotal*100);
-  var html='<section class="banner"><div class="bn-txt"><p class="eyebrow">Ruta '+esc(ROUTE_NAME[d.months]||'')+' · '+d.months+' meses</p>'+
-    '<h1>Hola, '+esc(n)+'.</h1><p class="goal">Tu meta: «'+esc(d.goal)+'»</p></div>'+
+  var html='<section class="banner"><div class="bn-txt"><p class="eyebrow">'+LX('Ruta '+esc(ROUTE_NAME[d.months]||'')+' · '+d.months+' meses',esc(d.months+'-month '+(ROUTE_NAME[d.months]||'')+' path'))+'</p>'+
+    '<h1>'+LX('Hola, ','Hello, ')+esc(n)+'.</h1><p class="goal">'+LX('Tu meta: «'+esc(d.goal)+'»','Your goal: “'+esc(d.goal)+'”')+'</p></div>'+
     '<div class="kpis">'+
-      '<div class="kpi"><span>Vuelta</span><b>'+(cw+1)+'<small> / '+total+'</small></b></div>'+
-      '<div class="kpi"><span>Cápsulas</span><b>'+capsDone+'<small> / '+capsTotal+'</small></b></div>'+
-      '<div class="kpi"><span>Nivel</span><b class="kw">'+esc(L.name)+'</b></div>'+
-      '<div class="kpi"><span>Avance</span><b>'+pct+'<small>%</small></b></div>'+
+      '<div class="kpi"><span>'+LX('Vuelta','Turn')+'</span><b>'+(cw+1)+'<small> / '+total+'</small></b></div>'+
+      '<div class="kpi"><span>'+LX('Cápsulas','Capsules')+'</span><b>'+capsDone+'<small> / '+capsTotal+'</small></b></div>'+
+      '<div class="kpi"><span>'+LX('Nivel','Level')+'</span><b class="kw">'+esc(L.name)+'</b></div>'+
+      '<div class="kpi"><span>'+LX('Avance','Progress')+'</span><b>'+pct+'<small>%</small></b></div>'+
     '</div></section><section class="rhero"><div class="rh-main">';
   if(wk){
     var waitNext=doneIn===3 && cw+1<total && cw>=calWeek();
-    html+='<div class="thisweek"><div class="tw-head"><h2>Esta semana</h2><span>'+doneIn+' de 3</span></div><div class="tw-bar"><i style="width:'+(doneIn/3*100)+'%"></i></div>'+(waitNext?'<p class="tw-lock">¡Completaste tu vuelta! La siguiente se abre el '+esc(fmtOpen(nextOpenDate()))+'. Mientras tanto, aplica tus prácticas y escribe en tu diario.</p>':'')+'<div class="tw-list">'+
-      wk.map(function(id){ var c=CAP[id], st=capState(id,cw); return '<button type="button" class="tw-cap '+PILLARS[c.p].cls+(st==='done'?' done':'')+'" data-id="'+id+'"><span class="tw-dot"></span><span class="tw-tx"><span class="tw-k">'+PILLARS[c.p].name+' · '+dayFor(c.p)+'</span><span class="tw-t">'+esc(c.title)+'</span>'+(function(f){ return f?'<span class="tw-f">Para subir tu área de '+esc(f.a.n)+' · hoy en '+f.v+'/10</span>':''; })(capFocus(id))+'</span><span class="tw-st">'+(st==='done'?'Completada':capMin(c)+' min')+'</span><span class="tw-go" aria-hidden="true">'+(st==='done'?'✓':'→')+'</span></button>'; }).join('')+
+    html+='<div class="thisweek"><div class="tw-head"><h2>'+LX('Esta semana','This week')+'</h2><span>'+doneIn+LX(' de 3',' of 3')+'</span></div><div class="tw-bar"><i style="width:'+(doneIn/3*100)+'%"></i></div>'+(waitNext?'<p class="tw-lock">'+LX('¡Completaste tu vuelta! La siguiente se abre el '+esc(fmtOpen(nextOpenDate()))+'. Mientras tanto, aplica tus prácticas y escribe en tu diario.','You completed your turn! The next one opens on '+esc(fmtOpen(nextOpenDate()))+'. In the meantime, apply your practices and write in your journal.')+'</p>':'')+'<div class="tw-list">'+
+      wk.map(function(id){ var c=CAP[id], st=capState(id,cw); return '<button type="button" class="tw-cap '+PILLARS[c.p].cls+(st==='done'?' done':'')+'" data-id="'+id+'"><span class="tw-dot"></span><span class="tw-tx"><span class="tw-k">'+PILLARS[c.p].name+' · '+dayFor(c.p)+'</span><span class="tw-t">'+esc(c.title)+'</span>'+(function(f){ return f?'<span class="tw-f">'+LX('Para subir tu área de '+esc(f.a.n)+' · hoy en '+f.v+'/10','To lift your '+esc(f.a.n)+' area · '+f.v+'/10 today')+'</span>':''; })(capFocus(id))+'</span><span class="tw-st">'+(st==='done'?LX('Completada','Completed'):capMin(c)+' min')+'</span><span class="tw-go" aria-hidden="true">'+(st==='done'?'✓':'→')+'</span></button>'; }).join('')+
       '</div></div>'+
-      '<div class="practs"><div class="tw-head"><h2>Tus prácticas</h2><span>'+wk.filter(function(id){return S.practice[id];}).length+' de 3 asumidas</span></div>'+
+      '<div class="practs"><div class="tw-head"><h2>'+LX('Tus prácticas','Your practices')+'</h2><span>'+wk.filter(function(id){return S.practice[id];}).length+LX(' de 3 asumidas',' of 3 taken on')+'</span></div>'+
       wk.map(function(id){ var c=CAP[id], on=!!S.practice[id]; return '<button type="button" class="pr-row '+PILLARS[c.p].cls+(on?' on':'')+'" data-id="'+id+'"><span class="pr-ck" aria-hidden="true">'+(on?'✓':'')+'</span><span>'+esc(c.practice)+'</span></button>'; }).join('')+
-      '<p class="pr-note">Cada práctica realizada suma 5 puntos. Toca una para abrir su cápsula.</p></div>';
+      '<p class="pr-note">'+LX('Cada práctica realizada suma 5 puntos. Toca una para abrir su cápsula.','Each practice you do adds 5 points. Tap one to open its capsule.')+'</p></div>';
   } else {
-    html+='<div class="thisweek"><h2>Contenido en preparación</h2><p class="goal">Completaste todas las cápsulas disponibles. Las siguientes vueltas de tu ruta se publican pronto.</p></div>';
+    html+='<div class="thisweek"><h2>'+LX('Contenido en preparación','Content in preparation')+'</h2><p class="goal">'+LX('Completaste todas las cápsulas disponibles. Las siguientes vueltas de tu ruta se publican pronto.','You completed all available capsules. The next turns of your path will be published soon.')+'</p></div>';
   }
-  html+='</div><div class="spcard"><div class="sp-head"><h2>Tu espiral</h2><div class="sp-leg"><span class="d-s"><i></i>Espíritu</span><span class="d-m"><i></i>Prosperidad</span><span class="d-v"><i></i>Vitalidad</span></div></div>'+
+  html+='</div><div class="spcard"><div class="sp-head"><h2>'+LX('Tu espiral','Your spiral')+'</h2><div class="sp-leg"><span class="d-s"><i></i>'+PILLARS.s.name+'</span><span class="d-m"><i></i>'+PILLARS.m.name+'</span><span class="d-v"><i></i>'+PILLARS.v.name+'</span></div></div>'+
     '<div class="sp-wrap">'+spiralSVG(total,cw)+'</div><div class="sp-detail" id="spd" aria-live="polite"></div></div></section>'+weekPlanCard();
   main.innerHTML=html;
   main.querySelectorAll('.tw-cap,.pr-row').forEach(function(b){ b.onclick=function(){ openCap(b.dataset.id); }; });
@@ -1969,11 +2018,11 @@ function viewRoute(main){
   function select(w){
     svg.querySelectorAll('.sw').forEach(function(g){ g.classList.toggle('sel',+g.dataset.w===w); });
     var ids=S.route[w], isDone=ids&&ids.every(function(id){return S.done[id];}), lockd=w>cw;
-    var status=!ids?'Se publica a medida que avanzas':isDone?'Completada':w===cw?'En curso':lockd?(w===cw+1&&w>calWeek()?'Se abre el '+fmtOpen(nextOpenDate()):'Se abre una semana después de la anterior'):'Disponible';
+    var status=!ids?LX('Se publica a medida que avanzas','Published as you progress'):isDone?LX('Completada','Completed'):w===cw?LX('En curso','In progress'):lockd?(w===cw+1&&w>calWeek()?LX('Se abre el ','Opens on ')+fmtOpen(nextOpenDate()):LX('Se abre una semana después de la anterior','Opens one week after the previous one')):LX('Disponible','Available');
     var box=main.querySelector('#spd');
-    box.innerHTML='<div class="spd-head"><b>Vuelta '+(w+1)+'</b><span class="'+(w===cw&&!isDone?'now':'')+'">'+status+'</span></div>'+
+    box.innerHTML='<div class="spd-head"><b>'+LX('Vuelta ','Turn ')+(w+1)+'</b><span class="'+(w===cw&&!isDone?'now':'')+'">'+status+'</span></div>'+
       (ids?'<div class="spd-caps">'+ids.map(function(id){ var c=CAP[id], st=capState(id,w); return '<button type="button" class="spd-cap '+PILLARS[c.p].cls+(st==='done'?' done':'')+'" data-id="'+id+'" '+(st==='lock'?'disabled':'')+'><i></i><span>'+esc(c.title)+'</span></button>'; }).join('')+'</div>'
-        :'<p class="spd-soon">Tres cápsulas nuevas: Espíritu, Prosperidad y Vitalidad.</p>');
+        :'<p class="spd-soon">'+LX('Tres cápsulas nuevas: Espíritu, Prosperidad y Vitalidad.','Three new capsules: Spirit, Prosperity and Vitality.')+'</p>');
     box.querySelectorAll('.spd-cap').forEach(function(b){ if(!b.disabled) b.onclick=function(){ openCap(b.dataset.id); }; });
   }
   svg.querySelectorAll('.sw').forEach(function(g){
@@ -1991,14 +2040,14 @@ function spiralSVG(total,cw){
   var cols=['s','m','v'], lastDone=-1;
   for(var k=0;k<N;k++){ var id=S.route[Math.floor(k/3)]&&S.route[Math.floor(k/3)][k%3]; if(id&&S.done[id]) lastDone=k; else if(Math.floor(k/3)<=cw) break; }
   var withContent=0; while(withContent<total&&S.route[withContent]) withContent++;
-  var out='<svg class="spiral" viewBox="-236 -236 472 472" role="group" aria-label="Tu ruta en espiral: '+total+' vueltas">'+
+  var out='<svg class="spiral" viewBox="-236 -236 472 472" role="group" aria-label="'+LX('Tu ruta en espiral: '+total+' vueltas','Your path as a spiral: '+total+' turns')+'">'+
     '<path class="sp-base" d="'+path(th(0),th(withContent*3-1))+'"/>'+
     (withContent<total?'<path class="sp-soon" d="'+path(th(withContent*3-1),th(N-1))+'"/>':'')+
     '<path class="sp-prog" d="'+path(th(0),th(Math.max(0,cw*3)))+'"/>';
   for(var w=0;w<total;w++){
     var ids=S.route[w], isDone=ids&&ids.every(function(id){return S.done[id];});
     var cls='sw'+(isDone?' w-done':w===cw?' w-now':w<cw?' w-open':ids?' w-lock':' w-soon');
-    out+='<g class="'+cls+'" data-w="'+w+'" tabindex="0" role="button" aria-label="Vuelta '+(w+1)+'">';
+    out+='<g class="'+cls+'" data-w="'+w+'" tabindex="0" role="button" aria-label="'+LX('Vuelta ','Turn ')+(w+1)+'">';
     for(var j=0;j<3;j++){
       var kk=w*3+j, p=pt(th(kk)), id=ids&&ids[j], dn=id&&S.done[id];
       out+='<circle class="cp d-'+cols[j]+(dn?' dn':'')+'" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(w===cw?7:(dn?5.5:4))+'"/>';
@@ -2011,7 +2060,7 @@ function spiralSVG(total,cw){
   // hitos: los niveles que se alcanzan dentro de esta ruta
   LEVELS.forEach(function(l){ if(!l.w||l.w>total) return; var t=th(l.w*3-1), p=pt(t), r=Math.hypot(p[0],p[1]), ux=p[0]/r, uy=p[1]/r, reached=weeksDone()>=l.w;
     out+='<g class="ms'+(reached?' on':'')+'"><line x1="'+(p[0]+ux*10).toFixed(1)+'" y1="'+(p[1]+uy*10).toFixed(1)+'" x2="'+(p[0]+ux*20).toFixed(1)+'" y2="'+(p[1]+uy*20).toFixed(1)+'"/><text x="'+(p[0]+ux*26).toFixed(1)+'" y="'+(p[1]+uy*26+3).toFixed(1)+'" text-anchor="'+(ux>.35?'start':ux<-.35?'end':'middle')+'">'+esc(l.name)+'</text></g>'; });
-  out+='<g class="sp-center"><text x="0" y="-6">'+(cw+1)+'</text><text class="sm" x="0" y="14">de '+total+'</text></g>';
+  out+='<g class="sp-center"><text x="0" y="-6">'+(cw+1)+'</text><text class="sm" x="0" y="14">'+LX('de ','of ')+total+'</text></g>';
   return out+'</svg>';
 }
 function viewProgress(main){
@@ -2021,40 +2070,42 @@ function viewProgress(main){
   var per={s:0,m:0,v:0}, avail={s:0,m:0,v:0};
   S.route.forEach(function(wk){ if(wk) wk.forEach(function(id){ avail[CAP[id].p]++; if(S.done[id]) per[CAP[id].p]++; }); });
   var reach=LEVELS.filter(function(l){return l.w<=total;});
-  main.innerHTML='<section class="banner pg-banner"><div class="ring"><svg viewBox="0 0 128 128" aria-hidden="true"><circle cx="64" cy="64" r="'+R+'" class="rg-bg"/><circle cx="64" cy="64" r="'+R+'" class="rg-fg" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-lp)).toFixed(1)+'"/></svg><div><span>Nivel '+L.n+'</span><b>'+esc(L.name)+'</b></div></div>'+
-      '<div class="bn-txt"><p class="eyebrow">Tu progreso</p><h1>'+(N?'Vas camino a '+esc(N.name)+'.':'Llegaste a la Plenitud.')+'</h1><p class="goal">'+(N?'Te '+((N.w-w)===1?'falta 1 vuelta':'faltan '+(N.w-w)+' vueltas')+' para el siguiente nivel. Cada cápsula suma 10 puntos y cada práctica, 5.':'Completaste todos los niveles de tu ruta.')+'</p></div>'+
-      '<div class="kpis kpis3"><div class="kpi"><span>Cápsulas</span><b>'+doneCount()+'</b></div><div class="kpi"><span>Vueltas</span><b>'+w+'</b></div><div class="kpi"><span>Puntos</span><b>'+points()+'</b></div></div></section>'+
-    '<div class="pg-grid"><section class="pcard"><h2>Tus tres pilares</h2>'+['s','m','v'].map(function(p){ var a=avail[p]||1, pc=Math.round(per[p]/a*100); return '<div class="pil '+PILLARS[p].cls+'"><div class="pil-h"><span><i></i>'+PILLARS[p].name+'</span><b>'+per[p]+' <small>de '+avail[p]+'</small></b></div><div class="pil-bar"><i style="width:'+pc+'%"></i></div></div>'; }).join('')+
-      '<h2 style="margin-top:10px">Tu rueda de la vida</h2><div class="pg-radar">'+radarSVG(S.wheelHist&&S.wheelHist.length?[{w:wheelStart().w,cls:'rd-ghost'},{w:wheelNow().w,cls:'rd-b'}]:[{w:wheelNow().w,cls:'rd-b'}],{label:'Tu rueda de la vida'})+'</div><p class="pg-note">Cada 4 semanas vuelve a evaluarte para ver cómo se equilibra. <button type="button" class="pd-ed" id="pgWheel">Ver comparación</button></p></section>'+
-      '<section class="pcard"><h2>Niveles de tu ruta</h2><ol class="lpath">'+reach.map(function(l){ var st=l===L?'cur':(w>=l.w?'ok':''); return '<li class="'+st+'"><span class="lp-dot">'+(st==='ok'?'✓':l.n)+'</span><div><b>'+esc(l.name)+'</b><small>'+esc(l.d)+'</small></div>'+(st==='cur'?'<em>Tu nivel</em>':'')+'</li>'; }).join('')+'</ol></section></div>';
+  main.innerHTML='<section class="banner pg-banner"><div class="ring"><svg viewBox="0 0 128 128" aria-hidden="true"><circle cx="64" cy="64" r="'+R+'" class="rg-bg"/><circle cx="64" cy="64" r="'+R+'" class="rg-fg" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+(C*(1-lp)).toFixed(1)+'"/></svg><div><span>'+LX('Nivel ','Level ')+L.n+'</span><b>'+esc(L.name)+'</b></div></div>'+
+      '<div class="bn-txt"><p class="eyebrow">'+LX('Tu progreso','Your progress')+'</p><h1>'+(N?LX('Vas camino a '+esc(N.name)+'.','You are on your way to '+esc(N.name)+'.'):LX('Llegaste a la Plenitud.','You reached Fulfillment.'))+'</h1><p class="goal">'+(N?LX('Te '+((N.w-w)===1?'falta 1 vuelta':'faltan '+(N.w-w)+' vueltas')+' para el siguiente nivel. Cada cápsula suma 10 puntos y cada práctica, 5.',((N.w-w)===1?'1 turn':(N.w-w)+' turns')+' to go until the next level. Each capsule adds 10 points and each practice, 5.'):LX('Completaste todos los niveles de tu ruta.','You completed every level of your path.'))+'</p></div>'+
+      '<div class="kpis kpis3"><div class="kpi"><span>'+LX('Cápsulas','Capsules')+'</span><b>'+doneCount()+'</b></div><div class="kpi"><span>'+LX('Vueltas','Turns')+'</span><b>'+w+'</b></div><div class="kpi"><span>'+LX('Puntos','Points')+'</span><b>'+points()+'</b></div></div></section>'+
+    '<div class="pg-grid"><section class="pcard"><h2>'+LX('Tus tres pilares','Your three pillars')+'</h2>'+['s','m','v'].map(function(p){ var a=avail[p]||1, pc=Math.round(per[p]/a*100); return '<div class="pil '+PILLARS[p].cls+'"><div class="pil-h"><span><i></i>'+PILLARS[p].name+'</span><b>'+per[p]+' <small>'+LX('de ','of ')+avail[p]+'</small></b></div><div class="pil-bar"><i style="width:'+pc+'%"></i></div></div>'; }).join('')+
+      '<h2 style="margin-top:10px">'+LX('Tu rueda de la vida','Your wheel of life')+'</h2><div class="pg-radar">'+radarSVG(S.wheelHist&&S.wheelHist.length?[{w:wheelStart().w,cls:'rd-ghost'},{w:wheelNow().w,cls:'rd-b'}]:[{w:wheelNow().w,cls:'rd-b'}],{label:LX('Tu rueda de la vida','Your wheel of life')})+'</div><p class="pg-note">'+LX('Cada 4 semanas vuelve a evaluarte para ver cómo se equilibra.','Every 4 weeks, assess yourself again to see how it balances out.')+' <button type="button" class="pd-ed" id="pgWheel">'+LX('Ver comparación','See comparison')+'</button></p></section>'+
+      '<section class="pcard"><h2>'+LX('Niveles de tu ruta','Levels of your path')+'</h2><ol class="lpath">'+reach.map(function(l){ var st=l===L?'cur':(w>=l.w?'ok':''); return '<li class="'+st+'"><span class="lp-dot">'+(st==='ok'?'✓':l.n)+'</span><div><b>'+esc(l.name)+'</b><small>'+esc(l.d)+'</small></div>'+(st==='cur'?'<em>'+LX('Tu nivel','Your level')+'</em>':'')+'</li>'; }).join('')+'</ol></section></div>';
 }
 function tc(x){ return String(x||'').toLowerCase().replace(/(^|[\s-])(\S)/g,function(m,a,b){return a+b.toUpperCase();}); }
 function viewProfile(main){
   setTimeout(function(){ var b=main.querySelector('#reWheel'); if(b) b.onclick=reWheel; },0);
   var r=S.reg, d=S.diag, L=level(), left=trialLeft();
-  var since=r.registeredAt?new Date(r.registeredAt).toLocaleDateString('es',{day:'numeric',month:'long',year:'numeric'}):'';
+  var since=r.registeredAt?new Date(r.registeredAt).toLocaleDateString(LOC,{day:'numeric',month:'long',year:'numeric'}):'';
   var tot=totalMin(d.avail||{});
   var days=DAYS.map(function(x){ var on=d.avail&&d.avail[x.k]!=null; return '<div class="pday'+(on?' on':'')+'"><span>'+x.s+'</span><b>'+(on?d.avail[x.k]:'—')+'</b><small>'+(on?'min':'')+'</small></div>'; }).join('');
   var row=function(l,v){ return '<div class="prow"><span>'+l+'</span><b>'+esc(v)+'</b></div>'; };
   main.innerHTML='<section class="phero"><div class="pav" aria-hidden="true">'+esc((r.name||'?').charAt(0).toUpperCase())+'</div>'+
-      '<div class="pid"><h1>'+esc(tc(r.name))+'</h1><p>'+esc(r.email)+'</p><p class="pmeta">'+esc(tc(r.city))+', '+esc(tc(r.country))+(since?' · Miembro desde el '+since:'')+'</p></div>'+
-      '<div class="pbadges"><div><span>Nivel</span><b>'+esc(L.name)+'</b></div><div><span>Puntos</span><b>'+points()+'</b></div><div><span>Cápsulas</span><b>'+doneCount()+'</b></div></div></section>'+
+      '<div class="pid"><h1>'+esc(tc(r.name))+'</h1><p>'+esc(r.email)+'</p><p class="pmeta">'+esc(tc(r.city))+', '+esc(tc(r.country))+(since?LX(' · Miembro desde el ',' · Member since ')+since:'')+'</p></div>'+
+      '<div class="pbadges"><div><span>'+LX('Nivel','Level')+'</span><b>'+esc(L.name)+'</b></div><div><span>'+LX('Puntos','Points')+'</span><b>'+points()+'</b></div><div><span>'+LX('Cápsulas','Capsules')+'</span><b>'+doneCount()+'</b></div></div></section>'+
     wheelCard()+'<div class="pgrid">'+
-      '<section class="pcard"><h2>Tu ruta</h2><div class="proute"><b>'+d.months+' meses</b><span>Ruta '+esc(ROUTE_NAME[d.months]||'')+' · '+(WEEKS[d.months]||13)+' semanas</span></div>'+
-        '<div class="pfocus '+PILLARS[areasByNeed(wheelNow().w)[0].p].cls+'"><i></i><span>Área que más atención necesita</span><b>'+esc(areasByNeed(wheelNow().w)[0].n)+'</b></div>'+
-        '<div class="pavail"><div class="pavail-h"><span>Disponibilidad</span><b>'+fmtMin(tot)+' por semana</b></div><div class="pdays">'+days+'</div></div></section>'+
-      '<section class="pcard pdata"><div class="pd-h"><h2>Datos personales</h2><button type="button" class="pd-ed" id="pdEdit">Editar</button></div>'+row('Nombre',tc(r.name))+row('Correo',r.email)+row('Edad',r.age+' años')+row('Sexo',r.sex)+row('País',tc(r.country))+row('Ciudad',tc(r.city))+'</section>'+
+      '<section class="pcard"><h2>'+LX('Tu ruta','Your path')+'</h2><div class="proute"><b>'+d.months+LX(' meses',' months')+'</b><span>'+LX('Ruta '+esc(ROUTE_NAME[d.months]||'')+' · '+(WEEKS[d.months]||13)+' semanas',esc(tc(ROUTE_NAME[d.months]||''))+' path · '+(WEEKS[d.months]||13)+' weeks')+'</span></div>'+
+        '<div class="pfocus '+PILLARS[areasByNeed(wheelNow().w)[0].p].cls+'"><i></i><span>'+LX('Área que más atención necesita','Area that needs most attention')+'</span><b>'+esc(areasByNeed(wheelNow().w)[0].n)+'</b></div>'+
+        '<div class="pavail"><div class="pavail-h"><span>'+LX('Disponibilidad','Availability')+'</span><b>'+fmtMin(tot)+LX(' por semana',' per week')+'</b></div><div class="pdays">'+days+'</div></div></section>'+
+      '<section class="pcard pdata"><div class="pd-h"><h2>'+LX('Datos personales','Personal details')+'</h2><button type="button" class="pd-ed" id="pdEdit">'+LX('Editar','Edit')+'</button></div>'+row(LX('Nombre','Name'),tc(r.name))+row(LX('Correo','Email'),r.email)+row(LX('Edad','Age'),r.age+LX(' años',' years'))+row(LX('Sexo','Sex'),sexLabel(r.sex))+row(LX('País','Country'),tc(r.country))+row(LX('Ciudad','City'),tc(r.city))+
+        '<div class="prow"><span>'+LX('Idioma','Language')+'</span><b class="plang">'+langPick()+'</b></div></section>'+
     '</div>'+
-    '<section class="pcard psub"><div><h2>Suscripción</h2>'+
-      (S.subscribed?'<p><span class="pstat ok">Activa</span> Plan '+(S.plan==='anual'?'anual · $'+fmtP(cfg().priceA)+' USD al año':'mensual · $'+fmtP(cfg().priceM)+' USD al mes')+'</p>'+(subEnd()?'<p class="note">'+(SUB&&SUB.autoRenew?'Se renueva sola el '+subEnd()+'. <button type="button" class="pd-ed" id="subCancel">Cancelar renovación</button>':(SUB&&SUB.provider==='payphone'?'Pagado con Payphone. Vigente hasta el '+subEnd()+'. Este pago no se renueva solo: cuando se acerque la fecha, renuévalo aquí mismo. <button type="button" class="pd-ed" id="subRenew">Renovar ahora</button>':'Vigente hasta el '+subEnd()+'. La renovación automática está cancelada. <button type="button" class="pd-ed" id="subRenew">Volver a suscribirme</button>'))+'</p>':'')
-        :'<p><span class="pstat">Prueba gratuita</span> Te '+(left===1?'queda 1 día':'quedan '+left+' días')+' de prueba.</p><div class="ptrial"><i style="width:'+Math.round((cfg().trialDays-left)/cfg().trialDays*100)+'%"></i></div>')+
-      '</div>'+(S.subscribed?'':'<button class="btn btn-primary" id="seePlans" type="button">Ver planes</button>')+'</section>'+
-    '<div class="plogout"><button type="button" id="chpw">Cambiar contraseña</button></div>';
+    '<section class="pcard psub"><div><h2>'+LX('Suscripción','Subscription')+'</h2>'+
+      (S.subscribed?'<p><span class="pstat ok">'+LX('Activa','Active')+'</span> '+(S.plan==='anual'?LX('Plan anual · $'+fmtP(cfg().priceA)+' USD al año','Annual plan · $'+fmtP(cfg().priceA)+' USD a year'):LX('Plan mensual · $'+fmtP(cfg().priceM)+' USD al mes','Monthly plan · $'+fmtP(cfg().priceM)+' USD a month'))+'</p>'+(subEnd()?'<p class="note">'+(SUB&&SUB.autoRenew?LX('Se renueva sola el '+subEnd()+'.','Renews automatically on '+subEnd()+'.')+' <button type="button" class="pd-ed" id="subCancel">'+LX('Cancelar renovación','Cancel renewal')+'</button>':(SUB&&SUB.provider==='payphone'?LX('Pagado con Payphone. Vigente hasta el '+subEnd()+'. Este pago no se renueva solo: cuando se acerque la fecha, renuévalo aquí mismo.','Paid with Payphone. Valid until '+subEnd()+'. This payment does not renew on its own: when the date gets close, renew it right here.')+' <button type="button" class="pd-ed" id="subRenew">'+LX('Renovar ahora','Renew now')+'</button>':LX('Vigente hasta el '+subEnd()+'. La renovación automática está cancelada.','Valid until '+subEnd()+'. Automatic renewal is cancelled.')+' <button type="button" class="pd-ed" id="subRenew">'+LX('Volver a suscribirme','Subscribe again')+'</button>'))+'</p>':'')
+        :'<p><span class="pstat">'+LX('Prueba gratuita','Free trial')+'</span> '+LX('Te '+(left===1?'queda 1 día':'quedan '+left+' días')+' de prueba.',(left===1?'1 day':left+' days')+' of trial left.')+'</p><div class="ptrial"><i style="width:'+Math.round((cfg().trialDays-left)/cfg().trialDays*100)+'%"></i></div>')+
+      '</div>'+(S.subscribed?'':'<button class="btn btn-primary" id="seePlans" type="button">'+LX('Ver planes','See plans')+'</button>')+'</section>'+
+    '<div class="plogout"><button type="button" id="chpw">'+LX('Cambiar contraseña','Change password')+'</button></div>';
+  wireLang(main);
   var sp=main.querySelector('#seePlans'); if(sp) sp.onclick=paywall;
   var sr=main.querySelector('#subRenew'); if(sr) sr.onclick=paywall;
-  var sc=main.querySelector('#subCancel'); if(sc) sc.onclick=function(){ askOk('Cancelar renovación','Tu suscripción ya no se renovará sola. Conservas tu acceso hasta el '+subEnd()+'.','Sí, cancelar',function(){
-    sc.disabled=true; fnCall('subCancel').then(loadSub).then(function(){ toast('Renovación cancelada. Tu acceso sigue hasta el '+subEnd()+'.'); renderApp('perfil'); })
-      .catch(function(e){ sc.disabled=false; toast((e&&e.message)||'No pude cancelar ahora. Intenta de nuevo.'); }); }); };
+  var sc=main.querySelector('#subCancel'); if(sc) sc.onclick=function(){ askOk(LX('Cancelar renovación','Cancel renewal'),LX('Tu suscripción ya no se renovará sola. Conservas tu acceso hasta el '+subEnd()+'.','Your subscription will no longer renew on its own. You keep your access until '+subEnd()+'.'),LX('Sí, cancelar','Yes, cancel'),function(){
+    sc.disabled=true; fnCall('subCancel').then(loadSub).then(function(){ toast(LX('Renovación cancelada. Tu acceso sigue hasta el '+subEnd()+'.','Renewal cancelled. Your access continues until '+subEnd()+'.')); renderApp('perfil'); })
+      .catch(function(e){ sc.disabled=false; toast(LANG==='en'?'I could not cancel right now. Please try again.':((e&&e.message)||'No pude cancelar ahora. Intenta de nuevo.')); }); }); };
   main.querySelector('#chpw').onclick=changePw; main.querySelector('#pdEdit').onclick=editProfile;
 }
 
@@ -2072,13 +2123,13 @@ function weekPlan(){
 }
 function weekPlanCard(){
   var plan=weekPlan(); if(!plan.length) return '';
-  return '<section class="wplan"><div class="tw-head"><h2>Tu semana</h2><span>'+fmtMin(totalMin(S.diag.avail))+' en total</span></div><div class="wp-list">'+
+  return '<section class="wplan"><div class="tw-head"><h2>'+LX('Tu semana','Your week')+'</h2><span>'+fmtMin(totalMin(S.diag.avail))+LX(' en total',' in total')+'</span></div><div class="wp-list">'+
     plan.map(function(x){
-      var acts=x.caps.map(function(c){ return '<span class="wp-act '+PILLARS[c.p].cls+'"><i></i>Cápsula de '+PILLARS[c.p].name+' · '+c.m+' min</span>'; }).join('');
-      if(x.caps.length && x.rest>0) acts+='<span class="wp-act wp-pr"><i></i>Práctica de la semana · '+x.rest+' min</span>';
-      if(!x.caps.length) acts='<span class="wp-act wp-pr"><i></i>Práctica de la semana · '+Math.max(5,x.min-10)+' min</span><span class="wp-act wp-di"><i></i>Diario personal · '+Math.min(10,x.min)+' min</span>';
+      var acts=x.caps.map(function(c){ return '<span class="wp-act '+PILLARS[c.p].cls+'"><i></i>'+LX('Cápsula de '+PILLARS[c.p].name,PILLARS[c.p].name+' capsule')+' · '+c.m+' min</span>'; }).join('');
+      if(x.caps.length && x.rest>0) acts+='<span class="wp-act wp-pr"><i></i>'+LX('Práctica de la semana','Practice of the week')+' · '+x.rest+' min</span>';
+      if(!x.caps.length) acts='<span class="wp-act wp-pr"><i></i>'+LX('Práctica de la semana','Practice of the week')+' · '+Math.max(5,x.min-10)+' min</span><span class="wp-act wp-di"><i></i>'+LX('Diario personal','Personal journal')+' · '+Math.min(10,x.min)+' min</span>';
       return '<div class="wp-day"><div class="wp-d"><b>'+x.d.s+'</b><small>'+x.min+' min</small></div><div class="wp-acts">'+acts+'</div></div>';
-    }).join('')+'</div><p class="pr-note">Las cápsulas toman pocos minutos; el resto de tu tiempo es para aplicar la práctica. Los días sin cápsula son para practicar y escribir en tu diario.</p></section>';
+    }).join('')+'</div><p class="pr-note">'+LX('Las cápsulas toman pocos minutos; el resto de tu tiempo es para aplicar la práctica. Los días sin cápsula son para practicar y escribir en tu diario.','Capsules take a few minutes; the rest of your time is for applying the practice. Days without a capsule are for practicing and writing in your journal.')+'</p></section>';
 }
 
 /* ================= MENTOR ================= */
@@ -2106,6 +2157,7 @@ var AUTHORS=[
  {n:'Florence Scovel Shinn',k:'Ilustradora y escritora estadounidense · 1871–1940',t:'Artista de Nueva York que en 1925 publicó «El juego de la vida y cómo jugarlo», sobre el poder de las palabras y la fe en lo cotidiano.',i:'Cuida tus palabras: con ellas describes, y también construyes, tu día.'},
  {n:'Carol Dweck',k:'Psicóloga de la Universidad de Stanford · 1946',t:'Tras décadas de investigación describió la «mentalidad de crecimiento»: creer que tus capacidades se desarrollan con esfuerzo y práctica.',i:'Todavía no lo logras: la palabra clave es «todavía».'}
 ];
+if(EN){ ovl(BOOKS,EN.books); ovl(AUTHORS,EN.authors); }
 var PHILOS=['estoicismo','budismo','taoismo','hermetismo','metafisica','atencion','crecimiento','estilo'];
 var BELIEFS=[
  {f:'No soy bueno con el dinero',r:'Estoy aprendiendo a manejar mi dinero, paso a paso.',e:'Piensa en una vez que pagaste algo a tiempo o guardaste aunque sea un poco. Eso ya es manejar dinero: se trata de practicarlo más seguido.'},
@@ -2115,6 +2167,8 @@ var BELIEFS=[
  {f:'Así soy y no puedo cambiar',r:'Puedo elegir cómo responder hoy.',e:'Tu forma de ser también está hecha de hábitos, y los hábitos se pueden cambiar con repeticiones pequeñas.'},
  {f:'No merezco que me vaya bien',r:'Merezco crecer, igual que cualquier persona.',e:'Esta idea suele venir de experiencias pasadas, no de los hechos de hoy. Pregúntate de quién la escuchaste por primera vez.'}
 ];
+if(EN) ovl(BELIEFS,EN.beliefs);
+function lcFirst(x){ return LANG==='en'?x:x.charAt(0).toLowerCase()+x.slice(1); }
 var mentorRun=0, diaPrefill=null;
 function viewMentor(main){
   var my=++mentorRun, n=tc(S.reg.name), W=wheelNow().w, need=areasByNeed(W);
@@ -2123,7 +2177,7 @@ function viewMentor(main){
     '<aside class="mt-side" id="mtS"></aside></section>';
   main.querySelector('#mtOrb').appendChild(makeOrb()); startOrbs();
   var K=main.querySelector('#mtK'), Q=main.querySelector('#mtQ'), C=main.querySelector('#mtC'), O=main.querySelector('#mtO');
-  function side(){ var L=S.mentorSaved||[]; main.querySelector('#mtS').innerHTML='<h2>Tu lista de lecturas</h2>'+(L.length?'<ul>'+L.map(function(b,i){ return '<li><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small><button type="button" data-rm="'+i+'" aria-label="Quitar">✕</button></li>'; }).join('')+'</ul>':'<p>Cuando Áurea te recomiende un libro, puedes guardarlo aquí.</p>');
+  function side(){ var L=S.mentorSaved||[]; main.querySelector('#mtS').innerHTML='<h2>'+LX('Tu lista de lecturas','Your reading list')+'</h2>'+(L.length?'<ul>'+L.map(function(b,i){ return '<li><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small><button type="button" data-rm="'+i+'" aria-label="'+LX('Quitar','Remove')+'">✕</button></li>'; }).join('')+'</ul>':'<p>'+LX('Cuando Áurea te recomiende un libro, puedes guardarlo aquí.','When Áurea recommends a book, you can save it here.')+'</p>');
     main.querySelectorAll('[data-rm]').forEach(function(b){ b.onclick=function(){ S.mentorSaved.splice(+b.dataset.rm,1); save(); side(); }; }); }
   side();
   /* Escribe uno o varios mensajes en el mismo lugar y luego muestra la tarjeta y las opciones */
@@ -2139,12 +2193,22 @@ function viewMentor(main){
       O.querySelectorAll('.mt-op').forEach(function(b,i){ b.onclick=function(){ opts[i].go(b); }; });
     }); })();
   }
-  var BACK={l:'Volver a los temas',go:function(){ home(true); }};
+  var BACK={l:LX('Volver a los temas','Back to topics'),go:function(){ home(true); }};
   function home(again){
     var first=!S.mentorMet; if(first){ S.mentorMet=true; save(); }
-    var msgs=first?['Hola, '+n+'. Soy Áurea, tu mentor personal.','Te acompañaré durante todo este proceso. ¿En qué quieres profundizar hoy?']
-      :[again?'¿Qué más quieres explorar, '+n+'?':'Qué bueno verte, '+n+'. ¿En qué quieres profundizar hoy?'];
-    say('Mentor',msgs,null,[
+    var msgs=LANG==='en'?(first?['Hello, '+n+'. I am Áurea, your personal mentor.','I will be with you throughout this process. What would you like to explore today?']
+      :[again?'What else would you like to explore, '+n+'?':'Good to see you, '+n+'. What would you like to explore today?'])
+      :(first?['Hola, '+n+'. Soy Áurea, tu mentor personal.','Te acompañaré durante todo este proceso. ¿En qué quieres profundizar hoy?']
+      :[again?'¿Qué más quieres explorar, '+n+'?':'Qué bueno verte, '+n+'. ¿En qué quieres profundizar hoy?']);
+    say('Mentor',msgs,null,LANG==='en'?[
+      {l:'Books',tag:'for each area of your life',go:books},
+      {l:'Authors',tag:'who inspires the method',go:authors},
+      {l:'Philosophies',tag:'where the ideas come from',go:philos},
+      {l:'The three pillars',tag:'Spirit, Prosperity and Vitality',go:pillars},
+      {l:'Your Wheel of Life',tag:'what your results say',go:wheel},
+      {l:'Limiting beliefs',tag:'ideas that hold you back',go:beliefs},
+      {l:'An idea for today',tag:'surprise me',go:idea},
+      {l:'Talk with Áurea',tag:aiTag(),main:true,go:ask}]:[
       {l:'Libros',tag:'para cada área de tu vida',go:books},
       {l:'Autores',tag:'quiénes inspiran el método',go:authors},
       {l:'Filosofías',tag:'de dónde vienen las ideas',go:philos},
@@ -2156,76 +2220,79 @@ function viewMentor(main){
   }
   /* Conversación libre con la IA: la pregunta y la respuesta se escriben en su lugar, sin ventana de chat */
   function leftTxt(){ var L=aiLim(), tr=!S.subscribed;
+    if(LANG==='en'){ if(AI_LEFT) return AI_LEFT.day+' of '+L[0]+' conversations left today · '+AI_LEFT.month+(tr?' in your free trial':' this month');
+      return tr?'Your '+cfg().trialDays+'-day free trial includes '+L[0]+' conversations a day and '+L[1]+' in total.':'Your plan includes '+L[0]+' conversations a day and '+L[1]+' a month.'; }
     if(AI_LEFT) return 'Te quedan '+AI_LEFT.day+' de '+L[0]+' conversaciones hoy · '+AI_LEFT.month+(tr?' en tu prueba gratuita':' este mes');
     return tr?'Tu prueba gratuita de '+cfg().trialDays+' días incluye '+L[0]+' conversaciones al día y '+L[1]+' en total.':'Tu plan incluye '+L[0]+' conversaciones al día y '+L[1]+' al mes.'; }
   function ask(){
-    if(!aiOn()){ say('Mentor · Conversa con Áurea',['Muy pronto podrás conversar conmigo libremente, '+n+'.','Tu plan incluirá '+aiLim()[0]+' conversaciones al día. Mientras tanto, explora los temas que preparé para ti.'],null,[BACK]); return; }
+    if(!aiOn()){ say(LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'),LX(['Muy pronto podrás conversar conmigo libremente, '+n+'.','Tu plan incluirá '+aiLim()[0]+' conversaciones al día. Mientras tanto, explora los temas que preparé para ti.'],['Very soon you will be able to talk with me freely, '+n+'.','Your plan will include '+aiLim()[0]+' conversations a day. In the meantime, explore the topics I prepared for you.']),null,[BACK]); return; }
     if(!AI_LEFT){ aiLeftLoad().then(function(){ if(my===mentorRun && !C.hidden){ var sm=C.querySelector('.mt-ai-r small'); if(sm) sm.textContent=leftTxt(); } }); }
-    say('Mentor · Conversa con Áurea',AIH.length?'¿Qué más quieres preguntarme, '+n+'?':'Pregúntame lo que quieras, '+n+': sobre tu ruta, tus cápsulas o lo que estás viviendo.',
-      '<form class="mt-ai" id="mtAi" novalidate><textarea id="mtAiT" maxlength="800" rows="3" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea><div class="mt-ai-r"><small>'+esc(leftTxt())+'</small><button class="btn btn-primary" type="submit">Enviar</button></div><p class="err" id="mtAiE"></p></form>',
+    say(LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'),AIH.length?LX('¿Qué más quieres preguntarme, '+n+'?','What else would you like to ask me, '+n+'?'):LX('Pregúntame lo que quieras, '+n+': sobre tu ruta, tus cápsulas o lo que estás viviendo.','Ask me anything, '+n+': about your path, your capsules or what you are going through.'),
+      '<form class="mt-ai" id="mtAi" novalidate><textarea id="mtAiT" maxlength="800" rows="3" placeholder="'+LX('Escribe tu pregunta','Write your question')+'" aria-label="'+LX('Tu pregunta','Your question')+'"></textarea><div class="mt-ai-r"><small>'+esc(leftTxt())+'</small><button class="btn btn-primary" type="submit">'+LX('Enviar','Send')+'</button></div><p class="err" id="mtAiE"></p></form>',
       [BACK]);
     C.onsubmit=function(e){ if(e.target.id!=='mtAi') return; e.preventDefault(); var t=C.querySelector('#mtAiT'), q=t.value.trim(), er=C.querySelector('#mtAiE');
-      if(q.length<2){ er.textContent='Escribe tu pregunta.'; t.focus(); return; }
-      var bt=C.querySelector('button[type=submit]'); bt.disabled=true; bt.textContent='Pensando…'; er.textContent='';
-      aiCall({message:q,history:AIH.slice(-8),ctx:{week:weekTitles()}}).then(function(r){
+      if(q.length<2){ er.textContent=LX('Escribe tu pregunta.','Write your question.'); t.focus(); return; }
+      var bt=C.querySelector('button[type=submit]'); bt.disabled=true; bt.textContent=LX('Pensando…','Thinking…'); er.textContent='';
+      aiCall({message:q,history:AIH.slice(-8),ctx:{week:weekTitles()},lang:LANG}).then(function(r){
         if(my!==mentorRun) return; AIH.push({role:'user',text:q},{role:'assistant',text:r.text}); AIH=AIH.slice(-16); aiHistSave(); AI_LEFT=r.left||null; answer(q,r.text);
-      }).catch(function(e2){ if(my!==mentorRun) return; bt.disabled=false; bt.textContent='Enviar'; er.textContent=aiErr(e2); });
+      }).catch(function(e2){ if(my!==mentorRun) return; bt.disabled=false; bt.textContent=LX('Enviar','Send'); er.textContent=aiErr(e2); });
     };
     setTimeout(function(){ var t=C.querySelector('#mtAiT'); if(t&&!C.hidden) t.focus(); },50);
   }
   function answer(q,txt){
-    K.textContent='Mentor · Conversa con Áurea'; O.innerHTML=''; C.onsubmit=null; Q.style.minHeight='';
-    Q.textContent='«'+(q.length>140?q.slice(0,137)+'…':q)+'»';
+    K.textContent=LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'); O.innerHTML=''; C.onsubmit=null; Q.style.minHeight='';
+    Q.textContent=LX('«','“')+(q.length>140?q.slice(0,137)+'…':q)+LX('»','”');
     C.innerHTML='<div class="mt-info mt-ans"><p id="mtA"></p><small class="mt-ai-l">'+esc(leftTxt())+'</small></div>'; C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); });
     typeText(C.querySelector('#mtA'),txt,6,function(){ if(my!==mentorRun) return;
-      var opts=[{l:'Hacer otra pregunta',main:true,go:ask},{l:'Llevarlo a mi diario',tag:'escribir sobre esto',go:function(){ toDiary(q); }},BACK];
+      var opts=[{l:LX('Hacer otra pregunta','Ask another question'),main:true,go:ask},{l:LX('Llevarlo a mi diario','Take it to my journal'),tag:LX('escribir sobre esto','write about this'),go:function(){ toDiary(q); }},BACK];
       O.innerHTML=opts.map(function(o,i){ return '<button type="button" class="mt-op'+(o.main?' main':'')+'" style="--i:'+i+'">'+esc(o.l)+(o.tag?'<small>'+esc(o.tag)+'</small>':'')+'</button>'; }).join('');
       O.querySelectorAll('.mt-op').forEach(function(b,i){ b.onclick=function(){ opts[i].go(); }; }); });
   }
   function books(){
     var order=need.map(function(a){return a;});
-    say('Mentor · Libros','¿Sobre qué área de tu vida quieres leer? Te sugiero empezar por '+need[0].n+'.',null,
-      order.map(function(a,i){ return {l:a.n,tag:i===0?'recomendada para ti':'',main:i===0,go:function(){ bookOf(a,0); }}; }).concat([BACK]));
+    say(LX('Mentor · Libros','Mentor · Books'),LX('¿Sobre qué área de tu vida quieres leer? Te sugiero empezar por '+need[0].n+'.','Which area of your life would you like to read about? I suggest starting with '+need[0].n+'.'),null,
+      order.map(function(a,i){ return {l:a.n,tag:i===0?LX('recomendada para ti','recommended for you'):'',main:i===0,go:function(){ bookOf(a,0); }}; }).concat([BACK]));
   }
   function bookOf(a,i){
     var L=BOOKS[a.k]||[], b=L[i%L.length], saved=(S.mentorSaved||[]).some(function(x){return x.t===b.t;});
     var card='<div class="mt-book"><div class="mt-cover '+PILLARS[a.p].cls+'"><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small></div><div><p class="mt-ck">'+esc(a.n)+' · '+esc(b.y)+'</p><h3>'+esc(b.t)+'</h3><p class="mt-by">'+esc(b.a)+'</p><p>'+esc(b.why)+'</p></div></div>';
     var opts=[];
-    if(!saved) opts.push({l:'Guardar en mi lista',main:true,go:function(btn){ S.mentorSaved=(S.mentorSaved||[]).concat([{t:b.t,a:b.a}]); save(); side(); toast('Guardado en tu lista de lecturas.'); if(btn){ btn.disabled=true; btn.classList.remove('main'); btn.classList.add('done'); btn.textContent='✓ En tu lista'; } }});
-    if(L.length>1) opts.push({l:'Otro libro',go:function(){ bookOf(a,i+1); }});
-    opts.push({l:'Otra área',go:books}, BACK);
-    say('Mentor · Libros · '+a.n,'Para '+a.n.toLowerCase()+', te recomiendo «'+b.t+'».',card,opts);
+    if(!saved) opts.push({l:LX('Guardar en mi lista','Save to my list'),main:true,go:function(btn){ S.mentorSaved=(S.mentorSaved||[]).concat([{t:b.t,a:b.a}]); save(); side(); toast(LX('Guardado en tu lista de lecturas.','Saved to your reading list.')); if(btn){ btn.disabled=true; btn.classList.remove('main'); btn.classList.add('done'); btn.textContent=LX('✓ En tu lista','✓ On your list'); } }});
+    if(L.length>1) opts.push({l:LX('Otro libro','Another book'),go:function(){ bookOf(a,i+1); }});
+    opts.push({l:LX('Otra área','Another area'),go:books}, BACK);
+    say(LX('Mentor · Libros · ','Mentor · Books · ')+a.n,LX('Para '+a.n.toLowerCase()+', te recomiendo «'+b.t+'».','For '+a.n.toLowerCase()+', I recommend “'+b.t+'”.'),card,opts);
   }
-  function authors(){ say('Mentor · Autores','¿A quién te gustaría conocer?',null,AUTHORS.map(function(x,i){ return {l:x.n,go:function(){ author(i); }}; }).concat([BACK])); }
+  function authors(){ say(LX('Mentor · Autores','Mentor · Authors'),LX('¿A quién te gustaría conocer?','Who would you like to meet?'),null,AUTHORS.map(function(x,i){ return {l:x.n,go:function(){ author(i); }}; }).concat([BACK])); }
   function author(i){ var x=AUTHORS[i];
-    say('Mentor · Autores',x.n+'.','<div class="mt-info"><p class="mt-ck">'+esc(x.k)+'</p><p>'+esc(x.t)+'</p><blockquote>'+esc(x.i)+'</blockquote></div>',
-      [{l:'Otro autor',main:true,go:function(){ author((i+1)%AUTHORS.length); }},{l:'Ver todos',go:authors},{l:'Escribir sobre esto en mi diario',go:function(){ toDiary('¿Qué te enseña hoy esta idea de '+x.n+': «'+x.i+'»?'); }},BACK]); }
-  function philos(){ say('Mentor · Filosofías','¿Qué tradición quieres explorar?',null,PHILOS.map(function(k,i){ return {l:TRAD[k].n,go:function(){ philo(i); }}; }).concat([BACK])); }
+    say(LX('Mentor · Autores','Mentor · Authors'),x.n+'.','<div class="mt-info"><p class="mt-ck">'+esc(x.k)+'</p><p>'+esc(x.t)+'</p><blockquote>'+esc(x.i)+'</blockquote></div>',
+      [{l:LX('Otro autor','Another author'),main:true,go:function(){ author((i+1)%AUTHORS.length); }},{l:LX('Ver todos','See all'),go:authors},{l:LX('Escribir sobre esto en mi diario','Write about this in my journal'),go:function(){ toDiary(LX('¿Qué te enseña hoy esta idea de '+x.n+': «'+x.i+'»?','What does this idea from '+x.n+' teach you today: “'+x.i+'”?')); }},BACK]); }
+  function philos(){ say(LX('Mentor · Filosofías','Mentor · Philosophies'),LX('¿Qué tradición quieres explorar?','Which tradition would you like to explore?'),null,PHILOS.map(function(k,i){ return {l:TRAD[k].n,go:function(){ philo(i); }}; }).concat([BACK])); }
   function philo(i){ var T=TRAD[PHILOS[i]];
-    say('Mentor · Filosofías',T.n+'.','<div class="mt-info"><p>'+esc(T.t)+'</p></div>',[{l:'Otra filosofía',main:true,go:function(){ philo((i+1)%PHILOS.length); }},{l:'Ver todas',go:philos},BACK]); }
-  function pillars(){ say('Mentor · Pilares','Tu ruta gira sobre tres pilares. ¿Cuál quieres entender mejor?',null,['s','m','v'].map(function(p){ return {l:PILLARS[p].name,go:function(){ pillar(p); }}; }).concat([BACK])); }
+    say(LX('Mentor · Filosofías','Mentor · Philosophies'),T.n+'.','<div class="mt-info"><p>'+esc(T.t)+'</p></div>',[{l:LX('Otra filosofía','Another philosophy'),main:true,go:function(){ philo((i+1)%PHILOS.length); }},{l:LX('Ver todas','See all'),go:philos},BACK]); }
+  function pillars(){ say(LX('Mentor · Pilares','Mentor · Pillars'),LX('Tu ruta gira sobre tres pilares. ¿Cuál quieres entender mejor?','Your path turns on three pillars. Which one would you like to understand better?'),null,['s','m','v'].map(function(p){ return {l:PILLARS[p].name,go:function(){ pillar(p); }}; }).concat([BACK])); }
   function pillar(p){
-    var txt={s:'Espíritu es tu mundo interior: la calma, el sentido de lo que haces y la calidad de tus relaciones.',m:'Prosperidad es tu relación con el dinero y el trabajo: ganar, ahorrar, crecer y sentirte en paz con tus finanzas.',v:'Vitalidad es el cuidado de tu cuerpo: lo que comes, cómo te mueves, cómo descansas y cómo manejas el estrés.'}[p];
+    var txt=LX({s:'Espíritu es tu mundo interior: la calma, el sentido de lo que haces y la calidad de tus relaciones.',m:'Prosperidad es tu relación con el dinero y el trabajo: ganar, ahorrar, crecer y sentirte en paz con tus finanzas.',v:'Vitalidad es el cuidado de tu cuerpo: lo que comes, cómo te mueves, cómo descansas y cómo manejas el estrés.'},{s:'Spirit is your inner world: calm, the meaning of what you do and the quality of your relationships.',m:'Prosperity is your relationship with money and work: earning, saving, growing and feeling at peace with your finances.',v:'Vitality is the care of your body: what you eat, how you move, how you rest and how you handle stress.'})[p];
     var ar=AREAS.filter(function(a){return a.p===p;}), wk=S.route&&S.route[currentWeek()], id=wk&&wk[{s:0,m:1,v:2}[p]];
-    var card='<div class="mt-info '+PILLARS[p].cls+'"><p class="mt-ck">Tus puntajes en este pilar</p>'+ar.map(function(a){ return '<div class="mt-bar"><span>'+esc(a.n)+'</span><i><em style="width:'+(W[a.k]*10)+'%"></em></i><b>'+W[a.k]+'</b></div>'; }).join('')+
-      (id?'<p class="mt-next">Tu cápsula de esta semana: <b>'+esc(CAP[id].title)+'</b> · '+dayFor(p)+'</p>':'')+'</div>';
-    var o=[]; if(id) o.push({l:'Abrir mi cápsula',main:true,go:function(){ openCap(id); }}); o.push({l:'Otro pilar',go:pillars},BACK);
-    say('Mentor · Pilares · '+PILLARS[p].name,txt,card,o);
+    var card='<div class="mt-info '+PILLARS[p].cls+'"><p class="mt-ck">'+LX('Tus puntajes en este pilar','Your scores in this pillar')+'</p>'+ar.map(function(a){ return '<div class="mt-bar"><span>'+esc(a.n)+'</span><i><em style="width:'+(W[a.k]*10)+'%"></em></i><b>'+W[a.k]+'</b></div>'; }).join('')+
+      (id?'<p class="mt-next">'+LX('Tu cápsula de esta semana: ','Your capsule this week: ')+'<b>'+esc(CAP[id].title)+'</b> · '+dayFor(p)+'</p>':'')+'</div>';
+    var o=[]; if(id) o.push({l:LX('Abrir mi cápsula','Open my capsule'),main:true,go:function(){ openCap(id); }}); o.push({l:LX('Otro pilar','Another pillar'),go:pillars},BACK);
+    say(LX('Mentor · Pilares · ','Mentor · Pillars · ')+PILLARS[p].name,txt,card,o);
   }
   function wheel(){
     var hi=need[need.length-1];
-    say('Mentor · Rueda de la Vida',['Tu rueda es una foto de cómo te sientes hoy en cada área de tu vida.','Tu punto más fuerte es '+hi.n+'. Las áreas que más atención piden son '+need[0].n+' y '+need[1].n+'.'],
-      '<div class="mt-info mt-wheel">'+radarSVG([{w:W,cls:'rd-b'}],{label:'Tu rueda de la vida'})+'</div>',
-      [{l:'¿Cómo la uso?',main:true,go:function(){ say('Mentor · Rueda de la Vida','Úsala como una brújula, no como una nota.','<div class="mt-info"><p>Fue creada en los años sesenta por Paul J. Meyer, pionero del desarrollo personal. La idea es sencilla: una vida equilibrada se parece a una rueda redonda, y si un área queda muy baja, la rueda no gira bien.</p><p>Tus cápsulas empiezan por las áreas más bajas. Cada cuatro semanas vuelve a evaluarte y compara: lo importante no es llegar a 10, sino que la rueda sea más pareja.</p></div>',[{l:'Volver a evaluarme',main:true,go:reWheel},BACK]); }},
-       {l:'Volver a evaluarme',go:reWheel},BACK]);
+    var WT=LX('Mentor · Rueda de la Vida','Mentor · Wheel of Life'), AGAIN=LX('Volver a evaluarme','Assess myself again');
+    say(WT,LX(['Tu rueda es una foto de cómo te sientes hoy en cada área de tu vida.','Tu punto más fuerte es '+hi.n+'. Las áreas que más atención piden son '+need[0].n+' y '+need[1].n+'.'],['Your wheel is a snapshot of how you feel today in each area of your life.','Your strongest point is '+hi.n+'. The areas asking for most attention are '+need[0].n+' and '+need[1].n+'.']),
+      '<div class="mt-info mt-wheel">'+radarSVG([{w:W,cls:'rd-b'}],{label:LX('Tu rueda de la vida','Your wheel of life')})+'</div>',
+      [{l:LX('¿Cómo la uso?','How do I use it?'),main:true,go:function(){ say(WT,LX('Úsala como una brújula, no como una nota.','Use it as a compass, not as a grade.'),LX('<div class="mt-info"><p>Fue creada en los años sesenta por Paul J. Meyer, pionero del desarrollo personal. La idea es sencilla: una vida equilibrada se parece a una rueda redonda, y si un área queda muy baja, la rueda no gira bien.</p><p>Tus cápsulas empiezan por las áreas más bajas. Cada cuatro semanas vuelve a evaluarte y compara: lo importante no es llegar a 10, sino que la rueda sea más pareja.</p></div>','<div class="mt-info"><p>It was created in the 1960s by Paul J. Meyer, a pioneer of personal development. The idea is simple: a balanced life looks like a round wheel, and if one area is very low, the wheel does not turn well.</p><p>Your capsules start with your lowest areas. Every four weeks, assess yourself again and compare: what matters is not reaching 10, but making the wheel more even.</p></div>'),[{l:AGAIN,main:true,go:reWheel},BACK]); }},
+       {l:AGAIN,go:reWheel},BACK]);
   }
-  function beliefs(){ say('Mentor · Creencias limitantes',['Una creencia limitante es una idea sobre ti que das por cierta y que te frena.','¿Cuál de estas frases te has dicho alguna vez?'],null,BELIEFS.map(function(b,i){ return {l:'«'+b.f+'»',go:function(){ belief(i); }}; }).concat([BACK])); }
+  function beliefs(){ say(LX('Mentor · Creencias limitantes','Mentor · Limiting beliefs'),LX(['Una creencia limitante es una idea sobre ti que das por cierta y que te frena.','¿Cuál de estas frases te has dicho alguna vez?'],['A limiting belief is an idea about yourself that you take as true and that holds you back.','Which of these sentences have you ever told yourself?']),null,BELIEFS.map(function(b,i){ return {l:LX('«','“')+b.f+LX('»','”'),go:function(){ belief(i); }}; }).concat([BACK])); }
   function belief(i){ var b=BELIEFS[i];
-    say('Mentor · Creencias limitantes','Revisemos juntos «'+b.f+'».','<div class="mt-info"><p class="mt-ck">Lo que muestran los hechos</p><p>'+esc(b.e)+'</p><p class="mt-ck">Prueba decirlo así</p><blockquote>'+esc(b.r)+'</blockquote><p class="mt-tip">Repite la frase nueva cada mañana durante una semana y anota qué cambia.</p></div>',
-      [{l:'Trabajarla en mi diario',main:true,go:function(){ toDiary('Hoy reviso la idea «'+b.f+'». ¿Qué pruebas tengo de que no siempre es cierta?'); }},{l:'Otra frase',go:beliefs},BACK]); }
+    say(LX('Mentor · Creencias limitantes','Mentor · Limiting beliefs'),LX('Revisemos juntos «'+b.f+'».','Let’s look together at “'+b.f+'”.'),'<div class="mt-info"><p class="mt-ck">'+LX('Lo que muestran los hechos','What the facts show')+'</p><p>'+esc(b.e)+'</p><p class="mt-ck">'+LX('Prueba decirlo así','Try saying it like this')+'</p><blockquote>'+esc(b.r)+'</blockquote><p class="mt-tip">'+LX('Repite la frase nueva cada mañana durante una semana y anota qué cambia.','Repeat the new sentence every morning for a week and write down what changes.')+'</p></div>',
+      [{l:LX('Trabajarla en mi diario','Work on it in my journal'),main:true,go:function(){ toDiary(LX('Hoy reviso la idea «'+b.f+'». ¿Qué pruebas tengo de que no siempre es cierta?','Today I am looking at the idea “'+b.f+'”. What evidence do I have that it is not always true?')); }},{l:LX('Otra frase','Another sentence'),go:beliefs},BACK]); }
   function idea(){ var ks=Object.keys(LEARN).filter(function(k){return LEARN[k].q;}), k=ks[Math.floor(Math.random()*ks.length)], L=LEARN[k];
-    say('Mentor · Una idea para hoy','«'+L.q+'»','<div class="mt-info"><p class="mt-ck">'+esc(L.qa)+'</p>'+(L.idea?'<p>'+esc(L.idea)+'</p>':'')+'</div>',
-      [{l:'Otra idea',main:true,go:idea},{l:'Escribir sobre esto en mi diario',go:function(){ toDiary('¿Qué significa para ti esta frase: «'+L.q+'»?'); }},BACK]); }
+    say(LX('Mentor · Una idea para hoy','Mentor · An idea for today'),LX('«','“')+L.q+LX('»','”'),'<div class="mt-info"><p class="mt-ck">'+esc(L.qa)+'</p>'+(L.idea?'<p>'+esc(L.idea)+'</p>':'')+'</div>',
+      [{l:LX('Otra idea','Another idea'),main:true,go:idea},{l:LX('Escribir sobre esto en mi diario','Write about this in my journal'),go:function(){ toDiary(LX('¿Qué significa para ti esta frase: «'+L.q+'»?','What does this sentence mean to you: “'+L.q+'”?')); }},BACK]); }
   function toDiary(p){ diaPrefill=p; renderApp('diario'); window.scrollTo(0,0); }
   home(false);
 }
@@ -2253,12 +2320,14 @@ function diaPut(k,e){
 function dKey(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function diaStreak(){ var n=0, d=new Date(); if(!DIA[dKey(d)]) d.setDate(d.getDate()-1); while(DIA[dKey(d)]){ n++; d.setDate(d.getDate()-1); } return n; }
 var MOODS=[{v:1,l:'Difícil'},{v:2,l:'Bajo'},{v:3,l:'Normal'},{v:4,l:'Bien'},{v:5,l:'Pleno'}];
+if(EN) ovl(MOODS,EN.moods);
 var DIA_Q={
  s:['¿Qué te dio paz hoy, aunque haya sido algo pequeño?','¿Con quién te sentiste en conexión hoy y por qué?','¿Qué le dirías a tu yo de hace un año?','¿Qué estás cargando que podrías soltar?'],
  m:['¿Qué decisión tomaste hoy pensando en tu yo del futuro?','¿Qué aprendiste hoy que te hace más valioso o valiosa en tu trabajo?','¿Cómo te sentiste hoy con el dinero? ¿Por qué?','¿Qué gasto de esta semana te acercó a tu meta, y cuál te alejó?'],
  v:['¿Cómo trataste a tu cuerpo hoy?','¿Qué te dio energía hoy y qué te la quitó?','¿Qué pequeño hábito de salud quieres sostener mañana?','¿Cómo dormiste anoche y qué podrías hacer distinto hoy?'],
  g:['¿Qué te hizo sonreír hoy?','¿Qué paso, por pequeño que sea, diste hoy hacia tu meta?','¿Qué situación de hoy pudiste manejar mejor y cómo?','¿De qué te sientes orgulloso u orgullosa esta semana?']
 };
+if(EN) ovl(DIA_Q,EN.diaQ);
 function diaPrompt(){
   var d=new Date(), nm=DAYS[(d.getDay()+6)%7].n, cn=capDays(), ix=cn.map(function(x){return x.toLowerCase();}).indexOf(nm);
   var p=ix>=0?['s','m','v'][ix]:'g', L=DIA_Q[p], doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
@@ -2272,17 +2341,21 @@ var DIA_STORIES=[
  {n:'Ana Frank',y:'1929–1945',t:'Escondida con su familia durante la Segunda Guerra Mundial, escribió su diario entre los 13 y los 15 años. Hoy es uno de los libros más leídos de la historia y un testimonio de esperanza.'},
  {n:'Frida Kahlo',y:'1907–1954',t:'En sus últimos diez años llevó un diario con textos y dibujos de colores donde expresó su dolor, su amor y su fuerza creativa.'}
 ];
+if(EN) ovl(DIA_STORIES,EN.diaStories);
 function viewDiary(main){
   if(!S.diarioIntro){ diaryIntro(main); return; }
-  main.innerHTML='<div class="boot-load" role="status"><span></span>Abriendo tu diario…</div>';
-  diaLoad().then(function(){ if(main.isConnected) diaryBook(main); }).catch(function(e){ main.innerHTML='<p class="err">No pude abrir tu diario. '+esc(fbErr(e))+'</p>'; });
+  main.innerHTML='<div class="boot-load" role="status"><span></span>'+LX('Abriendo tu diario…','Opening your journal…')+'</div>';
+  diaLoad().then(function(){ if(main.isConnected) diaryBook(main); }).catch(function(e){ main.innerHTML='<p class="err">'+LX('No pude abrir tu diario. ','I could not open your journal. ')+esc(fbErr(e))+'</p>'; });
 }
 function diaryIntro(main){
-  main.innerHTML='<section class="banner dia-hero"><div class="bn-txt"><p class="eyebrow">Diario personal</p><h1>Escribir te ordena por dentro.</h1><p class="goal">Antes de empezar, conoce por qué algunas de las personas más influyentes de la historia escribían un diario, y cómo puede ayudarte en tu ruta.</p></div></section>'+
-    '<section class="dia-tl"><h2>Diarios que cambiaron la historia</h2><ol>'+DIA_STORIES.map(function(s,i){ return '<li style="--i:'+i+'"><span class="dt-y">'+esc(s.y)+'</span><div><b>'+esc(s.n)+'</b><p>'+esc(s.t)+'</p></div></li>'; }).join('')+'</ol></section>'+
-    '<div class="pg-grid"><section class="pcard"><h2>Lo que dice la ciencia</h2><p>En los años ochenta, el psicólogo James Pennebaker descubrió que escribir unos minutos sobre lo que sentimos ayuda a procesar las emociones y reduce el estrés. Más tarde, los investigadores Robert Emmons y Michael McCullough encontraron que anotar cada semana aquello que agradecemos mejora el ánimo y el optimismo.</p></section>'+
+  main.innerHTML='<section class="banner dia-hero"><div class="bn-txt"><p class="eyebrow">'+LX('Diario personal','Personal journal')+'</p><h1>'+LX('Escribir te ordena por dentro.','Writing puts you in order inside.')+'</h1><p class="goal">'+LX('Antes de empezar, conoce por qué algunas de las personas más influyentes de la historia escribían un diario, y cómo puede ayudarte en tu ruta.','Before you start, discover why some of the most influential people in history kept a journal, and how it can help you on your path.')+'</p></div></section>'+
+    '<section class="dia-tl"><h2>'+LX('Diarios que cambiaron la historia','Journals that changed history')+'</h2><ol>'+DIA_STORIES.map(function(s,i){ return '<li style="--i:'+i+'"><span class="dt-y">'+esc(s.y)+'</span><div><b>'+esc(s.n)+'</b><p>'+esc(s.t)+'</p></div></li>'; }).join('')+'</ol></section>'+
+    LX('<div class="pg-grid"><section class="pcard"><h2>Lo que dice la ciencia</h2><p>En los años ochenta, el psicólogo James Pennebaker descubrió que escribir unos minutos sobre lo que sentimos ayuda a procesar las emociones y reduce el estrés. Más tarde, los investigadores Robert Emmons y Michael McCullough encontraron que anotar cada semana aquello que agradecemos mejora el ánimo y el optimismo.</p></section>'+
     '<section class="pcard"><h2>Cómo te ayuda en tu ruta</h2><ul class="dia-why"><li><b>Claridad.</b> Escribir tu intención cada mañana te recuerda tu meta.</li><li><b>Patrones.</b> Al releerte, descubres qué te da energía y qué te la quita.</li><li><b>Cambio profundo.</b> La revisión de la noche, que ya practicaba Séneca, convierte cada día en aprendizaje.</li></ul></section></div>'+
-    '<div class="dia-start"><button class="btn btn-primary" type="button" id="diaGo">Abrir mi diario</button><p>Solo tú puedes leer lo que escribes aquí.</p></div>';
+    '<div class="dia-start"><button class="btn btn-primary" type="button" id="diaGo">Abrir mi diario</button><p>Solo tú puedes leer lo que escribes aquí.</p></div>',
+    '<div class="pg-grid"><section class="pcard"><h2>What science says</h2><p>In the 1980s, psychologist James Pennebaker discovered that writing for a few minutes about what we feel helps process emotions and reduces stress. Later, researchers Robert Emmons and Michael McCullough found that writing down each week what we are grateful for improves mood and optimism.</p></section>'+
+    '<section class="pcard"><h2>How it helps you on your path</h2><ul class="dia-why"><li><b>Clarity.</b> Writing your intention every morning reminds you of your goal.</li><li><b>Patterns.</b> Rereading yourself, you discover what gives you energy and what takes it away.</li><li><b>Deep change.</b> The evening review, which Seneca already practiced, turns every day into learning.</li></ul></section></div>'+
+    '<div class="dia-start"><button class="btn btn-primary" type="button" id="diaGo">Open my journal</button><p>Only you can read what you write here.</p></div>');
   main.querySelector('#diaGo').onclick=function(){ S.diarioIntro=true; save(); renderApp('diario'); window.scrollTo(0,0); };
 }
 function diaryBook(main){
@@ -2290,27 +2363,27 @@ function diaryBook(main){
   var P=diaPrompt(); if(!e.prompt) e.prompt=diaPrefill||P.q; else if(diaPrefill) e.prompt=diaPrefill; diaPrefill=null;
   var night=new Date().getHours()>=17, mode=night?'noche':'manana';
   if(e.mood && e.moodAm==null && e.moodPm==null) e.moodAm=e.mood;
-  var dlabel=new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
-  main.innerHTML='<section class="dia-top"><div><p class="eyebrow">Diario personal</p><h1>'+esc(dlabel.charAt(0).toUpperCase()+dlabel.slice(1))+'</h1></div>'+
-      '<div class="dia-stats"><div><b id="dStreak">'+diaStreak()+'</b><span>días seguidos</span></div><div><b id="dCount">'+Object.keys(DIA).length+'</b><span>páginas</span></div><button type="button" class="pd-ed" id="dWhy">Por qué un diario</button></div></section>'+
-    '<div class="dia-grid"><section class="dia-page"><div class="dia-mode" role="tablist"><button type="button" role="tab" data-m="manana">Mañana · Intención</button><button type="button" role="tab" data-m="noche">Noche · Revisión</button></div>'+
-      '<div class="dia-mood"><span id="dMoodH">¿Cómo te sientes?</span><div>'+MOODS.map(function(m){ return '<button type="button" class="mo mo'+m.v+'" data-v="'+m.v+'"><i></i>'+m.l+'</button>'; }).join('')+'</div></div>'+
+  var dlabel=new Date().toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'});
+  main.innerHTML='<section class="dia-top"><div><p class="eyebrow">'+LX('Diario personal','Personal journal')+'</p><h1>'+esc(dlabel.charAt(0).toUpperCase()+dlabel.slice(1))+'</h1></div>'+
+      '<div class="dia-stats"><div><b id="dStreak">'+diaStreak()+'</b><span>'+LX('días seguidos','days in a row')+'</span></div><div><b id="dCount">'+Object.keys(DIA).length+'</b><span>'+LX('páginas','pages')+'</span></div><button type="button" class="pd-ed" id="dWhy">'+LX('Por qué un diario','Why a journal')+'</button></div></section>'+
+    '<div class="dia-grid"><section class="dia-page"><div class="dia-mode" role="tablist"><button type="button" role="tab" data-m="manana">'+LX('Mañana · Intención','Morning · Intention')+'</button><button type="button" role="tab" data-m="noche">'+LX('Noche · Revisión','Evening · Review')+'</button></div>'+
+      '<div class="dia-mood"><span id="dMoodH">'+LX('¿Cómo te sientes?','How do you feel?')+'</span><div>'+MOODS.map(function(m){ return '<button type="button" class="mo mo'+m.v+'" data-v="'+m.v+'"><i></i>'+m.l+'</button>'; }).join('')+'</div></div>'+
       '<div id="dBody"></div><p class="dia-saved" id="dSaved" aria-live="polite"></p></section>'+
-      '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>Páginas anteriores</h2><div id="dPast"></div></section><p class="dia-priv">🔒 Solo tú puedes leer tu diario. Ni el equipo de Áurea tiene acceso. Solo cómo te sientes se usa, sin tus textos, para estadísticas generales.</p></aside></div>';
+      '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>'+LX('Páginas anteriores','Previous pages')+'</h2><div id="dPast"></div></section><p class="dia-priv">'+LX('🔒 Solo tú puedes leer tu diario. Ni el equipo de Áurea tiene acceso. Solo cómo te sientes se usa, sin tus textos, para estadísticas generales.','🔒 Only you can read your journal. Not even the Áurea team has access. Only how you feel is used, without your writing, for general statistics.')+'</p></aside></div>';
   var body=main.querySelector('#dBody'), saved=main.querySelector('#dSaved'), T=null;
-  function persist(){ clearTimeout(T); saved.textContent='Guardando…'; T=setTimeout(function(){ e.updatedAt=Date.now(); diaPut(today,JSON.parse(JSON.stringify(e))).then(function(){ saved.textContent='Guardado'; main.querySelector('#dStreak').textContent=diaStreak(); main.querySelector('#dCount').textContent=Object.keys(DIA).length; cal(); past(); }).catch(function(er){ saved.textContent='No se pudo guardar. '+fbErr(er); }); },700); }
+  function persist(){ clearTimeout(T); saved.textContent=LX('Guardando…','Saving…'); T=setTimeout(function(){ e.updatedAt=Date.now(); diaPut(today,JSON.parse(JSON.stringify(e))).then(function(){ saved.textContent=LX('Guardado','Saved'); main.querySelector('#dStreak').textContent=diaStreak(); main.querySelector('#dCount').textContent=Object.keys(DIA).length; cal(); past(); }).catch(function(er){ saved.textContent=LX('No se pudo guardar. ','Could not save. ')+fbErr(er); }); },700); }
   function area(id,label,val,ph,rows){ return '<label class="dia-f"><span>'+label+'</span><textarea id="'+id+'" rows="'+(rows||3)+'" placeholder="'+esc(ph)+'">'+esc(val||'')+'</textarea></label>'; }
   function draw(){
     main.querySelector('.dia-grid').classList.toggle('night',mode==='noche'); main.querySelector('.dia-grid').classList.toggle('day',mode==='manana');
     main.querySelectorAll('[data-m]').forEach(function(b){ b.setAttribute('aria-selected',b.dataset.m===mode?'true':'false'); });
     if(mode==='manana'){
-      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+'Áurea pregunta</span><p class="dia-q" id="dQ"></p></div>'+area('dAns','Tu respuesta',e.answer,'Escribe con calma, sin corregirte…',5)+area('dInt','Mi intención para hoy',e.intent,'Por ejemplo: responder con calma aunque el día se complique',2);
+      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+LX('Áurea pregunta','Áurea asks')+'</span><p class="dia-q" id="dQ"></p></div>'+area('dAns',LX('Tu respuesta','Your answer'),e.answer,LX('Escribe con calma, sin corregirte…','Write calmly, without correcting yourself…'),5)+area('dInt',LX('Mi intención para hoy','My intention for today'),e.intent,LX('Por ejemplo: responder con calma aunque el día se complique','For example: to respond calmly even if the day gets complicated'),2);
       var q=body.querySelector('#dQ'); typeText(q,e.prompt,30,function(){});
     } else {
-      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+'La revisión de la noche</span><p class="dia-q" id="dQ"></p></div>'+
-        area('dGood','¿Qué hice bien hoy?',e.good,'Una acción, una conversación, una decisión…',3)+area('dBetter','¿Qué haría distinto?',e.better,'Sin culparte: solo lo que aprendiste',3)+
-        '<div class="dia-f"><span>Tres cosas que agradezco hoy</span><div class="dia-grat">'+[0,1,2].map(function(i){ return '<label><b>'+(i+1)+'</b><input type="text" data-g="'+i+'" maxlength="120" value="'+esc(e.grat[i]||'')+'" placeholder="'+['Una persona','Un momento','Algo de ti'][i]+'"></label>'; }).join('')+'</div></div>';
-      typeText(body.querySelector('#dQ'),'Antes de dormir, Séneca se preguntaba qué había hecho bien y qué podía mejorar. Hagamos lo mismo.',30,function(){});
+      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+LX('La revisión de la noche','The evening review')+'</span><p class="dia-q" id="dQ"></p></div>'+
+        area('dGood',LX('¿Qué hice bien hoy?','What did I do well today?'),e.good,LX('Una acción, una conversación, una decisión…','An action, a conversation, a decision…'),3)+area('dBetter',LX('¿Qué haría distinto?','What would I do differently?'),e.better,LX('Sin culparte: solo lo que aprendiste','Without blaming yourself: just what you learned'),3)+
+        '<div class="dia-f"><span>'+LX('Tres cosas que agradezco hoy','Three things I am grateful for today')+'</span><div class="dia-grat">'+[0,1,2].map(function(i){ return '<label><b>'+(i+1)+'</b><input type="text" data-g="'+i+'" maxlength="120" value="'+esc(e.grat[i]||'')+'" placeholder="'+LX(['Una persona','Un momento','Algo de ti'],['A person','A moment','Something about you'])[i]+'"></label>'; }).join('')+'</div></div>';
+      typeText(body.querySelector('#dQ'),LX('Antes de dormir, Séneca se preguntaba qué había hecho bien y qué podía mejorar. Hagamos lo mismo.','Before sleeping, Seneca asked himself what he had done well and what he could improve. Let’s do the same.'),30,function(){});
     }
     var map={dAns:'answer',dInt:'intent',dGood:'good',dBetter:'better'};
     body.querySelectorAll('textarea').forEach(function(t){ t.oninput=function(){ e[map[t.id]]=t.value; persist(); }; });
@@ -2318,24 +2391,24 @@ function diaryBook(main){
   }
   main.querySelectorAll('[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.dataset.m; draw(); moods(); }; });
   function mk(){ return mode==='manana'?'moodAm':'moodPm'; }
-  function moods(){ var v=e[mk()]||0; main.querySelector('#dMoodH').textContent=mode==='manana'?'¿Cómo te sientes al empezar el día?':'¿Cómo te sientes al terminar el día?';
+  function moods(){ var v=e[mk()]||0; main.querySelector('#dMoodH').textContent=mode==='manana'?LX('¿Cómo te sientes al empezar el día?','How do you feel as the day begins?'):LX('¿Cómo te sientes al terminar el día?','How do you feel as the day ends?');
     main.querySelectorAll('.mo').forEach(function(b){ b.classList.toggle('on',+b.dataset.v===v); b.setAttribute('aria-pressed',+b.dataset.v===v?'true':'false'); }); }
   main.querySelectorAll('.mo').forEach(function(b){ b.onclick=function(){ var v=+b.dataset.v; e[mk()]=v; e.mood=v; moods(); persist(); moodLog(today,mode==='manana'?'am':'pm',v); }; });
   function cal(){ var d=new Date(), y=d.getFullYear(), m=d.getMonth(), first=(new Date(y,m,1).getDay()+6)%7, nd=new Date(y,m+1,0).getDate();
-    var ml=d.toLocaleDateString('es',{month:'long',year:'numeric'}); main.querySelector('#dCalH').textContent=ml.charAt(0).toUpperCase()+ml.slice(1);
+    var ml=d.toLocaleDateString(LOC,{month:'long',year:'numeric'}); main.querySelector('#dCalH').textContent=ml.charAt(0).toUpperCase()+ml.slice(1);
     var h=DAYS.map(function(x){return '<span class="dc-h">'+x.c+'</span>';}).join(''); for(var i=0;i<first;i++) h+='<span></span>';
-    for(var k=1;k<=nd;k++){ var key=dKey(new Date(y,m,k)), en=DIA[key]; h+='<span class="dc'+(en?' has mo'+(en.mood||3):'')+(k===d.getDate()?' today':'')+'" title="'+(en?'Escribiste este día':'')+'">'+k+'</span>'; }
+    for(var k=1;k<=nd;k++){ var key=dKey(new Date(y,m,k)), en=DIA[key]; h+='<span class="dc'+(en?' has mo'+(en.mood||3):'')+(k===d.getDate()?' today':'')+'" title="'+(en?LX('Escribiste este día','You wrote on this day'):'')+'">'+k+'</span>'; }
     main.querySelector('#dCal').innerHTML=h; }
   function past(){ var ks=Object.keys(DIA).filter(function(k){return k!==today;}).sort().reverse().slice(0,12);
     var box=main.querySelector('#dPast');
-    box.innerHTML=ks.length?ks.map(function(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'); return '<button type="button" class="dp" data-k="'+k+'"><i class="mo'+(x.mood||3)+'"></i><span><b>'+esc(dd.toLocaleDateString('es',{weekday:'short',day:'numeric',month:'short'}))+'</b><small>'+esc(String(x.intent||x.answer||x.good||'').slice(0,60))+'</small></span></button>'; }).join('')
-      :'<p class="dia-empty">Tus páginas aparecerán aquí. Escribir un poco cada día vale más que escribir mucho de vez en cuando.</p>';
+    box.innerHTML=ks.length?ks.map(function(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'); return '<button type="button" class="dp" data-k="'+k+'"><i class="mo'+(x.mood||3)+'"></i><span><b>'+esc(dd.toLocaleDateString(LOC,{weekday:'short',day:'numeric',month:'short'}))+'</b><small>'+esc(String(x.intent||x.answer||x.good||'').slice(0,60))+'</small></span></button>'; }).join('')
+      :'<p class="dia-empty">'+LX('Tus páginas aparecerán aquí. Escribir un poco cada día vale más que escribir mucho de vez en cuando.','Your pages will appear here. Writing a little every day is worth more than writing a lot once in a while.')+'</p>';
     box.querySelectorAll('.dp').forEach(function(b){ b.onclick=function(){ readPage(b.dataset.k); }; }); }
   function readPage(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'), M=MOODS.filter(function(m){return m.v===x.mood;})[0];
     var sec=function(t,v){ return v?'<h4>'+t+'</h4><p>'+esc(v)+'</p>':''; };
-    modal(M?'Te sentías: '+M.l.toLowerCase():'Tu página','<p class="eyebrow">'+esc(dd.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</p><div class="dia-read">'+
-      (x.prompt&&x.answer?'<blockquote>'+esc(x.prompt)+'</blockquote>':'')+sec('Tu respuesta',x.answer)+sec('Tu intención',x.intent)+sec('Lo que hiciste bien',x.good)+sec('Lo que harías distinto',x.better)+
-      ((x.grat||[]).filter(Boolean).length?'<h4>Agradeciste</h4><ul>'+x.grat.filter(Boolean).map(function(g){return '<li>'+esc(g)+'</li>';}).join('')+'</ul>':'')+'</div>'); }
+    modal(M?LX('Te sentías: ','You felt: ')+M.l.toLowerCase():LX('Tu página','Your page'),'<p class="eyebrow">'+esc(dd.toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</p><div class="dia-read">'+
+      (x.prompt&&x.answer?'<blockquote>'+esc(x.prompt)+'</blockquote>':'')+sec(LX('Tu respuesta','Your answer'),x.answer)+sec(LX('Tu intención','Your intention'),x.intent)+sec(LX('Lo que hiciste bien','What you did well'),x.good)+sec(LX('Lo que harías distinto','What you would do differently'),x.better)+
+      ((x.grat||[]).filter(Boolean).length?'<h4>'+LX('Agradeciste','You were grateful for')+'</h4><ul>'+x.grat.filter(Boolean).map(function(g){return '<li>'+esc(g)+'</li>';}).join('')+'</ul>':'')+'</div>'); }
   main.querySelector('#dWhy').onclick=function(){ S.diarioIntro=false; save(); renderApp('diario'); window.scrollTo(0,0); };
   draw(); moods(); cal(); past();
 }
@@ -2345,11 +2418,11 @@ function openCap(id){
   if(locked()){ paywall(); return; }
   var c=CAP[id], P=PILLARS[c.p], wasDone=!!S.done[id], before=level(); var D=DEEP[id]||{};
   var ov=document.createElement('div'); ov.className='ov gutter';
-  ov.innerHTML='<article class="sheet '+P.cls+'" role="dialog" aria-modal="true" aria-label="'+esc(c.title)+'"><button class="close" type="button" aria-label="Cerrar">✕</button>'+
-    '<span class="k">'+P.name+' · '+dayFor(c.p)+' · '+capMin(c)+' min</span><h2>'+esc(c.title)+'</h2>'+(function(f){ return f?'<p class="cap-f">Elegida para ti: trabaja tu área de <b>'+esc(f.a.n)+'</b>, que hoy está en '+f.v+'/10.</p>':''; })(capFocus(id))+'<div class="body">'+c.body.concat(D.more||[]).map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</div>'+
-    (D.steps?'<div class="steps"><b>Cómo aplicarlo</b><ol>'+D.steps.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>':'')+
-    (D.exp?'<aside class="expert"><span class="ex-k">Lo que dicen los expertos</span><div class="ex-who"><span class="ex-av" aria-hidden="true">'+esc(D.exp.who.charAt(0))+'</span><span><b>'+esc(D.exp.who)+'</b><small>'+esc(D.exp.bk)+'</small></span></div><p>'+esc(D.exp.t)+'</p></aside>':'')+
-    '<div class="practice"><b>Práctica de la semana</b><p>'+esc(c.practice)+'</p><label class="check"><input type="checkbox" id="pr-'+id+'" '+(S.practice[id]?'checked':'')+'> Me comprometo a realizarla esta semana</label></div>'+
+  ov.innerHTML='<article class="sheet '+P.cls+'" role="dialog" aria-modal="true" aria-label="'+esc(c.title)+'"><button class="close" type="button" aria-label="'+LX('Cerrar','Close')+'">✕</button>'+
+    '<span class="k">'+P.name+' · '+dayFor(c.p)+' · '+capMin(c)+' min</span><h2>'+esc(c.title)+'</h2>'+(function(f){ return f?'<p class="cap-f">'+LX('Elegida para ti: trabaja tu área de <b>'+esc(f.a.n)+'</b>, que hoy está en '+f.v+'/10.','Chosen for you: it works on your <b>'+esc(f.a.n)+'</b> area, which is at '+f.v+'/10 today.')+'</p>':''; })(capFocus(id))+'<div class="body">'+c.body.concat(D.more||[]).map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</div>'+
+    (D.steps?'<div class="steps"><b>'+LX('Cómo aplicarlo','How to apply it')+'</b><ol>'+D.steps.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>':'')+
+    (D.exp?'<aside class="expert"><span class="ex-k">'+LX('Lo que dicen los expertos','What the experts say')+'</span><div class="ex-who"><span class="ex-av" aria-hidden="true">'+esc(D.exp.who.charAt(0))+'</span><span><b>'+esc(D.exp.who)+'</b><small>'+esc(D.exp.bk)+'</small></span></div><p>'+esc(D.exp.t)+'</p></aside>':'')+
+    '<div class="practice"><b>'+LX('Práctica de la semana','Practice of the week')+'</b><p>'+esc(c.practice)+'</p><label class="check"><input type="checkbox" id="pr-'+id+'" '+(S.practice[id]?'checked':'')+'> '+LX('Me comprometo a realizarla esta semana','I commit to doing it this week')+'</label></div>'+
     '<div id="orig"></div><div class="actions" id="act"></div></article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   function close(){ ov.remove(); document.body.style.overflow=''; renderApp(); }
@@ -2359,16 +2432,16 @@ function openCap(id){
   ov.querySelector('#pr-'+id).onchange=function(e){ if(e.target.checked) S.practice[id]=true; else delete S.practice[id]; save(); };
   var orig=ov.querySelector('#orig'), act=ov.querySelector('#act');
   function showOrigin(){ var L=LEARN[c.id]||{tr:[]};
-    orig.innerHTML='<div class="origin"><span class="o-k">De dónde viene esta idea</span><b>'+esc(c.origin)+'</b><p class="o-ref">'+esc(c.ref)+'</p>'+
-      (L.idea||L.by?'<div class="o-sec"><h4>La idea, explicada</h4>'+(L.idea?'<p>'+esc(L.idea)+'</p>':'')+
-        (L.by?L.tr.filter(function(t){return L.by[t];}).map(function(t){ var nm=TRAD[t].n; return '<div class="o-by"><h5>En '+esc(nm.charAt(0).toLowerCase()+nm.slice(1))+'</h5><p>'+esc(L.by[t])+'</p></div>'; }).join(''):'')+
+    orig.innerHTML='<div class="origin"><span class="o-k">'+LX('De dónde viene esta idea','Where this idea comes from')+'</span><b>'+esc(c.origin)+'</b><p class="o-ref">'+esc(c.ref)+'</p>'+
+      (L.idea||L.by?'<div class="o-sec"><h4>'+LX('La idea, explicada','The idea, explained')+'</h4>'+(L.idea?'<p>'+esc(L.idea)+'</p>':'')+
+        (L.by?L.tr.filter(function(t){return L.by[t];}).map(function(t){ var T0=TRAD[t], nm=T0.ln||T0.n; return '<div class="o-by"><h5>'+LX('En ','In ')+esc(lcFirst(nm))+'</h5><p>'+esc(L.by[t])+'</p></div>'; }).join(''):'')+
         (L.end?'<p class="o-end">'+esc(L.end)+'</p>':'')+'</div>':'')+
-      (L.q?'<blockquote class="o-q"><p>«'+esc(L.q)+'»</p><cite>'+esc(L.qa)+'</cite></blockquote>':'')+
-      L.tr.map(function(t,ix){ var T=TRAD[t]; return '<details class="o-trad"><summary>Conoce más: '+esc(T.n.charAt(0).toLowerCase()+T.n.slice(1))+'</summary><p>'+esc(T.t)+'</p></details>'; }).join('')+
-      (L.bk?'<p class="o-book"><span>Para profundizar</span>'+esc(L.bk)+'</p>':'')+'</div>';
-    act.innerHTML='<button class="btn btn-primary" type="button" id="cl">Volver a mi ruta</button>'; act.querySelector('#cl').onclick=close; }
+      (L.q?'<blockquote class="o-q"><p>'+LX('«','“')+esc(L.q)+LX('»','”')+'</p><cite>'+esc(L.qa)+'</cite></blockquote>':'')+
+      L.tr.map(function(t,ix){ var T=TRAD[t]; return '<details class="o-trad"><summary>'+LX('Conoce más: ','Learn more: ')+esc(lcFirst(T.ln||T.n))+'</summary><p>'+esc(T.t)+'</p></details>'; }).join('')+
+      (L.bk?'<p class="o-book"><span>'+LX('Para profundizar','To go deeper')+'</span>'+esc(L.bk)+'</p>':'')+'</div>';
+    act.innerHTML='<button class="btn btn-primary" type="button" id="cl">'+LX('Volver a mi ruta','Back to my path')+'</button>'; act.querySelector('#cl').onclick=close; }
   if(wasDone) showOrigin();
-  else { act.innerHTML='<button class="btn btn-primary" type="button" id="fin">Completar cápsula</button>'; act.querySelector('#fin').onclick=function(){ S.done[id]=true; save(); showOrigin(); var after=level(); toast(after!==before?'Subiste al nivel '+after.n+' · '+after.name:'+10 puntos · Cápsula completada'); }; }
+  else { act.innerHTML='<button class="btn btn-primary" type="button" id="fin">'+LX('Completar cápsula','Complete capsule')+'</button>'; act.querySelector('#fin').onclick=function(){ S.done[id]=true; save(); showOrigin(); var after=level(); toast(after!==before?LX('Subiste al nivel ','You reached level ')+after.n+' · '+after.name:LX('+10 puntos · Cápsula completada','+10 points · Capsule completed')); }; }
   ov.querySelector('.close').focus({preventScroll:true});
 }
 function toast(msg){ var t=document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent=msg; document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }
@@ -2379,39 +2452,39 @@ function paywall(){
   if(document.querySelector('.ov.pay')) return;
   var n=S.reg.name, ended=trialLeft()<=0;
   var ov=document.createElement('div'); ov.className='ov pay gutter';
-  ov.innerHTML='<article class="sheet" role="dialog" aria-modal="true" aria-label="Suscripción">'+(ended?'':'<button class="close" type="button" aria-label="Cerrar">✕</button>')+
-    '<header class="pw-h"><div class="pw-orb">'+logo(26)+'</div><div><p class="eyebrow">Tu suscripción</p><h2 class="pw-t">'+(ended?'Continúa tu ruta':'Elige tu plan')+'</h2></div></header><p class="paytext pw-msg" id="pt"></p>'+
+  ov.innerHTML='<article class="sheet" role="dialog" aria-modal="true" aria-label="'+LX('Suscripción','Subscription')+'">'+(ended?'':'<button class="close" type="button" aria-label="'+LX('Cerrar','Close')+'">✕</button>')+
+    '<header class="pw-h"><div class="pw-orb">'+logo(26)+'</div><div><p class="eyebrow">'+LX('Tu suscripción','Your subscription')+'</p><h2 class="pw-t">'+(ended?LX('Continúa tu ruta','Continue your path'):LX('Elige tu plan','Choose your plan'))+'</h2></div></header><p class="paytext pw-msg" id="pt"></p>'+
     '<div class="plans pw-plans" role="radiogroup" aria-label="Plan">'+
-      '<button type="button" class="plan" role="radio" data-p="mensual" aria-pressed="'+(S.plan==='mensual')+'"><span class="pw-dot" aria-hidden="true"></span><span class="mono">Mensual</span><b>$'+fmtP(cfg().priceM)+'</b><small>USD al mes</small></button>'+
-      '<button type="button" class="plan" role="radio" data-p="anual" aria-pressed="'+(S.plan!=='mensual')+'"><span class="pw-dot" aria-hidden="true"></span><span class="mono">Anual'+(pwSave()>0?' <em class="pw-save">Ahorras '+pwSave()+'%</em>':'')+'</span><b>$'+fmtP(cfg().priceA)+'</b><small>USD al año · $'+fmtP(Math.round(cfg().priceA/12*100)/100)+' al mes</small></button></div>'+
-    '<ul class="pw-inc"><li>Tu ruta completa de cápsulas</li><li>Áurea Mentor y tu diario</li><li>Cancelas cuando quieras</li></ul>'+
-    (!cloud()?'<button class="btn btn-primary big-cta" id="sub" type="button">Suscribirme con tarjeta</button>':
-      (cfg().payPayphone||cfg().payPaypal?'<p class="pw-lbl">Forma de pago</p><div class="pw-pay">':'')+
-      (cfg().payPayphone?'<button class="pw-card" id="sub" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg><span>Tarjeta de crédito o débito</span><i class="pw-pph">payphone</i></button>':'')+
-      (cfg().payPaypal?'<div id="ppBtn" class="pp-box"><span class="pp-wait">Cargando PayPal…</span></div>':'')+
-      (cfg().payPayphone||cfg().payPaypal?'</div><p class="pw-fine"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Pago seguro. Áurea no ve ni guarda los datos de tu tarjeta.'+(cfg().payPayphone?' Con tarjeta pagas el periodo elegido.':'')+(cfg().payPaypal?' Con PayPal se renueva solo y puedes cancelar cuando quieras.':'')+' <a href="terminos.html" target="_blank" rel="noopener">Términos</a></span></p>':'<p class="note">Muy pronto podrás suscribirte aquí con tarjeta o PayPal.</p>')+
-      '<p class="note err" id="payErr" hidden></p>')+'<p class="note" id="payNote" hidden>En la versión final, este botón abre el pago seguro con tarjeta. Ningún dato de tarjeta pasa por esta vista previa. <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">Simular pago aprobado</button></p></article>';
+      '<button type="button" class="plan" role="radio" data-p="mensual" aria-pressed="'+(S.plan==='mensual')+'"><span class="pw-dot" aria-hidden="true"></span><span class="mono">'+LX('Mensual','Monthly')+'</span><b>$'+fmtP(cfg().priceM)+'</b><small>'+LX('USD al mes','USD a month')+'</small></button>'+
+      '<button type="button" class="plan" role="radio" data-p="anual" aria-pressed="'+(S.plan!=='mensual')+'"><span class="pw-dot" aria-hidden="true"></span><span class="mono">'+LX('Anual','Annual')+(pwSave()>0?' <em class="pw-save">'+LX('Ahorras ','Save ')+pwSave()+'%</em>':'')+'</span><b>$'+fmtP(cfg().priceA)+'</b><small>'+LX('USD al año · $','USD a year · $')+fmtP(Math.round(cfg().priceA/12*100)/100)+LX(' al mes',' a month')+'</small></button></div>'+
+    '<ul class="pw-inc"><li>'+LX('Tu ruta completa de cápsulas','Your complete path of capsules')+'</li><li>'+LX('Áurea Mentor y tu diario','Áurea Mentor and your journal')+'</li><li>'+LX('Cancelas cuando quieras','Cancel anytime')+'</li></ul>'+
+    (!cloud()?'<button class="btn btn-primary big-cta" id="sub" type="button">'+LX('Suscribirme con tarjeta','Subscribe with card')+'</button>':
+      (cfg().payPayphone||cfg().payPaypal?'<p class="pw-lbl">'+LX('Forma de pago','Payment method')+'</p><div class="pw-pay">':'')+
+      (cfg().payPayphone?'<button class="pw-card" id="sub" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg><span>'+LX('Tarjeta de crédito o débito','Credit or debit card')+'</span><i class="pw-pph">payphone</i></button>':'')+
+      (cfg().payPaypal?'<div id="ppBtn" class="pp-box"><span class="pp-wait">'+LX('Cargando PayPal…','Loading PayPal…')+'</span></div>':'')+
+      (cfg().payPayphone||cfg().payPaypal?'</div><p class="pw-fine"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>'+LX('Pago seguro. Áurea no ve ni guarda los datos de tu tarjeta.','Secure payment. Áurea never sees or stores your card details.')+(cfg().payPayphone?LX(' Con tarjeta pagas el periodo elegido.',' With a card you pay for the chosen period.'):'')+(cfg().payPaypal?LX(' Con PayPal se renueva solo y puedes cancelar cuando quieras.',' With PayPal it renews automatically and you can cancel anytime.'):'')+' <a href="terminos.html" target="_blank" rel="noopener">'+LX('Términos','Terms')+'</a></span></p>':'<p class="note">'+LX('Muy pronto podrás suscribirte aquí con tarjeta o PayPal.','Very soon you will be able to subscribe here with a card or PayPal.')+'</p>')+
+      '<p class="note err" id="payErr" hidden></p>')+'<p class="note" id="payNote" hidden>'+LX('En la versión final, este botón abre el pago seguro con tarjeta. Ningún dato de tarjeta pasa por esta vista previa.','In the final version, this button opens the secure card payment. No card data goes through this preview.')+' <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">'+LX('Simular pago aprobado','Simulate approved payment')+'</button></p></article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   
   var cl=ov.querySelector('.close'); if(cl) cl.onclick=function(){ ov.remove(); document.body.style.overflow=''; };
   ov.querySelectorAll('.plan').forEach(function(b){ b.onclick=function(){ S.plan=b.dataset.p; save(); ov.querySelectorAll('.plan').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));}); }; });
   var ppb=ov.querySelector('#ppBtn');
-  if(ppb) paypalMount(ppb,ov.querySelector('#payErr'),function(){ ov.remove(); document.body.style.overflow=''; renderApp(); toast('Suscripción activa con PayPal. Tu ruta continúa.'); });
+  if(ppb) paypalMount(ppb,ov.querySelector('#payErr'),function(){ ov.remove(); document.body.style.overflow=''; renderApp(); toast(LX('Suscripción activa con PayPal. Tu ruta continúa.','Subscription active with PayPal. Your path continues.')); });
   var sb=ov.querySelector('#sub'); if(sb) sb.onclick=function(){
     if(!cloud()||!fbUser){ ov.querySelector('#payNote').hidden=false; return; }
-    var b=this, er=ov.querySelector('#payErr'); b._h=b.innerHTML; b.disabled=true; b.innerHTML='<span>Abriendo el pago seguro…</span>'; er.hidden=true;
+    var b=this, er=ov.querySelector('#payErr'); b._h=b.innerHTML; b.disabled=true; b.innerHTML='<span>'+LX('Abriendo el pago seguro…','Opening the secure payment…')+'</span>'; er.hidden=true;
     payStart(S.plan==='mensual'?'mensual':'anual').then(function(r){ location.href=r.url; })
-      .catch(function(e){ b.disabled=false; b.innerHTML=b._h; er.textContent=(e&&e.message)||'No pude abrir el pago. Intenta de nuevo.'; er.hidden=false; });
+      .catch(function(e){ b.disabled=false; b.innerHTML=b._h; er.textContent=LANG==='en'?'I could not open the payment. Please try again.':((e&&e.message)||'No pude abrir el pago. Intenta de nuevo.'); er.hidden=false; });
   };
-  ov.querySelector('#simPay').onclick=function(){ S.subscribed=true; save(); ov.remove(); document.body.style.overflow=''; renderApp(); toast('Suscripción activa. Tu ruta continúa.'); };
-  var msg= ended ? n+', tu prueba gratuita ha terminado. Completaste '+doneCount()+' cápsulas y llegaste al nivel '+level().name+'. Para continuar tu ruta, elige tu plan.' : n+', estos son los planes para continuar tu ruta cuando termine tu prueba gratuita.';
+  ov.querySelector('#simPay').onclick=function(){ S.subscribed=true; save(); ov.remove(); document.body.style.overflow=''; renderApp(); toast(LX('Suscripción activa. Tu ruta continúa.','Subscription active. Your path continues.')); };
+  var msg= ended ? LX(n+', tu prueba gratuita ha terminado. Completaste '+doneCount()+' cápsulas y llegaste al nivel '+level().name+'. Para continuar tu ruta, elige tu plan.',n+', your free trial has ended. You completed '+doneCount()+' capsules and reached the '+level().name+' level. To continue your path, choose your plan.') : LX(n+', estos son los planes para continuar tu ruta cuando termine tu prueba gratuita.',n+', these are the plans to continue your path when your free trial ends.');
   typeText(ov.querySelector('#pt'), up(msg), 22);
 }
 
 /* ================= MENÚ DE USUARIO ================= */
 function modal(title,body,mount){
   var ov=document.createElement('div'); ov.className='ov gutter mov';
-  ov.innerHTML='<article class="sheet msheet" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><button class="close" type="button" aria-label="Cerrar">✕</button><h2 class="m-t">'+esc(title)+'</h2>'+body+'</article>';
+  ov.innerHTML='<article class="sheet msheet" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><button class="close" type="button" aria-label="'+LX('Cerrar','Close')+'">✕</button><h2 class="m-t">'+esc(title)+'</h2>'+body+'</article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   function close(){ ov.remove(); document.body.style.overflow=''; document.removeEventListener('keydown',k); }
   function k(e){ if(e.key==='Escape') close(); }
@@ -2422,23 +2495,23 @@ function modal(title,body,mount){
   return ov;
 }
 function askOk(title,text,okLabel,go){
-  modal(title,'<p class="ad-sub" style="margin:.4em 0 1.2em">'+esc(text)+'</p><div style="display:flex;gap:.6em;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn btn-ghost" id="akNo">Volver</button><button type="button" class="btn btn-primary" id="akOk">'+esc(okLabel)+'</button></div>',
+  modal(title,'<p class="ad-sub" style="margin:.4em 0 1.2em">'+esc(text)+'</p><div style="display:flex;gap:.6em;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn btn-ghost" id="akNo">'+LX('Volver','Back')+'</button><button type="button" class="btn btn-primary" id="akOk">'+esc(okLabel)+'</button></div>',
     function(ov,close){ ov.querySelector('#akNo').onclick=close; ov.querySelector('#akOk').onclick=function(){ close(); go(); }; ov.querySelector('#akOk').focus(); });
 }
 function fld(id,label,val,type,extra){ return '<label><span>'+label+'</span><input class="lfield" id="'+id+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'" '+(extra||'')+'></label>'; }
-function pwFld(id,label,ac){ return '<label><span>'+label+'</span><div class="pwbox"><input class="lfield" id="'+id+'" type="password" maxlength="64" autocomplete="'+ac+'"><button type="button" class="pw-eye" aria-label="Mostrar contraseña">Mostrar</button></div></label>'; }
-function wireEyes(root){ root.querySelectorAll('.pw-eye').forEach(function(b){ b.onclick=function(){ var i=b.previousElementSibling, s=i.type==='password'; i.type=s?'text':'password'; b.textContent=s?'Ocultar':'Mostrar'; }; }); }
+function pwFld(id,label,ac){ return '<label><span>'+label+'</span><div class="pwbox"><input class="lfield" id="'+id+'" type="password" maxlength="64" autocomplete="'+ac+'"><button type="button" class="pw-eye" aria-label="'+LX('Mostrar contraseña','Show password')+'">'+LX('Mostrar','Show')+'</button></div></label>'; }
+function wireEyes(root){ root.querySelectorAll('.pw-eye').forEach(function(b){ b.onclick=function(){ var i=b.previousElementSibling, s=i.type==='password'; i.type=s?'text':'password'; b.textContent=s?LX('Ocultar','Hide'):LX('Mostrar','Show'); }; }); }
 function regRule(k){ return REG.filter(function(x){return x.key===k;})[0].validate; }
 function editProfile(){
   var r=S.reg;
-  modal('Editar perfil','<form class="login mform" novalidate>'+fld('e-name','Nombre',tc(r.name),'text','maxlength="30" autocomplete="given-name"')+
-    '<label><span>Correo</span><input class="lfield" type="email" value="'+esc(r.email)+'" disabled></label>'+
-    '<div class="m2">'+fld('e-age','Edad',r.age,'number','min="18" max="110" inputmode="numeric"')+
-    '<label><span>Sexo</span><select class="lfield" id="e-sex">'+['Mujer','Hombre','Prefiero no decirlo'].map(function(x){return '<option'+(x===r.sex?' selected':'')+'>'+x+'</option>';}).join('')+'</select></label></div>'+
-    '<div class="m2">'+fld('e-country','País',tc(r.country),'text','maxlength="40" list="e-countries"')+fld('e-city','Ciudad',tc(r.city),'text','maxlength="40"')+'</div>'+
+  modal(LX('Editar perfil','Edit profile'),'<form class="login mform" novalidate>'+fld('e-name',LX('Nombre','Name'),tc(r.name),'text','maxlength="30" autocomplete="given-name"')+
+    '<label><span>'+LX('Correo','Email')+'</span><input class="lfield" type="email" value="'+esc(r.email)+'" disabled></label>'+
+    '<div class="m2">'+fld('e-age',LX('Edad','Age'),r.age,'number','min="18" max="110" inputmode="numeric"')+
+    '<label><span>'+LX('Sexo','Sex')+'</span><select class="lfield" id="e-sex">'+SEXES.map(function(x){return '<option value="'+esc(x[0])+'"'+(x[0]===r.sex?' selected':'')+'>'+esc(sexLabel(x[0]))+'</option>';}).join('')+'</select></label></div>'+
+    '<div class="m2">'+fld('e-country',LX('País','Country'),tc(r.country),'text','maxlength="40" list="e-countries"')+fld('e-city',LX('Ciudad','City'),tc(r.city),'text','maxlength="40"')+'</div>'+
     '<datalist id="e-countries">'+COUNTRIES.map(function(c){return '<option value="'+esc(c)+'">';}).join('')+'</datalist>'+
-    '<p class="err" id="e-err"></p><div class="m-act"><button type="button" class="btn btn-ghost" data-x>Cancelar</button><button type="submit" class="btn btn-primary">Guardar cambios</button></div>'+
-    '<p class="m-note">Tu correo es tu usuario para iniciar sesión, por eso no se puede cambiar aquí.</p></form>',
+    '<p class="err" id="e-err"></p><div class="m-act"><button type="button" class="btn btn-ghost" data-x>'+LX('Cancelar','Cancel')+'</button><button type="submit" class="btn btn-primary">'+LX('Guardar cambios','Save changes')+'</button></div>'+
+    '<p class="m-note">'+LX('Tu correo es tu usuario para iniciar sesión, por eso no se puede cambiar aquí.','Your email is your username for signing in, so it cannot be changed here.')+'</p></form>',
   function(ov,close){
     var f=ov.querySelector('form'), err=ov.querySelector('#e-err');
     ov.querySelector('[data-x]').onclick=close;
@@ -2447,26 +2520,26 @@ function editProfile(){
       var keys=['name','age','country','city'];
       for(var i=0;i<keys.length;i++){ var m=regRule(keys[i])(v[keys[i]]); if(m){ err.textContent=m; ov.querySelector('#e-'+keys[i]).focus(); return; } }
       S.reg.name=v.name; S.reg.age=parseInt(v.age,10); S.reg.sex=v.sex; S.reg.country=v.country; S.reg.city=v.city; save();
-      close(); renderApp(); toast('Tu perfil se actualizó.');
+      close(); renderApp(); toast(LX('Tu perfil se actualizó.','Your profile was updated.'));
     };
     ov.querySelector('#e-name').focus({preventScroll:true});
   });
 }
 function changePw(){
-  modal('Cambiar contraseña','<form class="login mform" novalidate>'+pwFld('c-cur','Contraseña actual','current-password')+pwFld('c-new','Contraseña nueva','new-password')+pwFld('c-rep','Repite la contraseña nueva','new-password')+
-    '<p class="m-note">Usa al menos 8 caracteres y combina letras y números.</p><p class="err" id="c-err"></p><div class="m-act"><button type="button" class="btn btn-ghost" data-x>Cancelar</button><button type="submit" class="btn btn-primary">Guardar contraseña</button></div></form>',
+  modal(LX('Cambiar contraseña','Change password'),'<form class="login mform" novalidate>'+pwFld('c-cur',LX('Contraseña actual','Current password'),'current-password')+pwFld('c-new',LX('Contraseña nueva','New password'),'new-password')+pwFld('c-rep',LX('Repite la contraseña nueva','Repeat the new password'),'new-password')+
+    '<p class="m-note">'+LX('Usa al menos 8 caracteres y combina letras y números.','Use at least 8 characters and combine letters and numbers.')+'</p><p class="err" id="c-err"></p><div class="m-act"><button type="button" class="btn btn-ghost" data-x>'+LX('Cancelar','Cancel')+'</button><button type="submit" class="btn btn-primary">'+LX('Guardar contraseña','Save password')+'</button></div></form>',
   function(ov,close){
     wireEyes(ov);
     var err=ov.querySelector('#c-err'); ov.querySelector('[data-x]').onclick=close;
     ov.querySelector('form').onsubmit=function(e){ e.preventDefault();
       var cur=ov.querySelector('#c-cur').value, nw=ov.querySelector('#c-new').value, rp=ov.querySelector('#c-rep').value;
-      if(cloud()){ var m0=regRule('pw')(nw); if(m0){ err.textContent=m0; return; } if(nw!==rp){ err.textContent='Las contraseñas nuevas no coinciden.'; return; }
-        cloudChangePw(cur,nw).then(function(){ close(); toast('Tu contraseña se cambió.'); }).catch(function(e){ err.textContent=(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password')?'Tu contraseña actual no es correcta.':fbErr(e); }); return; }
-      if(pwHash(cur,S.reg.email)!==S.reg.pw){ err.textContent='Tu contraseña actual no es correcta.'; return; }
+      if(cloud()){ var m0=regRule('pw')(nw); if(m0){ err.textContent=m0; return; } if(nw!==rp){ err.textContent=LX('Las contraseñas nuevas no coinciden.','The new passwords do not match.'); return; }
+        cloudChangePw(cur,nw).then(function(){ close(); toast(LX('Tu contraseña se cambió.','Your password was changed.')); }).catch(function(e){ err.textContent=(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password')?LX('Tu contraseña actual no es correcta.','Your current password is not correct.'):fbErr(e); }); return; }
+      if(pwHash(cur,S.reg.email)!==S.reg.pw){ err.textContent=LX('Tu contraseña actual no es correcta.','Your current password is not correct.'); return; }
       var m=regRule('pw')(nw); if(m){ err.textContent=m; return; }
-      if(nw!==rp){ err.textContent='Las contraseñas nuevas no coinciden.'; return; }
-      if(nw===cur){ err.textContent='La contraseña nueva debe ser distinta de la actual.'; return; }
-      S.reg.pw=pwHash(nw,S.reg.email); save(); close(); toast('Tu contraseña se cambió.');
+      if(nw!==rp){ err.textContent=LX('Las contraseñas nuevas no coinciden.','The new passwords do not match.'); return; }
+      if(nw===cur){ err.textContent=LX('La contraseña nueva debe ser distinta de la actual.','The new password must be different from the current one.'); return; }
+      S.reg.pw=pwHash(nw,S.reg.email); save(); close(); toast(LX('Tu contraseña se cambió.','Your password was changed.'));
     };
     ov.querySelector('#c-cur').focus({preventScroll:true});
   });
@@ -2479,7 +2552,7 @@ function wireUserMenu(el){
   function esck(e){ if(e.key==='Escape'){ set(false); b.focus(); } }
   b.onclick=function(){ set(d.hidden); if(!d.hidden) d.querySelector('button').focus({preventScroll:true}); };
   d.querySelectorAll('[data-u]').forEach(function(x){ x.onclick=function(){ set(false); var a=x.dataset.u;
-    if(a==='perfil'){ renderApp('perfil'); window.scrollTo(0,0); } else if(a==='editar') editProfile(); else if(a==='pw') changePw(); else logout(); }; });
+    if(a==='perfil'){ renderApp('perfil'); window.scrollTo(0,0); } else if(a==='editar') editProfile(); else if(a==='pw') changePw(); else if(a==='lang') setLang(LANG==='en'?'es':'en'); else logout(); }; });
 }
 
 /* ================= ADMINISTRACIÓN ================= */
@@ -2491,7 +2564,7 @@ var adminMode=false;
 function adminEntry(){ adminMode=true; if(cloud()){ if(cloudAdminOk()) adminPanel('resumen'); else adminLoginCloud(); return; } if(isAdm()) adminPanel('resumen'); else adminLogin(); }
 function adminLogin(){
   var c=cfg(), setup=!c.admin;
-  var el=botScreen({phase:'Administración'}); el.classList.add('compact');
+  var el=botScreen({phase:'Administración',noLang:true}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots');
   el.querySelector('#tap').remove(); dots.innerHTML='';
   back.textContent='← Volver'; back.disabled=false; back.onclick=leaveAdmin; next.textContent=setup?'Crear acceso':'Ingresar';
@@ -2703,7 +2776,10 @@ function admIA(m){
     ok(); };
 }
 /* ---- Landing: editor visual. La landing (index.html) es el contenido original; lo editado se guarda en landing/contenido ---- */
-var LE=null, LE_PUB='aurea-landing', LE_DRAFT='aurea-landing-draft';
+var LE=null, LE_LANG='es', LE_PUB='aurea-landing', LE_DRAFT='aurea-landing-draft', LE_DOC='contenido', LE_DOC0='anterior';
+/* Cada idioma tiene su propio contenido: español en landing/contenido, inglés en landing/contenido_en */
+function leSetLang(l){ var en=l==='en'; LE_LANG=en?'en':'es'; LE_PUB='aurea-landing'+(en?'-en':''); LE_DRAFT='aurea-landing-draft'+(en?'-en':''); LE_DOC='contenido'+(en?'_en':''); LE_DOC0='anterior'+(en?'_en':''); }
+function leFlush(){ if(!LE||!LE.doc) return; clearTimeout(LE.ct); var d=leSer(); LE.dirty=leStr(d)!==LE.pub; if(LE.dirty) jset(LE_DRAFT,{t:Date.now(),data:d}); }
 var LE_AUTO='[data-trial-days],[data-trial-cta],[data-trial-h2],[data-trial-li],[data-trial-faq],[data-ai-trial],[data-ai-paid],[data-price-m],[data-price-a],[data-price-am]';
 var LE_SW=['#FFFFFF','#F7F5F0','#EFEBE3','#D9D4C9','#5D6378','#141A2E','#111833','#0E8C78','#2BD4B4','#6E4FE8','#D48C0E','#EA5A45'];
 var LE_PH='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#E9E5DC"/><path d="M600 400 a12 12 0 0 1 12 12 a24 24 0 0 1 -24 24 a36 36 0 0 1 -36 -36 a48 48 0 0 1 48 -48 a60 60 0 0 1 60 60 a72 72 0 0 1 -72 72 a84 84 0 0 1 -84 -84 a96 96 0 0 1 96 -96" fill="none" stroke="#B9B2A4" stroke-width="6" stroke-linecap="round"/><text x="600" y="640" text-anchor="middle" font-family="system-ui,sans-serif" font-size="34" fill="#8C8577">Toca la imagen para cambiarla</text></svg>');
@@ -3092,14 +3168,14 @@ function admLanding(m){
   m.classList.add('wide'); var prevLE=LE; if(prevLE) clearTimeout(prevLE.ct);
   LE={m:m,hist:[],last:'',pub:'',dirty:false,sel:null,leaf:null,img:null,range:null,D:{custom:{},hidden:{},removed:{},style:{},page:{}}};
   var me=LE, ab='<button type="button" class="le-tb" data-x="align" data-v="';
-  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Landing</h1></div><div class="le-acts"><span class="le-st" id="leSt">Cargando…</span>'+
+  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Landing</h1></div><div class="le-acts"><div class="le-seg" id="leLang" role="group" aria-label="Idioma de la landing"><button type="button" data-v="es"'+(LE_LANG==='es'?' class="on"':'')+'>Español</button><button type="button" data-v="en"'+(LE_LANG==='en'?' class="on"':'')+'>English</button></div><span class="le-st" id="leSt">Cargando…</span>'+
     '<button class="btn btn-ghost" type="button" id="leUndo" disabled>Deshacer</button><button class="btn btn-ghost" type="button" id="leDiscard" disabled>Descartar cambios</button>'+
     '<a class="btn btn-ghost" href="index.html" target="_blank" rel="noopener">Ver landing</a><button class="btn btn-primary" type="button" id="leSave">Guardar y publicar</button></div></div>'+
     '<div class="le-grid"><aside class="le-side">'+
       '<section class="pcard le-card"><div class="le-ch"><h2>Secciones</h2><button type="button" class="pd-ed" id="leAdd">+ Nueva sección</button></div><ol class="le-list" id="leList"></ol><details class="le-rem" id="leRem" hidden><summary></summary><div></div></details></section>'+
       '<section class="pcard le-card" id="leSec"></section>'+
-      '<section class="pcard le-card"><h2>Página</h2><label class="le-f"><span>Título de la pestaña</span><input class="lfield" id="lpT" maxlength="70" placeholder="La Espiral de la Plenitud"></label>'+
-        '<label class="le-f"><span>Descripción para buscadores</span><textarea class="lfield" id="lpD" maxlength="170" rows="3" placeholder="Mentoría personalizada en tres pilares…"></textarea></label>'+
+      '<section class="pcard le-card"><h2>Página</h2><label class="le-f"><span>Título de la pestaña</span><input class="lfield" id="lpT" maxlength="70" placeholder="'+(LE_LANG==='en'?'The Spiral of Fulfillment':'La Espiral de la Plenitud')+'"></label>'+
+        '<label class="le-f"><span>Descripción para buscadores</span><textarea class="lfield" id="lpD" maxlength="170" rows="3" placeholder="'+(LE_LANG==='en'?'Personalized mentoring in three pillars…':'Mentoría personalizada en tres pilares…')+'"></textarea></label>'+
         '<div class="le-row"><button class="btn btn-ghost" type="button" id="lePrev">Versión anterior</button><button class="btn btn-ghost ad-del" type="button" id="leOrig">Volver al original</button></div>'+
         '<p class="m-note">«Versión anterior» recupera lo que estaba publicado antes del último guardado. «Volver al original» deja la landing como venía de fábrica.</p></section>'+
     '</aside><div class="le-main">'+
@@ -3134,15 +3210,17 @@ function admLanding(m){
   m.querySelector('#leUndo').onclick=leUndo;
   m.querySelector('#leDiscard').onclick=function(){ askOk('Descartar cambios','Se perderán los cambios que no has publicado y la vista volverá a lo que ven hoy los visitantes.','Descartar',function(){ try{ localStorage.removeItem(LE_DRAFT); }catch(e){} LE.hist=[]; leLoad(LE.pub?JSON.parse(LE.pub):{}); LE.last=JSON.stringify(leSer()); LE.dirty=false; leStatus(); toast('Cambios descartados.'); }); };
   m.querySelector('#leSave').onclick=lePublish;
+  [].forEach.call(m.querySelectorAll('#leLang button'),function(b){ b.onclick=function(){ var l=b.getAttribute('data-v'); if(l===LE_LANG||LE.busy) return;
+    leFlush(); var had=LE.dirty; leSetLang(l); admLanding(m); toast((l==='en'?'Editando la landing en inglés.':'Editando la landing en español.')+(had?' Tus cambios sin publicar quedaron guardados como borrador.':'')); }; });
   m.querySelector('#lpT').oninput=function(){ LE.D.page.title=this.value.trim(); leMeta(); };
   m.querySelector('#lpD').oninput=function(){ LE.D.page.desc=this.value.trim(); leMeta(); };
   m.querySelector('#leOrig').onclick=function(){ askOk('Volver al original','La vista volverá al diseño y los textos originales de la landing, sin secciones nuevas. Se publica solo cuando toques «Guardar y publicar».','Volver al original',function(){ leStruct(function(){}); leLoad({}); leChanged(true); }); };
   m.querySelector('#lePrev').onclick=function(){
-    var go=cloud()?FB.f.getDoc(FB.f.doc(FB.db,'landing','anterior')).then(function(x){ return x.exists()?String(x.data().data||''):null; }):Promise.resolve(jget('aurea-landing-prev',null));
+    var go=cloud()?FB.f.getDoc(FB.f.doc(FB.db,'landing',LE_DOC0)).then(function(x){ return x.exists()?String(x.data().data||''):null; }):Promise.resolve(jget(LE_PUB+'-prev',null));
     go.then(function(v){ if(v==null){ toast('Todavía no hay una versión anterior guardada.'); return; }
       askOk('Versión anterior','La vista mostrará la versión que estaba publicada antes del último guardado. Se publica solo cuando toques «Guardar y publicar».','Recuperar',function(){ leStruct(function(){}); leLoad(v?JSON.parse(v):{}); leChanged(true); }); }).catch(function(e){ toast(fbErr(e)); }); };
-  var pubP=cloud()?FB.f.getDoc(FB.f.doc(FB.db,'landing','contenido')).then(function(x){ return x.exists()?String(x.data().data||''):''; }):Promise.resolve((function(){ try{ return localStorage.getItem(LE_PUB)||''; }catch(e){ return ''; } })());
-  var ifr=m.querySelector('#leIfr'), frP=new Promise(function(res){ ifr.onload=res; }); ifr.src='index.html?editar=1';
+  var pubP=cloud()?FB.f.getDoc(FB.f.doc(FB.db,'landing',LE_DOC)).then(function(x){ return x.exists()?String(x.data().data||''):''; }):Promise.resolve((function(){ try{ return localStorage.getItem(LE_PUB)||''; }catch(e){ return ''; } })());
+  var ifr=m.querySelector('#leIfr'), frP=new Promise(function(res){ ifr.onload=res; }); ifr.src='index.html?editar=1'+(LE_LANG==='en'?'&lang=en':'');
   Promise.all([pubP,frP]).then(function(r){ if(me!==LE||!ifr.isConnected) return;
     LE.win=ifr.contentWindow; LE.doc=ifr.contentDocument; LE.L=LE.win.AureaLanding;
     if(!LE.L){ m.querySelector('#leSt').textContent='No se pudo abrir la vista de la landing.'; return; }
@@ -3157,11 +3235,11 @@ function lePublish(){
   if(!LE||!LE.doc) return; clearTimeout(LE.ct);
   var d=leSer(), s=leStr(d), b=LE.m.querySelector('#leSave');
   if(s.length>900000){ toast('La landing tiene demasiado contenido para guardarse. Quita algún texto o sección e inténtalo de nuevo.'); return; }
-  function ok(){ LE.pub=s; LE.last=JSON.stringify(d); LE.dirty=false; LE.busy=''; b.disabled=false; try{ if(s) localStorage.setItem(LE_PUB,s); else localStorage.removeItem(LE_PUB); localStorage.removeItem(LE_DRAFT); }catch(e){} leStatus(); toast('Landing publicada. Ya la ven todos los visitantes.'); }
+  function ok(){ LE.pub=s; LE.last=JSON.stringify(d); LE.dirty=false; LE.busy=''; b.disabled=false; try{ if(s) localStorage.setItem(LE_PUB,s); else localStorage.removeItem(LE_PUB); localStorage.removeItem(LE_DRAFT); }catch(e){} leStatus(); toast(LE_LANG==='en'?'Landing en inglés publicada. Ya la ven los visitantes que eligen English.':'Landing publicada. Ya la ven todos los visitantes.'); }
   LE.busy='Publicando…'; b.disabled=true; leStatus();
-  if(!cloud()){ try{ jset('aurea-landing-prev',localStorage.getItem(LE_PUB)||''); }catch(e){} ok(); return; }
-  var ref=FB.f.doc(FB.db,'landing','contenido');
-  FB.f.getDoc(ref).then(function(x){ if(x.exists()&&String(x.data().data||'')!==s) return FB.f.setDoc(FB.f.doc(FB.db,'landing','anterior'),{data:String(x.data().data||''),updatedAt:Date.now()}); })
+  if(!cloud()){ try{ jset(LE_PUB+'-prev',localStorage.getItem(LE_PUB)||''); }catch(e){} ok(); return; }
+  var ref=FB.f.doc(FB.db,'landing',LE_DOC);
+  FB.f.getDoc(ref).then(function(x){ if(x.exists()&&String(x.data().data||'')!==s) return FB.f.setDoc(FB.f.doc(FB.db,'landing',LE_DOC0),{data:String(x.data().data||''),updatedAt:Date.now()}); })
     .then(function(){ return FB.f.setDoc(ref,{data:s,updatedAt:Date.now(),by:fbUser&&fbUser.email||''}); })
     .then(ok).catch(function(e){ LE.busy=''; b.disabled=false; leStatus(); toast(fbErr(e)); });
 }
@@ -3215,10 +3293,13 @@ function aiCall(data){
   return go.then(function(fn){ return fn(data); }).then(function(r){ return r.data; });
 }
 function aiErr(e){ var c=String((e&&e.code)||'').replace('functions/','');
+  if(LANG==='en'){ var sc=e&&e.details&&e.details.scope;
+    return ({'resource-exhausted':sc==='trial'?'You have used all the conversations in your free trial. With a subscription you can keep talking with Áurea.':(sc==='month'?'You have reached this month’s conversations.':'You have reached today’s conversations. You can keep talking tomorrow.'),
+      'failed-precondition':'The mentor is turned off for now.','unavailable':'Áurea is receiving many questions. Try again in a moment.','invalid-argument':'Write your question.','unauthenticated':'Sign in to talk with Áurea.'})[c]||'Áurea could not answer right now. Check your connection and try again in a moment.'; }
   if(c==='resource-exhausted'||c==='failed-precondition'||c==='unavailable'||c==='invalid-argument'||c==='unauthenticated') return (e&&e.message)||'Áurea no pudo responder ahora.';
   return 'Áurea no pudo responder ahora. Revisa tu conexión e inténtalo de nuevo en un momento.'; }
 function aiLim(){ var a=aiCfg(), paid=!!S.subscribed; return paid?[+a.aiPaidDay,+a.aiPaidMonth]:[+a.aiTrialDay,+a.aiTrialMonth]; }
-function aiTag(){ var a=aiCfg(); if(!a.aiEnabled||!cloud()) return 'muy pronto'; if(AI_LEFT) return 'te quedan '+AI_LEFT.day+' hoy'; return aiLim()[0]+' conversaciones al día'; }
+function aiTag(){ var a=aiCfg(); if(!a.aiEnabled||!cloud()) return LX('muy pronto','very soon'); if(AI_LEFT) return LX('te quedan '+AI_LEFT.day+' hoy',AI_LEFT.day+' left today'); return aiLim()[0]+LX(' conversaciones al día',' conversations a day'); }
 function aiLeftLoad(){ if(!cloud()||!fbUser) return Promise.resolve();
   return FB.f.getDoc(FB.f.doc(FB.db,'users',fbUser.uid,'ia','uso')).then(function(d){ var u=d.exists()?d.data():{}, L=aiLim(), day=new Date().toLocaleDateString('en-CA',{timeZone:'America/Guayaquil'}), mo=day.slice(0,7);
     var dn=u.day===day?(u.dayN||0):0, mn=S.subscribed?(u.month===mo?(u.monN||0):0):(u.totN||0); AI_LEFT={day:Math.max(0,L[0]-dn),month:Math.max(0,L[1]-mn)}; }).catch(function(){}); }
@@ -3233,6 +3314,11 @@ var ADMINS=((FBC&&FBC.admins)||[]).map(function(x){ return String(x||'').trim().
 function cloud(){ return !!FB; }
 function isAdmEmail(m){ return ADMINS.indexOf(mailKey(m))>=0; }
 function fbErr(e){ var c=(e&&e.code)||'';
+  if(LANG==='en') return ({'auth/email-already-in-use':'An account with this email already exists. Sign in with it.',
+   'auth/invalid-credential':'The email or password is not correct.','auth/wrong-password':'The email or password is not correct.','auth/user-not-found':'The email or password is not correct.',
+   'auth/invalid-email':'Check your email: something seems to be missing.','auth/missing-email':'Write your email.','auth/weak-password':'Use a stronger password.',
+   'auth/too-many-requests':'Too many attempts. Wait a few minutes and try again.','auth/network-request-failed':'No connection. Check your internet and try again.',
+   'auth/requires-recent-login':'For security, sign out and sign in again before making this change.','permission-denied':'You do not have permission to do this.'})[c]||'Something went wrong. Please try again.';
   return ({'auth/email-already-in-use':'Ya existe una cuenta con este correo. Inicia sesión con él.',
    'auth/invalid-credential':'El correo o la contraseña no son correctos.','auth/wrong-password':'El correo o la contraseña no son correctos.','auth/user-not-found':'El correo o la contraseña no son correctos.',
    'auth/invalid-email':'Revisa tu correo: parece que falta algo.','auth/missing-email':'Escribe tu correo.','auth/weak-password':'Usa una contraseña más segura.',
@@ -3263,6 +3349,7 @@ function syncStart(){
     var sub=S.subscribed, pl=S.plan; S=s; lastPushed=v.state; lastAt=+v.updatedAt||lastAt;
     if(SUB){ S.subscribed=sub; S.plan=pl; }
     try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+    if(langSync()) return;
     syncDirty=true; syncMaybe();
   },function(e){ console.warn('Sincronización en pausa',e); });
 }
@@ -3297,7 +3384,7 @@ function loadSub(){
     S.subscribed=!!(SUB&&SUB.active===true&&!(SUB.currentPeriodEnd&&SUB.currentPeriodEnd<Date.now()));
     if(S.subscribed&&SUB.plan) S.plan=SUB.plan; }).catch(function(){});
 }
-function subEnd(){ return SUB&&SUB.currentPeriodEnd?new Date(SUB.currentPeriodEnd).toLocaleDateString('es',{day:'numeric',month:'long',year:'numeric'}):''; }
+function subEnd(){ return SUB&&SUB.currentPeriodEnd?new Date(SUB.currentPeriodEnd).toLocaleDateString(LOC,{day:'numeric',month:'long',year:'numeric'}):''; }
 var FNS={};
 function fnCall(name,data){
   var go=FNS[name]?Promise.resolve(FNS[name]):import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js').then(function(fm){ FNS[name]=fm.httpsCallable(fm.getFunctions(FB.app,'us-central1'),name,{timeout:40000}); return FNS[name]; });
@@ -3309,8 +3396,8 @@ var ppSdk=null;
 function paypalSdk(clientId){
   if(ppSdk) return ppSdk;
   ppSdk=new Promise(function(res,rej){ var sc=document.createElement('script');
-    sc.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(clientId)+'&vault=true&intent=subscription&currency=USD&locale=es_EC';
-    sc.onload=function(){ res(window.paypal); }; sc.onerror=function(){ ppSdk=null; rej(new Error('No pude cargar PayPal.')); }; document.head.appendChild(sc); });
+    sc.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(clientId)+'&vault=true&intent=subscription&currency=USD&locale='+LX('es_EC','en_US');
+    sc.onload=function(){ res(window.paypal); }; sc.onerror=function(){ ppSdk=null; rej(new Error(LX('No pude cargar PayPal.','I could not load PayPal.'))); }; document.head.appendChild(sc); });
   return ppSdk;
 }
 function paypalMount(box,er,done){
@@ -3318,16 +3405,16 @@ function paypalMount(box,er,done){
     box.innerHTML=''; return pp.Buttons({style:{layout:'horizontal',shape:'pill',label:'subscribe',tagline:false,height:48,color:'gold'},
       createSubscription:function(d,a){ return fnCall('paypalPlan',{plan:S.plan==='mensual'?'mensual':'anual'}).then(function(r){ return a.subscription.create({plan_id:r.planId,custom_id:r.uid}); }); },
       onApprove:function(d){ er.hidden=true; return fnCall('paypalConfirm',{subscriptionID:d.subscriptionID}).then(function(){ return loadSub(); }).then(done)
-        .catch(function(e){ er.textContent=(e&&e.message)||'No pude confirmar el pago.'; er.hidden=false; }); },
-      onError:function(){ er.textContent='PayPal no pudo completar el pago. Intenta de nuevo.'; er.hidden=false; }
+        .catch(function(e){ er.textContent=LANG==='en'?'I could not confirm the payment.':((e&&e.message)||'No pude confirmar el pago.'); er.hidden=false; }); },
+      onError:function(){ er.textContent=LX('PayPal no pudo completar el pago. Intenta de nuevo.','PayPal could not complete the payment. Please try again.'); er.hidden=false; }
     }).render(box); }); })
-  .catch(function(e){ box.innerHTML=''; er.textContent=(e&&e.message)||'PayPal no está disponible ahora.'; er.hidden=false; });
+  .catch(function(e){ box.innerHTML=''; er.textContent=LANG==='en'?'PayPal is not available right now.':((e&&e.message)||'PayPal no está disponible ahora.'); er.hidden=false; });
 }
 /* Al volver de Payphone: /app.html?pago=ok|cancelado|rechazado|error */
 function payReturn(){
   var m=/[?&]pago=(\w+)/.exec(location.search); if(!m) return;
   try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
-  var t={ok:'Pago aprobado con Payphone. Tu suscripción está activa.',cancelado:'Cerraste el pago. No se hizo ningún cobro.',rechazado:'El banco no aprobó el pago. Puedes intentar con otra tarjeta.',error:'No pude confirmar el pago. Si se hizo el cobro, escríbenos a info@aureamentor.com.'}[m[1]];
+  var t=LX({ok:'Pago aprobado con Payphone. Tu suscripción está activa.',cancelado:'Cerraste el pago. No se hizo ningún cobro.',rechazado:'El banco no aprobó el pago. Puedes intentar con otra tarjeta.',error:'No pude confirmar el pago. Si se hizo el cobro, escríbenos a info@aureamentor.com.'},{ok:'Payment approved with Payphone. Your subscription is active.',cancelado:'You closed the payment. No charge was made.',rechazado:'The bank did not approve the payment. You can try another card.',error:'I could not confirm the payment. If you were charged, write to us at info@aureamentor.com.'})[m[1]];
   if(t) setTimeout(function(){ toast(t); },600);
 }
 function loadSettings(){
@@ -3336,13 +3423,13 @@ function loadSettings(){
 }
 function cloudInit(){
   if(!FBC) return Promise.resolve();
-  root.innerHTML='<div class="boot-load" role="status"><span></span>Cargando…</div>';
+  root.innerHTML='<div class="boot-load" role="status"><span></span>'+LX('Cargando…','Loading…')+'</div>';
   var base='https://www.gstatic.com/firebasejs/10.12.2/';
   return Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]).then(function(m){
     var app=m[0].initializeApp(FBC);
     var db; try{ db=m[2].initializeFirestore(app,{localCache:m[2].persistentLocalCache({tabManager:m[2].persistentMultipleTabManager()})}); }catch(e){ db=m[2].getFirestore(app); }
     FB={app:app,auth:m[1].getAuth(app),db:db,a:m[1],f:m[2]};
-    try{ FB.auth.languageCode='es'; }catch(e){}
+    try{ FB.auth.languageCode=LANG; }catch(e){}
     return new Promise(function(res){ var un=null, got=false; un=FB.a.onAuthStateChanged(FB.auth,function(u){ fbUser=u; if(got) return; got=true; if(un) un(); else setTimeout(function(){ un&&un(); },0); res(); }); });
   }).then(function(){ return Promise.all([loadSettings(), fbUser?loadMine():null]); })
   .catch(function(e){ console.warn('Firebase no disponible; modo local',e); FB=null; fbUser=null; });
@@ -3378,7 +3465,7 @@ function cloudLoadAll(){
 }
 function cloudAdminOk(){ return cloud() && fbUser && isAdmEmail(fbUser.email) && fbUser.emailVerified; }
 function adminLoginCloud(){
-  var el=botScreen({phase:'Administración'}); el.classList.add('compact');
+  var el=botScreen({phase:'Administración',noLang:true}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots');
   el.querySelector('#tap').remove(); dots.innerHTML='<button type="button" class="forgot" id="aNew">Primera vez: crear mi acceso</button>';
   back.textContent='← Volver'; back.disabled=false; back.onclick=leaveAdmin; next.textContent='Ingresar';
@@ -3413,6 +3500,7 @@ drawOrbs();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ if(reduce) drawOrbs(); });
 function boot(){
   if(/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
+  if(isAuth() && langSync()) return;
   if(cloud() && fbUser && isAdmEmail(fbUser.email) && !(S.reg && S.reg.registeredAt)){ adminEntry(); return; }
   if(/^#login/.test(location.hash)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
     if(!(S.reg && S.reg.registeredAt && (cloud()||S.reg.pw) && isAuth())){ loginScreen(); return; } }
