@@ -47,6 +47,17 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
 
+    // Contenido de la landing (Administración → Landing): cualquiera lo lee, solo el administrador lo cambia
+    match /landing/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Imágenes subidas para la landing (comprimidas, una por documento)
+    match /landing_img/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Días de prueba y precios: cualquiera los lee (la landing los muestra), solo el administrador los cambia
     match /settings/{doc} {
       allow read: if true;

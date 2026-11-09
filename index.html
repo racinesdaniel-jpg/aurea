@@ -13,7 +13,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Áurea">
 <script>if("serviceWorker" in navigator&&location.protocol==="https:"){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
-<style>html,body{margin:0;padding:0;height:100%}</style>
+<style>html,body{margin:0;padding:0;height:100%}.lc-wait body{opacity:0}body{transition:opacity .2s}</style>
+<script>/* mientras llega el contenido editado de la landing (solo la primera visita) */try{if(window.AUREA_FIREBASE&&!localStorage.getItem("aurea-landing")&&!/[?&]editar=1/.test(location.search)){document.documentElement.classList.add("lc-wait");setTimeout(function(){document.documentElement.classList.remove("lc-wait");},1600);}}catch(e){}</script>
 </head>
 <body>
 <title>La Espiral de la Plenitud</title>
@@ -42,6 +43,7 @@
   --f-display:"Newsreader","Iowan Old Style",Georgia,serif;
   --f-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"Hanken Grotesk",system-ui,sans-serif;
+  --fg0:var(--fg); --muted0:var(--muted);
   --s-1:.8125rem; --s0:1rem; --s1:1.2rem; --s2:1.55rem; --s3:2.1rem; --s4:clamp(2.2rem,5.2vw,3.8rem); --s5:clamp(2.7rem,7.6vw,5.6rem);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -326,7 +328,7 @@ body::before{background:#0E1430}
 .hero .btn-ghost:hover{background:rgba(255,255,255,.08)}
 footer .adm-link{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 footer .adm-link:hover{color:var(--accent)}
-/* ===== CONVERSA CON ÁUREA (mentor IA) ===== */
+/* ===== CONVERSA CON ÁUREA (mentor personalizado) ===== */
 .ai{background:var(--bg-2)}
 .ai .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
 .ai h2{font-size:var(--s4);line-height:1.08}
@@ -415,9 +417,41 @@ footer .adm-link:hover{color:var(--accent)}
 .ga-sheet .x{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--fg);cursor:pointer;font-size:1rem}
 .ga-sheet .tip{margin:16px 0 0;color:var(--muted);font-size:.85rem}
 @media (max-width:900px){.getapp .wrap{grid-template-columns:1fr;gap:40px}.ga-phone{width:200px}}
+/* ===== Secciones creadas desde Administración → Landing ===== */
+[data-sec][hidden]{display:none!important}
+/* si una sección cambia su color de texto, las tarjetas claras conservan el texto original */
+[data-sec][style*="--fg"] :is(.pillar,.week:not(.next),.seg button:not([aria-pressed="true"]),.stat,.cap,.plan:not(.best),.ai-feat,.ai-topics span,.ga-btn,.lc-card){--fg:var(--fg0);--muted:var(--muted0);color:var(--fg0)}
+.lc-navoff{display:none!important}
+.lc-bgimg{background-size:cover;background-position:center}
+.lc-pad-s{padding-block:clamp(40px,6vw,64px)!important}
+.lc-pad-l{padding-block:clamp(110px,14vw,180px)!important}
+.lc-sec .wrap{display:grid;gap:18px}
+.lc-sec h2{font-size:var(--s4);line-height:1.08;max-width:22ch}
+.lc-sec h3{font-size:var(--s2)}
+.lc-sec p{max-width:68ch}
+.lc-sec .lead{max-width:60ch}
+.lc-sec blockquote{margin:0;padding-left:20px;border-left:3px solid var(--accent);font-family:var(--f-display);font-size:var(--s2);line-height:1.35}
+.lc-body{display:grid;gap:18px;align-content:start;min-width:0}
+.lc-split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,64px);align-items:center}
+.lc-media{margin:0;display:grid;gap:10px;min-width:0}
+.lc-media img{width:100%;height:auto;border-radius:20px;display:block}
+.lc-media figcaption{color:var(--muted);font-size:var(--s-1);text-align:center}
+.lc-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:18px;margin-top:10px}
+.lc-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;display:grid;gap:10px;align-content:start;min-width:0}
+.lc-card p{color:var(--muted)}
+.lc-center .wrap{justify-items:center;text-align:center}
+.lc-center h2,.lc-center p{margin-inline:auto}
+.lc-img{display:block;max-width:100%;height:auto;border-radius:16px}
+.lc-btns{display:flex;flex-wrap:wrap;gap:12px;max-width:none!important}
+.lc-center .lc-btns{justify-content:center}
+@media (max-width:820px){.lc-split{grid-template-columns:1fr}}
+.lc-ta-c :is(h1,h2,h3,p,blockquote,.lead){margin-left:auto;margin-right:auto}
+.lc-ta-c :is(.hero-cta,.pillars-inline,.lc-btns,.chips,.ai-topics,.ga-btns){justify-content:center}
+.lc-ta-r :is(h1,h2,h3,p,blockquote,.lead){margin-left:auto}
+.lc-ta-r :is(.hero-cta,.pillars-inline,.lc-btns,.chips,.ai-topics,.ga-btns){justify-content:flex-end}
 </style>
 
-<nav class="top">
+<nav class="top" data-sec="nav" data-sec-name="Menú superior" data-fixed>
   <div class="wrap">
     <a class="brand" href="#inicio" aria-label="Áurea, inicio">
       <svg width="26" height="26" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 a2 2 0 0 1 2 2 a4 4 0 0 1 -4 4 a6 6 0 0 1 -6 -6 a8 8 0 0 1 8 -8 a10 10 0 0 1 10 10 a12 12 0 0 1 -12 12 a14 14 0 0 1 -14 -14 a16 16 0 0 1 16 -16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -436,13 +470,13 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </nav>
 
-<header class="hero" id="inicio">
+<header class="hero" id="inicio" data-sec="inicio" data-sec-name="Portada">
   <canvas id="spiral" aria-hidden="true"></canvas>
   <div class="wrap">
     <div>
       <p class="eyebrow">Método de mentoría Áurea</p>
       <h1 style="margin-top:18px">La Espiral de la <em>Plenitud</em></h1>
-      <p class="lead">Mentoría personalizada para tu vida interior, tus finanzas y tu bienestar. Cada semana recibes tres cápsulas breves, una por pilar, dentro de una ruta diseñada a partir de tu Rueda de la Vida. Te acompañan Áurea Mentor, que conversa contigo con inteligencia artificial, y un diario para cada mañana y cada noche.</p>
+      <p class="lead">Mentoría personalizada para tu vida interior, tus finanzas y tu bienestar. Cada semana recibes tres cápsulas breves, una por pilar, dentro de una ruta diseñada a partir de tu Rueda de la Vida. Te acompañan Áurea Mentor, tu mentor personalizado, y un diario para cada mañana y cada noche.</p>
       <div class="pillars-inline" aria-label="Los tres pilares">
         <span><i class="dot d-s"></i>Espíritu</span>
         <span><i class="dot d-m"></i>Prosperidad</span>
@@ -456,10 +490,9 @@ footer .adm-link:hover{color:var(--accent)}
     </div>
     <div class="hero-space" aria-hidden="true"></div>
   </div>
-  </div>
 </header>
 
-<section class="why">
+<section class="why" id="por-que" data-sec="por-que" data-sec-name="Por qué un mentor">
   <div class="wrap">
     <p class="eyebrow rv">Por qué un mentor</p>
     <h2 class="rv" style="margin-top:16px">El conocimiento abunda. Lo que escasea es <em>la guía</em>.</h2>
@@ -471,7 +504,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="pillars" id="pilares">
+<section class="pillars" id="pilares" data-sec="pilares" data-sec-name="Los tres pilares">
   <div class="wrap">
     <p class="eyebrow rv">Los tres pilares</p>
     <h2 class="rv" style="margin-top:16px">Una vida plena se sostiene en tres pilares.</h2>
@@ -501,7 +534,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="method" id="metodo">
+<section class="method" id="metodo" data-sec="metodo" data-sec-name="El método">
   <div class="wrap">
     <div class="method-top">
       <div class="rv">
@@ -537,26 +570,26 @@ footer .adm-link:hover{color:var(--accent)}
       <div>
         <h3>Tu ruta se ajusta a tu tiempo</h3>
         <p>Eliges qué días y cuántos minutos puedes dedicar cada semana. Con eso, Áurea calcula la duración ideal de tu ruta y reparte tus cápsulas en esos días.</p>
-        <div class="seg" role="group" aria-label="Tiempo disponible por semana">
+        <div class="seg" data-lock="plan-seg" role="group" aria-label="Tiempo disponible por semana">
           <button type="button" id="r3" data-m="3" aria-pressed="false"><b>3 meses</b><span>4 h o más por semana</span><em>Ruta intensiva</em></button>
           <button type="button" id="r6" data-m="6" aria-pressed="true"><b>6 meses</b><span>2 a 4 h por semana</span><em>Ruta profunda</em></button>
           <button type="button" id="r12" data-m="12" aria-pressed="false"><b>12 meses</b><span>Menos de 2 h por semana</span><em>Ruta gradual</em></button>
         </div>
       </div>
       <div>
-        <div class="stats">
+        <div class="stats" data-lock="plan-stats">
           <div class="stat"><b id="sWeeks">26</b><span>semanas de ruta</span></div>
           <div class="stat"><b id="sCaps">78</b><span>cápsulas</span></div>
           <div class="stat"><b id="sRank" class="word">Claridad</b><span>nivel alcanzable</span></div>
         </div>
-        <div class="ribbon" id="ribbon" aria-hidden="true"></div>
+        <div class="ribbon" id="ribbon" data-lock="plan-ribbon" aria-hidden="true"></div>
         <p class="ribbon-cap">Cada cuadro es una cápsula: Espíritu, Prosperidad, Vitalidad</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="caps">
+<section class="caps" id="capsulas" data-sec="capsulas" data-sec-name="Así es una cápsula">
   <div class="wrap">
     <p class="eyebrow rv">Así es una cápsula</p>
     <h2 class="rv" style="margin-top:16px">Cinco minutos, una idea y una práctica para la semana.</h2>
@@ -586,7 +619,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="mentor" id="mentor">
+<section class="mentor" id="mentor" data-sec="mentor" data-sec-name="Tu mentor">
   <div class="wrap">
     <div class="rv">
       <p class="eyebrow">Tu mentor</p>
@@ -598,7 +631,7 @@ footer .adm-link:hover{color:var(--accent)}
         <li><span class="dot d-v" style="margin-top:9px"></span><span><b>Acompañamiento semanal.</b> Tres cápsulas por semana, en los días que tú elijas. Vuelve a evaluarte cuando quieras y compara tu rueda de hoy con la inicial.</span></li>
       </ul>
     </div>
-    <figure class="botmock rv" aria-label="Vista del mentor dentro de la app Áurea">
+    <figure class="botmock rv" data-lock="mock-registro" aria-label="Vista del mentor dentro de la app Áurea">
       <div class="bm-bar"><i></i><i></i><i></i><span>Áurea · Registro</span></div>
       <div class="bm-body">
         <div class="bm-orb"><canvas id="bmOrb"></canvas></div>
@@ -611,7 +644,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="ai" id="conversa">
+<section class="ai" id="conversa" data-sec="conversa" data-sec-name="Conversación personalizada">
   <div class="wrap">
     <div class="rv">
       <p class="eyebrow">Áurea Mentor · Conversación personalizada</p>
@@ -626,7 +659,7 @@ footer .adm-link:hover{color:var(--accent)}
       <div class="ai-topics" aria-label="Temas del mentor"><span>Libros</span><span>Autores</span><span>Filosofías</span><span>Los tres pilares</span><span>Tu Rueda de la Vida</span><span>Creencias limitantes</span><span>Una idea para hoy</span></div>
       <p class="ai-quota"><span>Conversaciones incluidas:</span><span><b data-ai-trial>40</b> en tu prueba gratuita</span><span><b data-ai-paid>300</b> al mes con tu plan</span></p>
     </div>
-    <figure class="aimock rv" aria-label="Ejemplo de una conversación con Áurea">
+    <figure class="aimock rv" data-lock="mock-mentor" aria-label="Ejemplo de una conversación con Áurea">
       <div class="bm-bar"><i></i><i></i><i></i><span>Áurea · Mentor</span></div>
       <div class="ai-body">
         <p class="ai-ask" id="aiQ"></p>
@@ -639,7 +672,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="diary" id="diario">
+<section class="diary" id="diario" data-sec="diario" data-sec-name="Diario personal">
   <div class="wrap">
     <p class="eyebrow rv">Diario personal</p>
     <h2 class="rv" style="margin-top:16px">Cada día empieza con una intención y <em>termina con una revisión</em>.</h2>
@@ -668,7 +701,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="ranks" id="niveles">
+<section class="ranks" id="niveles" data-sec="niveles" data-sec-name="Niveles">
   <div class="wrap">
     <p class="eyebrow rv">Niveles</p>
     <h2 class="rv" style="margin-top:16px">Tu progreso, visible en cada etapa.</h2>
@@ -685,7 +718,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="price" id="precio">
+<section class="price" id="precio" data-sec="precio" data-sec-name="Precio">
   <div class="wrap">
     <p class="eyebrow rv">Precio</p>
     <h2 class="rv" style="margin-top:16px" data-trial-h2>Comienza con 15 días sin costo.</h2>
@@ -720,13 +753,13 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="getapp" id="app">
+<section class="getapp" id="app" data-sec="app" data-sec-name="Instalar la app">
   <div class="wrap">
     <div class="rv">
       <p class="eyebrow">Áurea en tu celular</p>
       <h2>Instálala como una app, <em>sin tiendas</em>.</h2>
       <p class="lead">Lleva tu ruta, tu diario y a Áurea Mentor en la pantalla de inicio. Se abre a pantalla completa, se actualiza sola y no ocupa casi espacio.</p>
-      <div class="ga-btns">
+      <div class="ga-btns" data-lock="instalar">
         <button type="button" class="ga-btn" id="gaAndroid"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18a.38.38 0 0 0-.66-.38l-1.86 3.22a11.4 11.4 0 0 0-9.84 0L5.22 5.92a.38.38 0 0 0-.66.38L6.4 9.48A10.8 10.8 0 0 0 1 18h22a10.8 10.8 0 0 0-5.4-8.52ZM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"/></svg><span><small>Instalar en</small><b>Android</b></span></button>
         <button type="button" class="ga-btn" id="gaIos"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.5 2-3.7 2.1-3.8a4.6 4.6 0 0 0-3.6-2c-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.8a4.9 4.9 0 0 0-4.1 2.5c-1.8 3.1-.5 7.6 1.3 10.1.8 1.2 1.8 2.6 3.1 2.5 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4a10.6 10.6 0 0 0 1.4-2.8 4.3 4.3 0 0 1-2.5-4.2ZM14 5.2a4.4 4.4 0 0 0 1-3.2 4.5 4.5 0 0 0-2.9 1.5 4.2 4.2 0 0 0-1.1 3.1 3.7 3.7 0 0 0 3-1.4Z"/></svg><span><small>Instalar en</small><b>iPhone</b></span></button>
       </div>
@@ -738,7 +771,7 @@ footer .adm-link:hover{color:var(--accent)}
 </section>
 <div class="ga-ov" id="gaOv" hidden><div class="ga-sheet" role="dialog" aria-modal="true" aria-labelledby="gaT"><button class="x" type="button" aria-label="Cerrar">✕</button><h3 id="gaT"></h3><div id="gaB"></div></div></div>
 
-<section class="faq">
+<section class="faq" id="preguntas" data-sec="preguntas" data-sec-name="Preguntas frecuentes">
   <div class="wrap">
     <div class="rv">
       <p class="eyebrow">Preguntas frecuentes</p>
@@ -748,7 +781,7 @@ footer .adm-link:hover{color:var(--accent)}
       <details><summary>¿Necesito conocimientos previos?</summary><p>No. Las cápsulas están escritas para quien empieza. Son breves, claras y cada una termina con una práctica sencilla.</p></details>
       <details><summary>¿Cuánto tiempo requiere?</summary><p>Entre 5 y 15 minutos, tres días por semana. Tu mentor ajusta la ruta a 3, 6 o 12 meses según tu disponibilidad.</p></details>
       <details><summary>¿Tiene orientación religiosa?</summary><p>No. Las cápsulas se inspiran en tradiciones filosóficas y de sabiduría de distintas culturas, como el Estoicismo, el Budismo, el Taoísmo, el Hermetismo y la Metafísica, presentadas como herramientas prácticas. Al final de cada una te contamos su origen.</p></details>
-      <details><summary>¿Áurea es una persona?</summary><p>Áurea Mentor es un acompañante con inteligencia artificial, creado para acompañar el método de La Espiral de la Plenitud. Conoce tu ruta y tus respuestas para orientarte, pero no reemplaza a un profesional de la salud, de la psicología ni de las finanzas.</p></details>
+      <details><summary>¿Qué es Áurea Mentor?</summary><p>Es tu mentor personalizado dentro de la app, creado para acompañar el método de La Espiral de la Plenitud. Conoce tu ruta y tus respuestas para orientarte, pero no reemplaza a un profesional de la salud, de la psicología ni de las finanzas.</p></details>
       <details><summary>¿Cuántas conversaciones con Áurea tengo?</summary><p>Durante la prueba gratuita tienes <span data-ai-trial>40</span> conversaciones en total, y con tu plan, <span data-ai-paid>300</span> al mes. Dentro de la app siempre ves cuántas te quedan.</p></details>
       <details><summary>¿Mi diario es privado?</summary><p>Sí. Solo tú puedes leer lo que escribes, ni siquiera el equipo de Áurea. Lo único que se usa, sin tus textos, es cómo te sientes, para estadísticas generales.</p></details>
       <details><summary data-trial-faq>¿Qué ocurre al terminar la prueba gratuita?</summary><p>Te avisamos antes de que termine. Si deseas continuar, eliges tu plan y pagas con tarjeta. Si no, tu acceso se pausa sin ningún cargo.</p></details>
@@ -757,7 +790,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<section class="final">
+<section class="final" id="final" data-sec="final" data-sec-name="Llamado final">
   <div class="wrap">
     <h2 class="rv">Tu ruta comienza <em>esta semana</em>.</h2>
     <p class="lead rv">Tres cápsulas, un mentor que te conoce y un diario para cada día. Tu primer paso en cada pilar de tu vida.</p>
@@ -765,7 +798,7 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </section>
 
-<footer>
+<footer data-sec="pie" data-sec-name="Pie de página" data-fixed>
   <div class="wrap">
     <span>© 2026 Áurea · La Espiral de la Plenitud</span>
     <span>Contenido educativo. No sustituye la asesoría médica ni financiera profesional.</span>
@@ -774,6 +807,103 @@ footer .adm-link:hover{color:var(--accent)}
   </div>
 </footer>
 
+<script>
+/* Contenido de la landing editable desde Administración → Landing.
+   Se guarda en Firestore (landing/contenido) y se aplica sobre este HTML, que es el contenido original.
+   Las partes animadas (data-lock) nunca se reemplazan: se conservan vivas aunque cambie el texto alrededor. */
+(function(){
+  var EDIT=/[?&]editar=1(&|$)/.test(location.search) && window.parent!==window;
+  var KEY='aurea-landing', F=window.AUREA_FIREBASE, root=document.documentElement;
+  if(EDIT) root.classList.add('lc-edit');
+  var foot=document.querySelector('footer[data-sec]');
+  var TITLE0=document.title, metaD=document.querySelector('meta[name="description"]'), DESC0=metaD?metaD.getAttribute('content'):'';
+  function each(list,fn){ [].forEach.call(list,fn); }
+  function secs(){ return [].slice.call(document.querySelectorAll('[data-sec]')); }
+  function secEl(id){ var r=null; secs().forEach(function(s){ if(s.getAttribute('data-sec')===id) r=s; }); return r; }
+  function wrapOf(s){ for(var c=s.firstElementChild;c;c=c.nextElementSibling) if(c.classList.contains('wrap')) return c; return null; }
+  var DEF={}, ORDER0=[], LOCKS={};
+  secs().forEach(function(s){ var id=s.getAttribute('data-sec'), w=wrapOf(s);
+    DEF[id]={html:w?w.innerHTML:'', cls:s.className, style:s.getAttribute('style')||'', name:s.getAttribute('data-sec-name')||id, fixed:s.hasAttribute('data-fixed')};
+    s._lc=DEF[id].html; if(!DEF[id].fixed) ORDER0.push(id); });
+  each(document.querySelectorAll('[data-lock]'),function(n){ LOCKS[n.getAttribute('data-lock')]=n; });
+  var park=document.createElement('div'); park.hidden=true; park.id='lc-park'; document.body.appendChild(park);
+  /* Imágenes subidas desde Administración: viven en landing_img/{id} */
+  var IMG={}, wait={};
+  function getImg(id,cb){
+    if(IMG[id]) return cb(IMG[id]);
+    if(!F||!F.projectId||!window.fetch) return;
+    (wait[id]=wait[id]||[]).push(cb); if(wait[id].length>1) return;
+    fetch('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(F.projectId)+'/databases/(default)/documents/landing_img/'+encodeURIComponent(id)+'?key='+encodeURIComponent(F.apiKey))
+      .then(function(r){ return r.ok?r.json():null; })
+      .then(function(j){ var v=j&&j.fields&&j.fields.data&&j.fields.data.stringValue, cbs=wait[id]||[]; delete wait[id]; if(v){ IMG[id]=v; cbs.forEach(function(f){ f(v); }); } })
+      .catch(function(){ delete wait[id]; });
+  }
+  function fixImgs(el){ each(el.querySelectorAll('img[data-img]'),function(im){ var id=im.getAttribute('data-img'); getImg(id,function(v){ if(im.getAttribute('src')!==v) im.setAttribute('src',v); }); }); }
+  function setWrap(w,html){
+    each(w.querySelectorAll('[data-lock]'),function(n){ park.appendChild(n); });
+    w.innerHTML=html;
+    each(w.querySelectorAll('[data-lock]'),function(ph){ var n=LOCKS[ph.getAttribute('data-lock')]; if(n&&n!==ph) ph.parentNode.replaceChild(n,ph); });
+    fixImgs(w);
+  }
+  function lum(c){ var m=/^#([0-9a-f]{6})$/i.exec(c||''); if(!m) return null; var n=parseInt(m[1],16); return (.2126*(n>>16&255)+.7152*(n>>8&255)+.0722*(n&255))/255; }
+  function styleOf(id,st,s){
+    var a=[DEF[id]?DEF[id].style:''], fg=st.fg, src=null;
+    if(st.bg){ a.push('background-color:'+st.bg); if(!fg){ var L=lum(st.bg); if(L!=null) fg=L>.55?'#141A2E':'#F4F5FA'; } }
+    if(st.img){
+      if(/^aimg:/.test(st.img)){ var iid=st.img.slice(5); if(IMG[iid]) src=IMG[iid]; else getImg(iid,function(){ paintStyle(s,id,st); }); }
+      else src=st.img;
+      var o=st.ov==null?.4:+st.ov;
+      if(src) a.push('background-image:linear-gradient(rgba(10,14,30,'+o+'),rgba(10,14,30,'+o+')),url("'+String(src).replace(/"/g,'%22')+'")');
+      if(!fg) fg='#FFFFFF';
+    }
+    if(fg) a.push('color:'+fg,'--fg:'+fg,'--muted:color-mix(in srgb,'+fg+' 74%,transparent)');
+    if(st.ac) a.push('--accent:'+st.ac);
+    if(st.ta) a.push('text-align:'+st.ta);
+    return a.filter(Boolean).join(';');
+  }
+  function paintStyle(s,id,st){
+    var str=styleOf(id,st,s); if((s.getAttribute('style')||'')!==str){ if(str) s.setAttribute('style',str); else s.removeAttribute('style'); }
+    s.classList.toggle('lc-bgimg',!!st.img); s.classList.toggle('lc-pad-s',st.pad==='s'); s.classList.toggle('lc-pad-l',st.pad==='l');
+    s.classList.toggle('lc-ta-c',st.ta==='center'); s.classList.toggle('lc-ta-r',st.ta==='right');
+  }
+  function apply(d){
+    d=d||{}; var html=d.html||{}, hid=d.hidden||{}, rem=d.removed||{}, cus=d.custom||{}, sty=d.style||{};
+    secs().forEach(function(s){ var id=s.getAttribute('data-sec'); if(s.hasAttribute('data-custom')&&!cus[id]) s.parentNode.removeChild(s); });
+    Object.keys(cus).forEach(function(id){ if(!/^[a-z0-9-]{2,40}$/.test(id)||DEF[id]) return; var c=cus[id]||{}, s=secEl(id);
+      if(!s){ s=document.createElement('section'); s.setAttribute('data-sec',id); s.setAttribute('data-custom',''); s.id=id; var w=document.createElement('div'); w.className='wrap'; s.appendChild(w); foot.parentNode.insertBefore(s,foot); s._lc=''; }
+      var cls=c.cls||'lc-sec'; if(s._cls!==cls){ s.className=cls; s._cls=cls; }
+      s.setAttribute('data-sec-name',c.name||'Sección'); });
+    var order=(d.order||[]).filter(function(id,i,a){ return a.indexOf(id)===i && ((DEF[id]&&!DEF[id].fixed)||(cus[id]&&secEl(id))); });
+    ORDER0.forEach(function(id,i){ if(order.indexOf(id)>=0) return; var at=-1; for(var k=i-1;k>=0&&at<0;k--) at=order.indexOf(ORDER0[k]); order.splice(at+1,0,id); });
+    Object.keys(cus).forEach(function(id){ if(order.indexOf(id)<0&&secEl(id)) order.push(id); });
+    var cur=secs().filter(function(s){ return !s.hasAttribute('data-fixed'); }).map(function(s){ return s.getAttribute('data-sec'); });
+    if(cur.join('|')!==order.join('|')) order.forEach(function(id){ var s=secEl(id); if(s) foot.parentNode.insertBefore(s,foot); });
+    secs().forEach(function(s){ var id=s.getAttribute('data-sec'), def=DEF[id], w=wrapOf(s), h=html[id]!=null?html[id]:(def?def.html:'');
+      if(w&&s._lc!==h){ setWrap(w,h); s._lc=h; }
+      paintStyle(s,id,sty[id]||{});
+      var fixed=def&&def.fixed, off=!fixed&&!!rem[id], hd=!fixed&&!!hid[id];
+      s.hidden=off||(hd&&!EDIT); s.classList.toggle('lc-ishidden',hd&&EDIT);
+    });
+    each(document.querySelectorAll('[data-sec="nav"] a[href^="#"]'),function(a){ var t=document.getElementById(a.getAttribute('href').slice(1)), s=t&&t.closest('[data-sec]'); a.classList.toggle('lc-navoff',!EDIT&&!!(s&&s.hidden)); });
+    var pg=d.page||{}; document.title=pg.title||TITLE0; if(metaD) metaD.setAttribute('content',pg.desc||DESC0);
+    try{ document.dispatchEvent(new CustomEvent('aurea:landing')); }catch(e){}
+    if(!EDIT&&window.__aureaApplyCfg) window.__aureaApplyCfg();
+  }
+  window.AureaLanding={edit:EDIT,DEF:DEF,ORDER0:ORDER0,LOCKS:LOCKS,IMG:IMG,apply:apply,getImg:getImg,fixImgs:fixImgs,wrapOf:wrapOf};
+  if(EDIT) return;
+  function done(){ root.classList.remove('lc-wait'); }
+  var raw=null; try{ raw=localStorage.getItem(KEY); }catch(e){}
+  if(raw){ try{ apply(JSON.parse(raw)); }catch(e){ raw=null; } }
+  if(!(F&&F.projectId&&F.apiKey&&window.fetch)){ done(); return; }
+  setTimeout(done,1500);
+  fetch('https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(F.projectId)+'/databases/(default)/documents/landing/contenido?key='+encodeURIComponent(F.apiKey))
+    .then(function(r){ return r.ok?r.json():(r.status===404?{}:null); })
+    .then(function(j){ if(!j){ done(); return; } var v=(j.fields&&j.fields.data&&j.fields.data.stringValue)||'';
+      if(v!==(raw||'')){ try{ apply(v?JSON.parse(v):{}); if(v) localStorage.setItem(KEY,v); else localStorage.removeItem(KEY); }catch(e){} }
+      done(); })
+    .catch(done);
+})();
+</script>
 <script>
 (function(){
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -823,7 +953,9 @@ footer .adm-link:hover{color:var(--accent)}
     ctx.restore();
   }
   var rng=document.createRange();
-  var occluders=[].slice.call(document.querySelectorAll('.hero .eyebrow, .hero h1, .hero .lead, .pillars-inline span, .hero-cta .btn, .hero-note'));
+  var OCC='.hero .eyebrow, .hero h1, .hero .lead, .pillars-inline span, .hero-cta .btn, .hero-note';
+  var occluders=[].slice.call(document.querySelectorAll(OCC));
+  document.addEventListener('aurea:landing',function(){ occluders=[].slice.call(document.querySelectorAll(OCC)); if(reduce) draw(); });
   function loop(){ t+=.016; rt+=.016*(window.__aureaSpin||1); draw(); if(!reduce) requestAnimationFrame(loop); }
   readPal(); size();
   window.addEventListener('resize',function(){size(); if(reduce) draw();});
@@ -940,7 +1072,7 @@ footer .adm-link:hover{color:var(--accent)}
 </script>
 <script>
 /* Días de prueba y precios definidos en el panel de administración de la app (mismo sitio) */
-(function(){ function applyCfg(){
+(function(){ if(window.AureaLanding&&AureaLanding.edit) return; window.__aureaApplyCfg=applyCfg; function applyCfg(){
   var c=null; try{ c=JSON.parse(localStorage.getItem('aurea-config')||'null'); }catch(e){} if(!c) c=window.__aureaCfg||null;
   if(!c) return;
   window.__aureaSpin=c.spinSpeed>0?c.spinSpeed/100:1;
