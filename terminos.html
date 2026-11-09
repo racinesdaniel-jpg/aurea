@@ -28,14 +28,16 @@ footer{margin-top:48px;color:var(--muted);font-size:.85rem}
 html[lang=en] [data-l=es],html:not([lang=en]) [data-l=en]{display:none}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .lang-sw{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.04em}
-.lang-sw a{padding:5px 9px;border-radius:999px;color:var(--muted);text-decoration:none;line-height:1}
-html[lang=es] .lang-sw a[lang=es],html[lang=en] .lang-sw a[lang=en]{background:var(--fg);color:var(--bg)}
+.lang-sw{text-decoration:none;cursor:pointer}
+.lang-sw span{padding:5px 9px;border-radius:999px;color:var(--muted);line-height:1}
+html[lang=es] .lang-sw span[lang=es],html[lang=en] .lang-sw span[lang=en]{background:var(--fg);color:var(--bg)}
 </style>
 </head>
 <body>
 <main class="wrap">
   <div class="bar"><a class="top" href="index.html"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 a2 2 0 0 1 2 2 a4 4 0 0 1 -4 4 a6 6 0 0 1 -6 -6 a8 8 0 0 1 8 -8 a10 10 0 0 1 10 10 a12 12 0 0 1 -12 12 a14 14 0 0 1 -14 -14 a16 16 0 0 1 16 -16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Áurea</a>
-  <div class="lang-sw" role="group" aria-label="Idioma · Language"><a href="?lang=es" lang="es" title="Español">ES</a><a href="?lang=en" lang="en" title="English">EN</a></div></div>
+  <a class="lang-sw" id="langSw" href="?lang=en" title="Cambiar de idioma · Switch language" aria-label="Cambiar de idioma · Switch language"><span lang="es">ES</span><span lang="en">EN</span></a></div>
+  <script>document.getElementById('langSw').href='?lang='+(document.documentElement.lang==='en'?'es':'en');</script>
   <div data-l="es" lang="es">
   <h1>Términos y condiciones</h1>
   <p class="upd">Última actualización: 6 de noviembre de 2026</p>
