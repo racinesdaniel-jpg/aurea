@@ -1839,7 +1839,7 @@ var NAV_IC={
 function navIcon(k){ return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+NAV_IC[k]+'</svg>'; }
 function uIc(d){ return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>'; }
 function renderApp(t){
-  tab=t||tab;
+  tab=t||tab; syncDirty=false;
   root.innerHTML='';
   var L=level(), N=nextLevel(), w=weeksDone(), left=trialLeft();
   var lp=N?Math.round((w-L.w)/(N.w-L.w)*100):100;
@@ -2099,7 +2099,7 @@ function viewMentor(main){
       if(q.length<2){ er.textContent='Escribe tu pregunta.'; t.focus(); return; }
       var bt=C.querySelector('button[type=submit]'); bt.disabled=true; bt.textContent='Pensando…'; er.textContent='';
       aiCall({message:q,history:AIH.slice(-8),ctx:{week:weekTitles()}}).then(function(r){
-        if(my!==mentorRun) return; AIH.push({role:'user',text:q},{role:'assistant',text:r.text}); AIH=AIH.slice(-16); AI_LEFT=r.left||null; answer(q,r.text);
+        if(my!==mentorRun) return; AIH.push({role:'user',text:q},{role:'assistant',text:r.text}); AIH=AIH.slice(-16); aiHistSave(); AI_LEFT=r.left||null; answer(q,r.text);
       }).catch(function(e2){ if(my!==mentorRun) return; bt.disabled=false; bt.textContent='Enviar'; er.textContent=aiErr(e2); });
     };
     setTimeout(function(){ var t=C.querySelector('#mtAiT'); if(t&&!C.hidden) t.focus(); },50);
@@ -2167,7 +2167,10 @@ var DIA=null;
 function diaLocalKey(){ return 'aurea-diario-'+mailKey(S.reg.email); }
 function diaLoad(){
   if(DIA) return Promise.resolve();
-  if(cloud()&&fbUser) return FB.f.getDocs(FB.f.collection(FB.db,'users',fbUser.uid,'diario')).then(function(snap){ DIA={}; snap.forEach(function(d){ DIA[d.id]=d.data(); }); });
+  if(cloud()&&fbUser) return FB.f.getDocs(FB.f.collection(FB.db,'users',fbUser.uid,'diario')).then(function(snap){ DIA={}; snap.forEach(function(d){ DIA[d.id]=d.data(); });
+    var loc=jget(diaLocalKey(),null); if(!loc) return;
+    var up=Object.keys(loc).filter(function(k){ return !DIA[k] && loc[k]; });
+    return Promise.all(up.map(function(k){ DIA[k]=loc[k]; return FB.f.setDoc(FB.f.doc(FB.db,'users',fbUser.uid,'diario',k),loc[k]); })).then(function(){ try{ localStorage.removeItem(diaLocalKey()); }catch(e){} }).catch(function(){}); });
   DIA=jget(diaLocalKey(),{}); return Promise.resolve();
 }
 /* Solo el ánimo (no lo que escribes) se guarda en tu perfil para la analítica anónima del administrador */
@@ -2670,6 +2673,11 @@ var AI_MODELS=[['claude-haiku-5-5','Haiku 5.5 · rápido y económico','≈ US$0
 function aiCfg(){ var c=jget(CKEY,{}), r={}; AI_KEYS.forEach(function(k){ r[k]=c[k]!=null?c[k]:AI_DEF[k]; }); r.aiEnabled=!!r.aiEnabled; return r; }
 function aiOn(){ return cloud() && !!fbUser && aiCfg().aiEnabled; }
 var aiFn=null, AIH=[], AI_LEFT=null;
+/* Conversación con el Mentor: privada en users/{uid}/privado/mentor (solo su dueño la lee) */
+function aiHistRef(){ return FB.f.doc(FB.db,'users',fbUser.uid,'privado','mentor'); }
+function aiHistLoad(){ if(!cloud()||!fbUser) return Promise.resolve(); var uid=fbUser.uid;
+  return FB.f.getDoc(aiHistRef()).then(function(d){ if(!fbUser||fbUser.uid!==uid) return; var h=d.exists()?d.data().h:null; if(Array.isArray(h) && h.length>=AIH.length) AIH=h.slice(-16); }).catch(function(){}); }
+function aiHistSave(){ if(!cloud()||!fbUser) return; FB.f.setDoc(aiHistRef(),{h:AIH.slice(-16),updatedAt:Date.now()}).catch(function(){}); }
 function aiCall(data){
   var go=aiFn?Promise.resolve(aiFn):import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js').then(function(fm){ aiFn=fm.httpsCallable(fm.getFunctions(FB.app,'us-central1'),'mentor',{timeout:70000}); return aiFn; });
   return go.then(function(fn){ return fn(data); }).then(function(r){ return r.data; });
@@ -2700,21 +2708,54 @@ function fbErr(e){ var c=(e&&e.code)||'';
    'auth/requires-recent-login':'Por seguridad, cierra sesión y vuelve a ingresar antes de hacer este cambio.','permission-denied':'No tienes permiso para hacer esto.'})[c]||'Algo salió mal. Inténtalo de nuevo.'; }
 function packState(s){ var o=JSON.parse(JSON.stringify(s)); if(o.reg) delete o.reg.pw; return o; }
 function userRef(uid){ return FB.f.doc(FB.db,'users',uid); }
-var pushT=null;
-function cloudPush(){
+var pushT=null, lastPushed=null, lastAt=0;
+function cloudPush(now){
   if(!cloud()||!fbUser||!S.reg||!S.reg.registeredAt||mailKey(S.reg.email)!==mailKey(fbUser.email)) return;
-  clearTimeout(pushT);
-  pushT=setTimeout(function(){ var st=packState(S);
-    FB.f.setDoc(userRef(fbUser.uid),{email:mailKey(S.reg.email),name:S.reg.name||'',registeredAt:S.reg.registeredAt||0,updatedAt:Date.now(),state:JSON.stringify(st)}).catch(function(e){ console.warn('No se pudo guardar en la nube',e); }); },400);
+  clearTimeout(pushT); pushT=null;
+  function go(){ pushT=null; var js=JSON.stringify(packState(S)), at=Date.now(); lastPushed=js; lastAt=Math.max(lastAt,at);
+    FB.f.setDoc(userRef(fbUser.uid),{email:mailKey(S.reg.email),name:S.reg.name||'',registeredAt:S.reg.registeredAt||0,updatedAt:at,state:js}).catch(function(e){ console.warn('No se pudo guardar en la nube',e); }); }
+  if(now) go(); else pushT=setTimeout(go,400);
 }
+/* Sincronización entre dispositivos: si la persona avanza en otro equipo, este se actualiza solo. */
+var syncUn=null, syncDirty=false, syncUid=null;
+function busy(){ var a=document.activeElement; return !!(document.querySelector('.ov') || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) || (a && a.isContentEditable)); }
+function syncRender(){ syncDirty=false; if(S.stage==='app' && S.route && root.querySelector('.app')){ var y=window.scrollY; renderApp(tab); window.scrollTo(0,y); } else boot(); }
+function syncMaybe(){ if(!syncDirty || document.hidden || busy() || tab==='mentor') return; syncRender(); }
+function syncStart(){
+  if(!cloud()||!fbUser) return; if(syncUn && syncUid===fbUser.uid) return; syncStop(); syncUid=fbUser.uid;
+  syncUn=FB.f.onSnapshot(userRef(fbUser.uid),function(d){
+    if(!d.exists() || d.metadata.hasPendingWrites || pushT) return;
+    var v=d.data(); if(!v || typeof v.state!=='string' || v.state===lastPushed || !((+v.updatedAt||0)>lastAt)) return;
+    if(v.state===JSON.stringify(packState(S))) return;
+    var s=unpack(d); if(!s || mailKey(s.reg&&s.reg.email)!==mailKey(fbUser.email)) return; delete s._id;
+    var sub=S.subscribed, pl=S.plan; S=s; lastPushed=v.state; lastAt=+v.updatedAt||lastAt;
+    if(SUB){ S.subscribed=sub; S.plan=pl; }
+    try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
+    syncDirty=true; syncMaybe();
+  },function(e){ console.warn('Sincronización en pausa',e); });
+}
+function syncStop(){ if(syncUn){ try{ syncUn(); }catch(e){} } syncUn=null; syncUid=null; syncDirty=false; }
+/* Al volver a la app (por ejemplo, al abrirla de nuevo en el celular): trae lo nuevo de la nube */
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){ if(pushT) cloudPush(true); return; }
+  try{ navigator.serviceWorker && navigator.serviceWorker.getRegistration().then(function(r){ r&&r.update(); }).catch(function(){}); }catch(e){}
+  if(!cloud()||!fbUser) return;
+  syncStart();
+  if(tab!=='diario' || !busy()){ DIA=null; if(tab==='diario' && root.querySelector('.app')) syncDirty=true; }
+  var was=S.subscribed;
+  Promise.all([loadSub(), aiHistLoad()]).then(function(){ if(S.subscribed!==was) syncDirty=true; syncMaybe(); });
+});
+window.addEventListener('pagehide',function(){ if(pushT) cloudPush(true); });
 function unpack(d){ try{ var v=d.data(); var s=JSON.parse(v.state); s._id=d.id; return s; }catch(e){ return null; } }
 function loadMine(){
   return FB.f.getDoc(userRef(fbUser.uid)).then(function(d){
     var s=d.exists()?unpack(d):null;
-    if(s){ delete s._id; S=s; }
+    DIA=null; AIH=[]; AI_LEFT=null; SUB=null;
+    if(s){ delete s._id; S=s; lastPushed=d.data().state; lastAt=+d.data().updatedAt||0; }
     else if(mailKey(S.reg&&S.reg.email)!==mailKey(fbUser.email)){ S=fresh(); S.reg.email=fbUser.email; }
+    else if(S.reg && S.reg.registeredAt) cloudPush(true);
     try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){}
-  }).then(loadSub);
+  }).then(function(){ syncStart(); return Promise.all([loadSub(), aiHistLoad()]); });
 }
 /* La suscripción válida la escribe solo el servidor de pagos en subs/{uid} */
 var SUB=null;
@@ -2767,7 +2808,8 @@ function cloudInit(){
   var base='https://www.gstatic.com/firebasejs/10.12.2/';
   return Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]).then(function(m){
     var app=m[0].initializeApp(FBC);
-    FB={app:app,auth:m[1].getAuth(app),db:m[2].getFirestore(app),a:m[1],f:m[2]};
+    var db; try{ db=m[2].initializeFirestore(app,{localCache:m[2].persistentLocalCache({tabManager:m[2].persistentMultipleTabManager()})}); }catch(e){ db=m[2].getFirestore(app); }
+    FB={app:app,auth:m[1].getAuth(app),db:db,a:m[1],f:m[2]};
     try{ FB.auth.languageCode='es'; }catch(e){}
     return new Promise(function(res){ var un=null, got=false; un=FB.a.onAuthStateChanged(FB.auth,function(u){ fbUser=u; if(got) return; got=true; if(un) un(); else setTimeout(function(){ un&&un(); },0); res(); }); });
   }).then(function(){ return Promise.all([loadSettings(), fbUser?loadMine():null]); })
@@ -2793,7 +2835,7 @@ function cloudRegister(onOk,onErr){
 function cloudLogin(mail,pw){
   return FB.a.signInWithEmailAndPassword(FB.auth,String(mail).trim(),pw).then(function(cr){ fbUser=cr.user; return loadMine(); });
 }
-function cloudLogout(){ return FB.a.signOut(FB.auth).catch(function(){}).then(function(){ fbUser=null; S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }); }
+function cloudLogout(){ if(pushT) cloudPush(true); syncStop(); return FB.a.signOut(FB.auth).catch(function(){}).then(function(){ fbUser=null; S=fresh(); DIA=null; AIH=[]; AI_LEFT=null; SUB=null; lastPushed=null; lastAt=0; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }); }
 function cloudChangePw(cur,nw){
   return FB.a.reauthenticateWithCredential(fbUser,FB.a.EmailAuthProvider.credential(fbUser.email,cur)).then(function(){ return FB.a.updatePassword(fbUser,nw); });
 }
