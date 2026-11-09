@@ -288,7 +288,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
   radial-gradient(520px 380px at 80% 30%,color-mix(in srgb,var(--spirit) 14%,transparent),transparent 70%),
   radial-gradient(420px 320px at 95% 90%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 70%),
   radial-gradient(380px 300px at 0% 100%,color-mix(in srgb,var(--matter) 10%,transparent),transparent 70%)}
-.hero h1 em{background:linear-gradient(90deg,var(--accent),var(--spirit));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1 em{background:linear-gradient(90deg,var(--accent),var(--spirit));-webkit-background-clip:text;background-clip:text;color:transparent;padding:0 .14em .06em 0;margin-right:-.1em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .pillar{border:0;box-shadow:0 1px 2px rgba(20,26,46,.05),0 18px 40px -22px rgba(20,26,46,.25);position:relative;overflow:hidden}
 .pillar::before{content:"";position:absolute;left:0;right:0;top:0;height:5px}
 .pillar[data-p="s"]::before{background:var(--spirit)}.pillar[data-p="m"]::before{background:var(--matter)}.pillar[data-p="v"]::before{background:var(--vital)}
@@ -1044,6 +1044,15 @@ footer .adm-link:hover{color:var(--accent)}
     }
     orb();
   })();
+
+  /* ---------- Recuadros «Origen de la idea» del mismo alto en las tres cápsulas ---------- */
+  function eqOrigins(){
+    var os=[].slice.call(document.querySelectorAll('.cap-grid .origin')); os.forEach(function(o){ o.style.minHeight=''; });
+    var cs=os.map(function(o){ return o.closest('.cap')||o; });
+    if(os.length<2||Math.abs(cs[0].getBoundingClientRect().top-cs[1].getBoundingClientRect().top)>2) return;
+    var h=Math.max.apply(null,os.map(function(o){ return o.offsetHeight; })); os.forEach(function(o){ o.style.minHeight=h+'px'; });
+  }
+  eqOrigins(); window.addEventListener('resize',eqOrigins); document.addEventListener('aurea:landing',eqOrigins); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(eqOrigins);
 
   /* ---------- Planificador ---------- */
   var weeksBy={3:13,6:26,12:52}, rankBy={3:'Constancia',6:'Claridad',12:'Plenitud'};
