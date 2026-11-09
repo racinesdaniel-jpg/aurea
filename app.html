@@ -2741,6 +2741,7 @@ function leClean(frag){
   [].forEach.call(frag.querySelectorAll('[data-lc-x]'),function(n){ n.parentNode.removeChild(n); });
   [].forEach.call(frag.querySelectorAll('*'),function(n){
     if(n.hasAttribute('data-lc-open')) n.removeAttribute('open');
+    if(n.classList&&n.classList.contains('origin')) n.style.removeProperty('min-height');
     ['contenteditable','spellcheck','data-lc-ed','data-lc-auto','data-lc-autoleaf','data-lc-open'].forEach(function(a){ n.removeAttribute(a); });
     if(n.classList&&n.classList.length){ n.classList.remove('pre','lc-imgsel','lc-navoff'); if(!n.classList.length) n.removeAttribute('class'); }
     if(n.hasAttribute('style')){ var sv=leCss(n.getAttribute('style')); if(sv) n.setAttribute('style',sv); else n.removeAttribute('style'); }
