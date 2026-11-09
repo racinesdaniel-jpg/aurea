@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Términos y condiciones · Áurea</title>
+<script>/* idioma: ?lang=, lo elegido antes en la landing o la app, o el del navegador */(function(){var l=null,m=/[?&]lang=(es|en)(&|$)/.exec(location.search);try{if(m){l=m[1];localStorage.setItem('aurea-lang',l);localStorage.setItem('aurea-lang-at',String(Date.now()));}else l=localStorage.getItem('aurea-lang');}catch(e){if(m)l=m[1];}
+if(l!=='es'&&l!=='en')l=/^en/i.test(navigator.language||'')?'en':'es';document.documentElement.lang=l;if(l==='en'){document.title='Terms and conditions · Áurea';}})();</script>
 <meta name="description" content="Términos y condiciones, pagos y privacidad de Áurea Mentor.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,11 +25,18 @@ p,li{color:var(--fg)}
 ul{padding-left:1.2em}
 .note{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 18px;color:var(--muted);font-size:.92rem}
 footer{margin-top:48px;color:var(--muted);font-size:.85rem}
+html[lang=en] [data-l=es],html:not([lang=en]) [data-l=en]{display:none}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lang-sw{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.04em}
+.lang-sw a{padding:5px 9px;border-radius:999px;color:var(--muted);text-decoration:none;line-height:1}
+html[lang=es] .lang-sw a[lang=es],html[lang=en] .lang-sw a[lang=en]{background:var(--fg);color:var(--bg)}
 </style>
 </head>
 <body>
 <main class="wrap">
-  <a class="top" href="index.html"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 a2 2 0 0 1 2 2 a4 4 0 0 1 -4 4 a6 6 0 0 1 -6 -6 a8 8 0 0 1 8 -8 a10 10 0 0 1 10 10 a12 12 0 0 1 -12 12 a14 14 0 0 1 -14 -14 a16 16 0 0 1 16 -16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Áurea</a>
+  <div class="bar"><a class="top" href="index.html"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 a2 2 0 0 1 2 2 a4 4 0 0 1 -4 4 a6 6 0 0 1 -6 -6 a8 8 0 0 1 8 -8 a10 10 0 0 1 10 10 a12 12 0 0 1 -12 12 a14 14 0 0 1 -14 -14 a16 16 0 0 1 16 -16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Áurea</a>
+  <div class="lang-sw" role="group" aria-label="Idioma · Language"><a href="?lang=es" lang="es" title="Español">ES</a><a href="?lang=en" lang="en" title="English">EN</a></div></div>
+  <div data-l="es" lang="es">
   <h1>Términos y condiciones</h1>
   <p class="upd">Última actualización: 6 de noviembre de 2026</p>
 
@@ -83,7 +92,66 @@ footer{margin-top:48px;color:var(--muted);font-size:.85rem}
   <h2>10. Cambios y ley aplicable</h2>
   <p>Podemos actualizar estos términos. Si el cambio es importante, te avisaremos en la aplicación o por correo. Estos términos se rigen por las leyes de la República del Ecuador.</p>
 
-  <footer>© 2026 Áurea · <a href="index.html">Volver al inicio</a></footer>
+  </div>
+  <div data-l="en" lang="en">
+  <h1>Terms and conditions</h1>
+  <p class="upd">Last updated: November 6, 2026</p>
+
+  <p>These terms govern the use of Áurea Mentor («Áurea»), available at <a href="https://www.aureamentor.com">www.aureamentor.com</a>. By creating an account or subscribing, you accept these conditions. If you have questions, write to us at <a href="mailto:info@aureamentor.com">info@aureamentor.com</a>.</p>
+
+  <h2>1. What Áurea is</h2>
+  <p>Áurea is a web application for mentoring and personal development. It offers an initial assessment (the Wheel of Life), a path of weekly capsules, a personal journal and an artificial intelligence mentor («Áurea Mentor»).</p>
+  <p>The content is educational and supportive. It does not replace professional medical, psychological, legal or financial care. If you are going through a situation of risk, seek professional help immediately.</p>
+
+  <h2>2. Your account</h2>
+  <ul>
+    <li>You must be over 18 years old and give truthful information when you sign up.</li>
+    <li>You are responsible for keeping your password private and for the activity on your account.</li>
+    <li>We may suspend an account that is used in an abusive or fraudulent way or contrary to these terms.</li>
+  </ul>
+
+  <h2>3. Free trial</h2>
+  <p>New accounts have a free trial period, whose length is shown in the application when you sign up. No payment method is requested during the trial. When it ends, you must choose a plan to continue your path.</p>
+
+  <h2>4. Plans, prices and payments</h2>
+  <ul>
+    <li>We offer a monthly plan and an annual plan. The current price, in United States dollars and including taxes where applicable, is shown before you pay.</li>
+    <li>Payments are processed through <b>PayPal</b> and <b>Payphone</b>. Áurea does not see or store your full card details: those platforms handle them with their own security standards.</li>
+    <li><b>With PayPal</b>, the subscription renews automatically at the end of each period (month or year) at the same price, until you cancel it.</li>
+    <li><b>With Payphone</b>, each payment covers the chosen period. If you turn on automatic renewal with a saved card, we will ask for your express consent before the first charge, and the card will be charged at the start of each new period until you cancel it.</li>
+    <li>If we change the price, we will let you know in advance. The change will apply from your next renewal.</li>
+  </ul>
+
+  <h2>5. Cancellation and refunds</h2>
+  <ul>
+    <li>You can cancel automatic renewal at any time from <b>My profile → Subscription → Cancel renewal</b>, or from your PayPal account.</li>
+    <li>When you cancel, you keep access until the end of the period you already paid for. No further charges are made.</li>
+    <li>Periods that have already started are not refundable, except where the law requires it or if there was a charge made in error. If you believe we charged you in error, write to us at <a href="mailto:info@aureamentor.com">info@aureamentor.com</a> within the following 15 days and we will review it.</li>
+  </ul>
+
+  <h2>6. Áurea Mentor (artificial intelligence)</h2>
+  <p>The mentor's answers are generated with artificial intelligence. They may contain errors or not fit your situation. Use them as a guide for reflection, not as professional advice. The number of conversations may have a daily or monthly limit depending on your plan.</p>
+
+  <h2>7. Privacy and personal data</h2>
+  <ul>
+    <li>We collect the information you give us when you sign up (name, email, age, sex, country and city), your assessment answers, your progress, your journal and your conversations with the mentor.</li>
+    <li>We use this information only to provide the service, personalize your path and improve Áurea. We do not sell it.</li>
+    <li>The data is stored on Google Firebase services. To answer in the chat, the text of your questions is sent to our artificial intelligence provider (Anthropic). Payments are processed by PayPal and Payphone.</li>
+    <li>You can request access to, correction or deletion of your data by writing to <a href="mailto:info@aureamentor.com">info@aureamentor.com</a>, in accordance with Ecuador's Organic Law on Personal Data Protection.</li>
+  </ul>
+
+  <h2>8. Intellectual property</h2>
+  <p>The texts, capsules, design and Áurea brand belong to their owner. You may use them for your personal development, but you may not copy, resell or distribute them without authorization.</p>
+
+  <h2>9. Liability</h2>
+  <p>We do our best to keep Áurea available and free of errors, but there may be interruptions. The decisions you make based on the content are your own. To the extent permitted by law, our liability is limited to the amount you paid in the last 12 months.</p>
+
+  <h2>10. Changes and applicable law</h2>
+  <p>We may update these terms. If the change is significant, we will let you know in the application or by email. These terms are governed by the laws of the Republic of Ecuador.</p>
+  <p class="note">This is a translation for your convenience. In case of any difference, the Spanish version prevails.</p>
+
+  </div>
+  <footer>© 2026 Áurea · <a href="index.html"><span data-l="es">Volver al inicio</span><span data-l="en">Back to home</span></a></footer>
 </main>
 </body>
 </html>

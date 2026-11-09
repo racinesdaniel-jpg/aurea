@@ -389,10 +389,11 @@ footer .adm-link:hover{color:var(--accent)}
 @media (max-width:560px){.dcard::after{display:none}}
 
 /* ---- Selector de idioma ---- */
-.lang-sw{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;margin-left:auto;margin-right:-6px;flex:none;font-size:12px;font-weight:600;letter-spacing:.04em}
+.lang-sw{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line);border-radius:999px;margin-left:-4px;flex:none;font-size:12px;font-weight:600;letter-spacing:.04em}
 .lang-sw a{padding:5px 9px;border-radius:999px;color:var(--muted);text-decoration:none;line-height:1}
 .lang-sw a.on{background:var(--fg);color:var(--bg)}
 nav.top .navlinks{margin-left:auto}
+nav.top .wrap>.btn{margin-left:auto}
 .lang-sw a:not(.on):hover{color:var(--fg)}
 /* ---- Instalar en el celular ---- */
 .getapp{border-top:1px solid var(--line)}
@@ -839,7 +840,7 @@ nav.top .navlinks{margin-left:auto}
     var d=document.createElement('div'); d.className='lang-sw'; d.setAttribute('role','group'); d.setAttribute('aria-label',LE?'Language':'Idioma');
     ['es','en'].forEach(function(l){ var b=document.createElement('a'); b.href='?lang='+l+location.hash; b.textContent=l.toUpperCase(); b.setAttribute('lang',l); b.title=l==='es'?'Español':'English';
       if(l===LANG){ b.className='on'; b.setAttribute('aria-current','true'); } d.appendChild(b); });
-    var cta=w.querySelector('.btn'); if(cta) w.insertBefore(d,cta); else w.appendChild(d); }
+    w.appendChild(d); }
   document.addEventListener('aurea:landing',langBtn);
   var DEF={}, ORDER0=[], LOCKS={};
   secs().forEach(function(s){ var id=s.getAttribute('data-sec'), w=wrapOf(s);
