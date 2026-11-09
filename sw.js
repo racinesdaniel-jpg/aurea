@@ -1,6 +1,6 @@
 /* Áurea: service worker mínimo para que la app sea instalable y abra sin conexión.
    Páginas: primero la red (siempre la versión más nueva) y, si no hay internet, la copia guardada. */
-const CACHE = 'aurea-v1';
+const CACHE = 'aurea-v2';
 const SHELL = ['./', 'index.html', 'app.html', 'firebase-config.js', 'manifest.webmanifest', 'icons/aurea-192.png', 'icons/aurea-512.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
