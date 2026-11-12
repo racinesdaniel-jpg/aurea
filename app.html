@@ -86,6 +86,10 @@ p{margin:0}
 .bot-top{position:relative;display:flex;justify-content:space-between;align-items:center;padding-block:18px}
 .brand{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:1.25rem}
 .brand svg{color:var(--accent)}
+.lg-word{display:block;width:auto;flex:none}.lg-sym{display:inline-block;flex:none}
+.lg-d{display:none!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lg-l{display:none!important}:root:not([data-theme="light"]) .lg-d{display:block!important}:root:not([data-theme="light"]) .lg-sym.lg-d{display:inline-block!important}}
+:root[data-theme="dark"] .lg-l{display:none!important}:root[data-theme="dark"] .lg-d{display:block!important}:root[data-theme="dark"] .lg-sym.lg-d{display:inline-block!important}
 .phase{color:var(--muted)}
 .bot-main{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding-block:12px 24px;max-width:860px;width:100%;margin:0 auto;text-align:center}
 .orb{width:112px;height:112px;position:relative;flex:none}
@@ -1518,7 +1522,7 @@ function botScreen(opts){
   root.innerHTML='';
   var el=document.createElement('div'); el.className='bot';
   el.innerHTML='<div class="bot-bg"></div>'+
-   '<div class="bot-top gutter"><div class="brand">'+logo(22)+'Áurea</div><span class="mono phase">'+esc(opts.phase)+'</span></div>'+
+   '<div class="bot-top gutter"><div class="brand">'+wordmark(36)+'</div><span class="mono phase">'+esc(opts.phase)+'</span></div>'+
    '<div class="bot-main gutter"><div class="orb-slot"></div><h1 class="q" id="q" aria-live="polite"></h1><p class="hint" id="hint"></p><div class="answer wait" id="answer"></div><p class="tap" id="tap">'+LX('Toca el texto para mostrarlo completo','Tap the text to show it all')+'</p></div>'+
    '<div class="bot-foot gutter"><button class="btn btn-ghost" id="back" type="button">'+LX('← Anterior','← Back')+'</button><div class="dots" id="dots"></div><button class="btn btn-primary" id="next" type="button">'+LX('Siguiente','Next')+'</button></div>';
   root.appendChild(el);
@@ -1526,7 +1530,8 @@ function botScreen(opts){
   el.querySelector('.orb-slot').appendChild(makeOrb());
   return el;
 }
-function logo(s){ return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 a2 2 0 0 1 2 2 a4 4 0 0 1 -4 4 a6 6 0 0 1 -6 -6 a8 8 0 0 1 8 -8 a10 10 0 0 1 10 10 a12 12 0 0 1 -12 12 a14 14 0 0 1 -14 -14 a16 16 0 0 1 16 -16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'; }
+function logo(s){ return '<img class="lg-l lg-sym" src="brand/aurea-simbolo-claro.png" width="'+s+'" height="'+s+'" alt="" aria-hidden="true"><img class="lg-d lg-sym" src="brand/aurea-simbolo.png" width="'+s+'" height="'+s+'" alt="" aria-hidden="true">'; }
+function wordmark(h,dark){ var w=Math.round(h*2.963), d='<img class="lg-word'+(dark?'':' lg-d')+'" src="brand/aurea-mentor-oscuro.png" width="'+w+'" height="'+h+'" alt="Áurea Mentor">'; return dark?d:'<img class="lg-word lg-l" src="brand/aurea-mentor-claro.png" width="'+w+'" height="'+h+'" alt="Áurea Mentor">'+d.replace('alt="Áurea Mentor"','alt="" aria-hidden="true"'); }
 
 function runSteps(cfg){
   // cfg: phase, steps[], store(obj), onDone
@@ -1967,10 +1972,10 @@ function renderApp(t){
   var nav=function(cls){ return TABS.map(function(x){ return '<button type="button" class="'+cls+'" data-t="'+x[0]+'"'+(tab===x[0]?' aria-current="page"':'')+'>'+navIcon(x[0])+'<span>'+(cls==='bnav-b'?x[2]:x[1])+'</span></button>'; }).join(''); };
   var today=new Date(Date.now()+S.dayOffset*86400000).toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'});
   var el=document.createElement('div'); el.className='app';
-  el.innerHTML='<aside class="side"><div class="brand">'+logo(24)+'Áurea</div><nav class="snav" aria-label="'+LX('Secciones','Sections')+'">'+nav('snav-b')+'</nav>'+
+  el.innerHTML='<aside class="side"><div class="brand">'+wordmark(40,true)+'</div><nav class="snav" aria-label="'+LX('Secciones','Sections')+'">'+nav('snav-b')+'</nav>'+
       '<div class="side-lv"><div class="slv-top"><span>'+LX('Nivel ','Level ')+L.n+'</span><b>'+esc(L.name)+'</b></div><div class="slv-bar"><i style="width:'+lp+'%"></i></div><small>'+(N?LX('Siguiente: ','Next: ')+esc(N.name)+' · '+(N.w-w)+' '+((N.w-w)===1?LX('vuelta','turn'):LX('vueltas','turns')):LX('Nivel máximo alcanzado','Highest level reached'))+'</small></div>'+
       '<button type="button" class="side-trial" id="sideSub">'+(S.subscribed?LX('Suscripción activa<small>Ver mi plan</small>','Active subscription<small>See my plan</small>'):(left>0?LX('Prueba gratuita · ','Free trial · ')+left+' '+(left===1?LX('día','day'):LX('días','days')):LX('Prueba gratuita terminada','Free trial ended'))+'<small>'+LX('Ver planes','See plans')+'</small>')+'</button></aside>'+
-    '<div class="shell"><header class="topbar gutter"><div class="brand tb-brand">'+logo(22)+'Áurea</div><span class="tb-date">'+esc(today.charAt(0).toUpperCase()+today.slice(1))+'</span>'+
+    '<div class="shell"><header class="topbar gutter"><div class="brand tb-brand">'+wordmark(32)+'</div><span class="tb-date">'+esc(today.charAt(0).toUpperCase()+today.slice(1))+'</span>'+
       '<div class="chips"><span class="chip pts"><i></i>'+points()+' pts</span><button type="button" class="chip tb-trial" id="chipSub">'+(S.subscribed?LX('Activa','Active'):(left>0?left+LX(' días gratis',left===1?' free day':' free days'):LX('Prueba terminada','Trial ended')))+'</button></div>'+
       '<div class="tb-r">'+langPick()+'<div class="umenu"><button type="button" class="ubtn" id="ubtn" aria-haspopup="menu" aria-expanded="false"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><span class="uname">'+esc(tc(S.reg.name))+'</span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>'+
       '<div class="udrop" id="udrop" role="menu" hidden><div class="ud-h"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><div><b>'+esc(tc(S.reg.name))+'</b><small>'+esc(S.reg.email)+'</small></div></div>'+
@@ -2601,7 +2606,7 @@ function adminPanel(t,cached){
   root.innerHTML=''; AN=null;
   var el=document.createElement('div'); el.className='adm';
   var TABS=[['resumen','Resumen'],['usuarios','Usuarios'],['config','Configuración'],['analitica','Analítica'],['anim','Animaciones'],['ia','Mentor IA'],['landing','Landing']];
-  el.innerHTML='<header class="adm-top"><div class="adm-in gutter"><div class="brand">'+logo(22)+'Áurea <span class="adm-tag">Administración</span></div>'+
+  el.innerHTML='<header class="adm-top"><div class="adm-in gutter"><div class="brand">'+wordmark(34,true)+' <span class="adm-tag">Administración</span></div>'+
     '<nav class="adm-tabs" aria-label="Secciones">'+TABS.map(function(x){return '<button type="button" data-a="'+x[0]+'"'+(x[0]===TAB?' aria-current="page"':'')+'>'+x[1]+'</button>';}).join('')+'</nav>'+
     '<button type="button" class="adm-out" id="aout">Salir</button></div></header><main class="adm-main gutter" id="amain"></main>';
   root.appendChild(el);

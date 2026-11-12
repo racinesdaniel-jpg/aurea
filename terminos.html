@@ -17,6 +17,8 @@ if(l!=='es'&&l!=='en')l=/^en/i.test(navigator.language||'')?'en':'es';document.d
 body{margin:0;background:var(--bg);color:var(--fg);font:400 1rem/1.7 "Hanken Grotesk",system-ui,sans-serif}
 .wrap{max-width:760px;margin:0 auto;padding:40px 16px 72px}
 a{color:var(--accent)}
+.top img{display:block;height:36px;width:auto}.lg-d{display:none!important}
+@media (prefers-color-scheme:dark){.lg-l{display:none!important}.lg-d{display:block!important}}
 .top{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--fg);font-family:"Newsreader",Georgia,serif;font-size:1.3rem}
 h1{font:400 clamp(2rem,6vw,2.8rem)/1.15 "Newsreader",Georgia,serif;margin:36px 0 6px}
 .upd{color:var(--muted);font-size:.9rem;margin:0 0 28px}
@@ -35,7 +37,7 @@ html[lang=es] .lang-sw span[lang=es],html[lang=en] .lang-sw span[lang=en]{backgr
 </head>
 <body>
 <main class="wrap">
-  <div class="bar"><a class="top" href="index.html"><svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 a2 2 0 0 1 2 2 a4 4 0 0 1 -4 4 a6 6 0 0 1 -6 -6 a8 8 0 0 1 8 -8 a10 10 0 0 1 10 10 a12 12 0 0 1 -12 12 a14 14 0 0 1 -14 -14 a16 16 0 0 1 16 -16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Áurea</a>
+  <div class="bar"><a class="top" href="index.html" aria-label="Áurea Mentor, inicio"><img class="lg-l" src="brand/aurea-mentor-claro.png" width="107" height="36" alt="Áurea Mentor"><img class="lg-d" src="brand/aurea-mentor-oscuro.png" width="107" height="36" alt="" aria-hidden="true"></a>
   <a class="lang-sw" id="langSw" href="?lang=en" title="Cambiar de idioma · Switch language" aria-label="Cambiar de idioma · Switch language"><span lang="es">ES</span><span lang="en">EN</span></a></div>
   <script>document.getElementById('langSw').href='?lang='+(document.documentElement.lang==='en'?'es':'en');</script>
   <div data-l="es" lang="es">

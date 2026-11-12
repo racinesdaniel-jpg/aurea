@@ -79,7 +79,8 @@ section{padding-block:clamp(72px,10vw,128px)}
 nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
 nav.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-size:1.35rem;color:var(--fg)}
-.brand svg{flex:none;color:var(--accent)}
+.brand img{flex:none;display:block;height:40px;width:auto} /* el menú superior siempre es oscuro */
+@media (max-width:480px){.brand img{height:32px}}
 .navlinks{display:flex;gap:28px;font-size:.92rem;color:var(--muted)}
 .navlinks a{text-decoration:none}
 .navlinks a:hover{color:var(--fg)}
@@ -464,8 +465,7 @@ nav.top .wrap>.btn{margin-left:auto}
 <nav class="top" data-sec="nav" data-sec-name="Menú superior" data-fixed>
   <div class="wrap">
     <a class="brand" href="#inicio" aria-label="Áurea, inicio">
-      <svg width="26" height="26" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 a2 2 0 0 1 2 2 a4 4 0 0 1 -4 4 a6 6 0 0 1 -6 -6 a8 8 0 0 1 8 -8 a10 10 0 0 1 10 10 a12 12 0 0 1 -12 12 a14 14 0 0 1 -14 -14 a16 16 0 0 1 16 -16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      Áurea
+      <img src="brand/aurea-mentor-oscuro.png" width="119" height="40" alt="Áurea Mentor">
     </a>
     <div class="navlinks">
       <a href="#pilares">Pilares</a>
