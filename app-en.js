@@ -400,7 +400,7 @@ beliefs:[
  {f:"This is just how I am and I can’t change",r:"I can choose how to respond today.",e:"The way you are is also made of habits, and habits can be changed with small repetitions."},
  {f:"I don’t deserve to do well",r:"I deserve to grow, just like anyone else.",e:"This idea usually comes from past experiences, not from today’s facts. Ask yourself who you first heard it from."}
 ],
-moods:[{l:"Hard"},{l:"Low"},{l:"Okay"},{l:"Good"},{l:"Full"}],
+moods:[{l:"Very bad"},{l:"Bad"},{l:"So-so"},{l:"Good"},{l:"Very good"}],
 diaQ:{
  s:["What gave you peace today, even if it was something small?","Who did you feel connected to today, and why?","What would you say to yourself from a year ago?","What are you carrying that you could let go of?"],
  m:["What decision did you make today with your future self in mind?","What did you learn today that makes you more valuable at work?","How did you feel about money today? Why?","Which expense this week brought you closer to your goal, and which took you further away?"],
