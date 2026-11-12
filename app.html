@@ -1502,9 +1502,17 @@ function drawOrbs(now){
 
 /* ================= ESCRITURA ================= */
 var typingJob=null;
+/* Cada texto se escribe letra a letra solo la primera vez que la persona lo ve; después aparece fijo.
+   Se recuerda en este navegador (huella corta del texto, máximo 600). TYPE_ALWAYS lo desactiva (vista previa del admin). */
+var TYPE_ALWAYS=false, TSEEN=null;
+function tHash(t){ var h=5381; for(var i=0;i<t.length;i++) h=((h<<5)+h+t.charCodeAt(i))|0; return (h>>>0).toString(36)+t.length.toString(36); }
+function typedBefore(t){ if(!TSEEN){ try{ TSEEN=JSON.parse(localStorage.getItem('aurea-visto')||'[]'); }catch(e){ TSEEN=[]; } } return TSEEN.indexOf(tHash(String(t)))>=0; }
+function markTyped(t){ typedBefore(t); var h=tHash(String(t)); if(TSEEN.indexOf(h)>=0) return; TSEEN.push(h); if(TSEEN.length>600) TSEEN=TSEEN.slice(-600); try{ localStorage.setItem('aurea-visto',JSON.stringify(TSEEN)); }catch(e){} }
 function typeText(el,text,speed,done){
   /* El texto completo se coloca desde el inicio (la parte pendiente invisible), así cada letra aparece en su lugar final y nada se mueve. */
   if(typingJob) typingJob.cancel();
+  if(!TYPE_ALWAYS && typedBefore(text)){ el.onclick=null; el.textContent=text; orbState.speed=1; done&&done(); return; }
+  if(!TYPE_ALWAYS) markTyped(text);
   speed=Math.max(1,Math.round(speed*1.8*100/animNow().typeSpeed));
   if(window.CSS&&CSS.highlights&&window.Highlight&&!reduce) return typeHL(el,text,speed,done);
   el.innerHTML='';
@@ -2221,7 +2229,7 @@ function viewMentor(main){
     if(my!==mentorRun) return; msgs=[].concat(msgs);
     K.textContent=trail; O.innerHTML=''; C.hidden=true; C.innerHTML=''; C.classList.remove('in');
     var hmax=0; msgs.forEach(function(m){ Q.textContent=m; hmax=Math.max(hmax,Q.offsetHeight); }); Q.textContent=''; Q.style.minHeight=hmax+'px';
-    var k=0;
+    var k=TYPE_ALWAYS?0:(msgs.every(typedBefore)?msgs.length-1:0);
     (function nx(){ typeText(Q,msgs[k],30,function(){ if(my!==mentorRun) return; k++;
       if(k<msgs.length){ setTimeout(function(){ if(my===mentorRun) nx(); }, reduce?0:animNow().paraPause*1000); return; }
       if(card){ C.innerHTML=card; C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); }); }
@@ -2814,7 +2822,7 @@ function admAnim(m){
   AN=cur();
   m.querySelector('#anDef').onclick=function(){ ANIM_KEYS.forEach(function(k){ var i=m.querySelector('#an-'+k); i.value=ANIM_DEF[k]; m.querySelector('#v-'+k).textContent=show(k,ANIM_DEF[k]); }); AN=cur(); };
   var demo=['Serán 6 meses en espiral: 26 semanas, tres cápsulas por semana.','Las áreas que más atención necesitan son Finanzas y Descanso.'], run=0;
-  m.querySelector('#anTry').onclick=function(){ var my=++run, q=m.querySelector('#anQ'), h=m.querySelector('#anH'); h.textContent='';
+  m.querySelector('#anTry').onclick=function(){ TYPE_ALWAYS=true; var my=++run, q=m.querySelector('#anQ'), h=m.querySelector('#anH'); h.textContent='';
     typeQA(q,demo[0],h,'Piensa en cómo te sientes hoy, con lo primero que te venga a la mente.',function(){ if(my!==run) return;
       setTimeout(function(){ if(my!==run||!q.isConnected) return; h.textContent=''; typeText(q,demo[1],36,function(){}); }, animNow().paraPause*1000); }); };
   m.querySelector('#an1').onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#an1e'), v=cur();
