@@ -840,6 +840,13 @@ body{background:var(--bg)}
 .dia-top h1{font-family:var(--f-display);font-weight:300;font-size:clamp(1.8rem,4vw,2.6rem);margin:0}
 .dia-stats{display:flex;align-items:center;gap:18px}.dia-stats div{display:grid;justify-items:center}.dia-stats b{font-family:var(--f-display);font-size:1.7rem;font-weight:400;line-height:1}.dia-stats span{font-size:.75rem;color:var(--muted)}
 .dia-grid{display:grid;gap:20px}
+#dBody{display:grid;gap:22px}
+.dia-pils{display:grid;gap:14px}
+.dia-pil{display:grid;gap:10px;padding:14px 16px 6px;border-radius:18px;border:1px solid var(--line);border-left:4px solid var(--c);background:var(--bg)}
+.dia-pn{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}
+.dia-grid.night .dia-pn{filter:brightness(1.5)}
+.dia-pil .dia-f textarea{font-size:1.05rem}
+.dia-rp{border-left:3px solid var(--c);padding-left:12px;margin:10px 0}.dia-rp h4{color:var(--c)}.dia-rp p{margin:4px 0}
 .dia-views{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);justify-self:start;max-width:100%}
 .dia-views button{border:0;background:transparent;padding:9px 18px;border-radius:999px;font:inherit;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .dia-views button[aria-selected="true"]{background:var(--accent);color:#fff}
@@ -2374,7 +2381,7 @@ function diaPut(k,e){
 }
 function dKey(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function diaStreak(){ var n=0, d=new Date(); if(!DIA[dKey(d)]) d.setDate(d.getDate()-1); while(DIA[dKey(d)]){ n++; d.setDate(d.getDate()-1); } return n; }
-var MOODS=[{v:1,l:'Difícil'},{v:2,l:'Bajo'},{v:3,l:'Normal'},{v:4,l:'Bien'},{v:5,l:'Pleno'}];
+var MOODS=[{v:1,l:'Muy mal'},{v:2,l:'Mal'},{v:3,l:'Más o menos'},{v:4,l:'Bien'},{v:5,l:'Muy bien'}];
 if(EN) ovl(MOODS,EN.moods);
 var DIA_Q={
  s:['¿Qué te dio paz hoy, aunque haya sido algo pequeño?','¿Con quién te sentiste en conexión hoy y por qué?','¿Qué le dirías a tu yo de hace un año?','¿Qué estás cargando que podrías soltar?'],
@@ -2437,21 +2444,28 @@ function diaryBook(main){
       '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>'+LX('Páginas anteriores','Previous pages')+'</h2><div id="dPast"></div></section><p class="dia-priv">'+LX('🔒 Solo tú puedes leer tu diario. Ni el equipo de Áurea tiene acceso. Solo cómo te sientes se usa, sin tus textos, para estadísticas generales.','🔒 Only you can read your journal. Not even the Áurea team has access. Only how you feel is used, without your writing, for general statistics.')+'</p></aside></div>';
   var body=main.querySelector('#dBody'), saved=main.querySelector('#dSaved'), T=null;
   function persist(){ clearTimeout(T); saved.textContent=LX('Guardando…','Saving…'); T=setTimeout(function(){ e.updatedAt=Date.now(); diaPut(today,JSON.parse(JSON.stringify(e))).then(function(){ saved.textContent=LX('Guardado','Saved'); main.querySelector('#dStreak').textContent=diaStreak(); main.querySelector('#dCount').textContent=Object.keys(DIA).length; cal(); past(); }).catch(function(er){ saved.textContent=LX('No se pudo guardar. ','Could not save. ')+fbErr(er); }); },700); }
+  /* El texto de Áurea se escribe letra a letra solo la primera vez que aparece; después queda fijo */
+  function onceType(el,txt,slot){ S.diaTyped=S.diaTyped||{}; if(S.diaTyped[slot]===txt){ el.textContent=txt; return; } S.diaTyped[slot]=txt; save(); typeText(el,txt,30,function(){}); }
+  function pil(fields){ e.pil=e.pil||{}; return '<div class="dia-pils">'+['s','m','v'].map(function(p){ var v=e.pil[p]||{}; return '<div class="dia-pil '+PILLARS[p].cls+'"><b class="dia-pn">'+esc(PILLARS[p].name)+'</b>'+fields.map(function(f){ return '<label class="dia-f"><span>'+f.l+'</span><textarea rows="2" data-p="'+p+'" data-k="'+f.k+'" placeholder="'+esc(f.ph[p])+'">'+esc(v[f.k]||'')+'</textarea></label>'; }).join('')+'</div>'; }).join('')+'</div>'; }
   function area(id,label,val,ph,rows){ return '<label class="dia-f"><span>'+label+'</span><textarea id="'+id+'" rows="'+(rows||3)+'" placeholder="'+esc(ph)+'">'+esc(val||'')+'</textarea></label>'; }
   function draw(){
     main.querySelector('.dia-grid').classList.toggle('night',mode==='noche'); main.querySelector('.dia-grid').classList.toggle('day',mode==='manana');
     main.querySelectorAll('[data-m]').forEach(function(b){ b.setAttribute('aria-selected',b.dataset.m===mode?'true':'false'); });
     if(mode==='manana'){
-      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+LX('Áurea pregunta','Áurea asks')+'</span><p class="dia-q" id="dQ"></p></div>'+area('dAns',LX('Tu respuesta','Your answer'),e.answer,LX('Escribe con calma, sin corregirte…','Write calmly, without correcting yourself…'),5)+area('dInt',LX('Mi intención para hoy','My intention for today'),e.intent,LX('Por ejemplo: responder con calma aunque el día se complique','For example: to respond calmly even if the day gets complicated'),2);
-      var q=body.querySelector('#dQ'); typeText(q,e.prompt,30,function(){});
+      body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+LX('Áurea pregunta','Áurea asks')+'</span><p class="dia-q" id="dQ"></p></div>'+area('dAns',LX('Tu respuesta','Your answer'),e.answer,LX('Escribe con calma, sin corregirte…','Write calmly, without correcting yourself…'),4)+
+        '<div class="dia-f"><span>'+LX('Mi intención para hoy en cada pilar','My intention for today in each pillar')+'</span></div>'+
+        pil([{k:'intent',l:LX('¿Qué haré hoy por este pilar?','What will I do today for this pillar?'),ph:LX({s:'Por ejemplo: diez minutos de calma antes de empezar',m:'Por ejemplo: avanzar una tarea importante sin distraerme',v:'Por ejemplo: caminar veinte minutos y tomar más agua'},{s:'For example: ten calm minutes before starting',m:'For example: move one important task forward without distractions',v:'For example: walk twenty minutes and drink more water'})}]);
+      onceType(body.querySelector('#dQ'),e.prompt,'am');
     } else {
       body.innerHTML='<div class="dia-ask"><span class="dia-who">'+logo(18)+LX('La revisión de la noche','The evening review')+'</span><p class="dia-q" id="dQ"></p></div>'+
-        area('dGood',LX('¿Qué hice bien hoy?','What did I do well today?'),e.good,LX('Una acción, una conversación, una decisión…','An action, a conversation, a decision…'),3)+area('dBetter',LX('¿Qué haría distinto?','What would I do differently?'),e.better,LX('Sin culparte: solo lo que aprendiste','Without blaming yourself: just what you learned'),3)+
+        pil([{k:'good',l:LX('¿Qué hice bien hoy?','What did I do well today?'),ph:LX({s:'Con mi calma, mi propósito o mis relaciones…',m:'Con mi trabajo o mi dinero…',v:'Con mi cuerpo, mi comida o mi descanso…'},{s:'With my calm, my purpose or my relationships…',m:'With my work or my money…',v:'With my body, my food or my rest…'})},
+             {k:'better',l:LX('¿Qué haría distinto?','What would I do differently?'),ph:LX({s:'Sin culparte: solo lo que aprendiste',m:'Sin culparte: solo lo que aprendiste',v:'Sin culparte: solo lo que aprendiste'},{s:'Without blaming yourself: just what you learned',m:'Without blaming yourself: just what you learned',v:'Without blaming yourself: just what you learned'})}])+
+        (e.good||e.better?area('dGood',LX('¿Qué hice bien hoy? (general)','What did I do well today? (general)'),e.good,'',2)+area('dBetter',LX('¿Qué haría distinto? (general)','What would I do differently? (general)'),e.better,'',2):'')+
         '<div class="dia-f"><span>'+LX('Tres cosas que agradezco hoy','Three things I am grateful for today')+'</span><div class="dia-grat">'+[0,1,2].map(function(i){ return '<label><b>'+(i+1)+'</b><input type="text" data-g="'+i+'" maxlength="120" value="'+esc(e.grat[i]||'')+'" placeholder="'+LX(['Una persona','Un momento','Algo de ti'],['A person','A moment','Something about you'])[i]+'"></label>'; }).join('')+'</div></div>';
-      typeText(body.querySelector('#dQ'),LX('Antes de dormir, Séneca se preguntaba qué había hecho bien y qué podía mejorar. Hagamos lo mismo.','Before sleeping, Seneca asked himself what he had done well and what he could improve. Let’s do the same.'),30,function(){});
+      onceType(body.querySelector('#dQ'),LX('Antes de dormir, Séneca se preguntaba qué había hecho bien y qué podía mejorar. Hagamos lo mismo con cada pilar.','Before sleeping, Seneca asked himself what he had done well and what he could improve. Let’s do the same with each pillar.'),'pm');
     }
     var map={dAns:'answer',dInt:'intent',dGood:'good',dBetter:'better'};
-    body.querySelectorAll('textarea').forEach(function(t){ t.oninput=function(){ e[map[t.id]]=t.value; persist(); }; });
+    body.querySelectorAll('textarea').forEach(function(t){ t.oninput=function(){ if(t.dataset.p){ e.pil=e.pil||{}; var o=e.pil[t.dataset.p]=e.pil[t.dataset.p]||{}; o[t.dataset.k]=t.value; } else e[map[t.id]]=t.value; persist(); }; });
     body.querySelectorAll('[data-g]').forEach(function(t){ t.oninput=function(){ e.grat[+t.dataset.g]=t.value; persist(); }; });
   }
   main.querySelectorAll('[data-m]').forEach(function(b){ b.onclick=function(){ mode=b.dataset.m; draw(); moods(); }; });
@@ -2464,15 +2478,18 @@ function diaryBook(main){
     var h=DAYS.map(function(x){return '<span class="dc-h">'+x.c+'</span>';}).join(''); for(var i=0;i<first;i++) h+='<span></span>';
     for(var k=1;k<=nd;k++){ var key=dKey(new Date(y,m,k)), en=DIA[key]; h+='<span class="dc'+(en?' has mo'+(en.mood||3):'')+(k===d.getDate()?' today':'')+'" title="'+(en?LX('Escribiste este día','You wrote on this day'):'')+'">'+k+'</span>'; }
     main.querySelector('#dCal').innerHTML=h; }
-  function past(){ var ks=Object.keys(DIA).filter(function(k){return k!==today;}).sort().reverse().slice(0,12);
+  function pilTxt(x,k){ var P=x.pil||{}; return ['s','m','v'].map(function(p){ return (P[p]||{})[k]||''; }).filter(Boolean).join(' · '); }
+  function hasTxt(x){ return !!(x&&(x.answer||x.intent||x.good||x.better||pilTxt(x,'intent')||pilTxt(x,'good')||pilTxt(x,'better')||(x.grat||[]).filter(Boolean).length)); }
+  function past(){ var ks=Object.keys(DIA).filter(function(k){return k!==today||hasTxt(DIA[k]);}).sort().reverse().slice(0,12);
     var box=main.querySelector('#dPast');
-    box.innerHTML=ks.length?ks.map(function(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'); return '<button type="button" class="dp" data-k="'+k+'"><i class="mo'+(x.mood||3)+'"></i><span><b>'+esc(dd.toLocaleDateString(LOC,{weekday:'short',day:'numeric',month:'short'}))+'</b><small>'+esc(String(x.intent||x.answer||x.good||'').slice(0,60))+'</small></span></button>'; }).join('')
+    box.innerHTML=ks.length?ks.map(function(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'); return '<button type="button" class="dp" data-k="'+k+'"><i class="mo'+(x.mood||3)+'"></i><span><b>'+(k===today?LX('Hoy','Today'):esc(dd.toLocaleDateString(LOC,{weekday:'short',day:'numeric',month:'short'})))+'</b><small>'+esc(String(x.answer||x.intent||pilTxt(x,'intent')||x.good||pilTxt(x,'good')||(x.grat||[]).filter(Boolean)[0]||'').slice(0,60))+'</small></span></button>'; }).join('')
       :'<p class="dia-empty">'+LX('Tus páginas aparecerán aquí. Escribir un poco cada día vale más que escribir mucho de vez en cuando.','Your pages will appear here. Writing a little every day is worth more than writing a lot once in a while.')+'</p>';
     box.querySelectorAll('.dp').forEach(function(b){ b.onclick=function(){ readPage(b.dataset.k); }; }); }
   function readPage(k){ var x=DIA[k], dd=new Date(k+'T12:00:00'), M=MOODS.filter(function(m){return m.v===x.mood;})[0];
     var sec=function(t,v){ return v?'<h4>'+t+'</h4><p>'+esc(v)+'</p>':''; };
     modal(M?LX('Te sentías: ','You felt: ')+M.l.toLowerCase():LX('Tu página','Your page'),'<p class="eyebrow">'+esc(dd.toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long',year:'numeric'}))+'</p><div class="dia-read">'+
       (x.prompt&&x.answer?'<blockquote>'+esc(x.prompt)+'</blockquote>':'')+sec(LX('Tu respuesta','Your answer'),x.answer)+sec(LX('Tu intención','Your intention'),x.intent)+sec(LX('Lo que hiciste bien','What you did well'),x.good)+sec(LX('Lo que harías distinto','What you would do differently'),x.better)+
+      (x.pil?['s','m','v'].map(function(p){ var v=x.pil[p]||{}; if(!(v.intent||v.good||v.better)) return ''; return '<div class="dia-rp '+PILLARS[p].cls+'"><h4>'+esc(PILLARS[p].name)+'</h4>'+(v.intent?'<p><b>'+LX('Intención: ','Intention: ')+'</b>'+esc(v.intent)+'</p>':'')+(v.good?'<p><b>'+LX('Hiciste bien: ','You did well: ')+'</b>'+esc(v.good)+'</p>':'')+(v.better?'<p><b>'+LX('Harías distinto: ','You would do differently: ')+'</b>'+esc(v.better)+'</p>':'')+'</div>'; }).join(''):'')+
       ((x.grat||[]).filter(Boolean).length?'<h4>'+LX('Agradeciste','You were grateful for')+'</h4><ul>'+x.grat.filter(Boolean).map(function(g){return '<li>'+esc(g)+'</li>';}).join('')+'</ul>':'')+'</div>'); }
   main.querySelector('#dWhy').onclick=function(){ S.diarioIntro=false; save(); renderApp('diario'); window.scrollTo(0,0); };
   diaTabsWire(main);
@@ -2808,7 +2825,7 @@ function admAnim(m){
 /* ---- Analítica: gráficos enlazados; al tocar una barra o un sector se filtran todos los demás ---- */
 var ANF={}, ANP=30;
 function admAnalytics(m){
-  var L=uList(), MC={1:'#8C93A8',2:'#7C9CD6',3:'#5FB3A4',4:'#0E8C78',5:'#D6A21E'}, ML={1:'Difícil',2:'Bajo',3:'Normal',4:'Bien',5:'Pleno'};
+  var L=uList(), MC={1:'#8C93A8',2:'#7C9CD6',3:'#5FB3A4',4:'#0E8C78',5:'#D6A21E'}, ML={1:'Muy mal',2:'Mal',3:'Más o menos',4:'Bien',5:'Muy bien'};
   var AGES=['18–24','25–34','35–44','45–54','55–64','65 o más'], SEXC={'Mujer':'var(--spirit)','Hombre':'var(--matter)','Prefiero no decirlo':'var(--vital)'};
   var DIMS={pais:'País',ciudad:'Ciudad',edad:'Edad',genero:'Género',am:'Ánimo al empezar el día',pm:'Ánimo al terminar el día'};
   function ageR(a){ a=+a; if(!(a>0)) return 'Sin dato'; return a<25?AGES[0]:a<35?AGES[1]:a<45?AGES[2]:a<55?AGES[3]:a<65?AGES[4]:AGES[5]; }
