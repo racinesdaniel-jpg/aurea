@@ -451,6 +451,9 @@ p{margin:0}
 .login .err{margin:0;text-transform:none;letter-spacing:0;text-align:center;min-height:1.2em}
 .lnew{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface);display:grid;gap:10px;text-align:center}
 .lnew p{margin:0;font-size:.9rem;color:var(--muted)}.lnew div{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.lnew .btn{padding:.6em 1.1em;font-size:.9rem}
+/* Inicio de sesión: botones apilados y centrados con el formulario (Ingresar, ¿Olvidaste…?, Crear cuenta) */
+.bot-foot.login-foot{flex-direction:column;justify-content:center;gap:12px;max-width:452px;box-sizing:border-box}
+.login-foot #next{order:1;width:100%}.login-foot .dots{order:2}.login-foot #back{order:3;width:100%}
 .forgot{background:none;border:0;color:var(--muted);font-size:.85rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 /* =========================================================
@@ -1712,6 +1715,7 @@ function loginScreen(){
   var el=botScreen({phase:LX('Iniciar sesión','Sign in')}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
   tap.remove(); back.textContent=LX('Crear cuenta nueva','Create a new account'); next.textContent=LX('Ingresar','Sign in');
+  el.querySelector('.bot-foot').classList.add('login-foot');
   dots.innerHTML='<button type="button" class="forgot" id="forgot">'+LX('¿Olvidaste tu contraseña?','Forgot your password?')+'</button>';
   ans.innerHTML='<form class="login" novalidate><label><span>'+LX('Correo','Email')+'</span><input class="lfield" id="lmail" type="email" autocomplete="email" maxlength="80" placeholder="'+LX('tucorreo@ejemplo.com','you@example.com')+'"></label>'+
     '<label><span>'+LX('Contraseña','Password')+'</span><div class="pwbox"><input class="lfield" id="lpw" type="password" autocomplete="current-password" maxlength="64" placeholder="'+LX('Tu contraseña','Your password')+'"><button type="button" class="pw-eye" aria-label="'+LX('Mostrar contraseña','Show password')+'">'+LX('Mostrar','Show')+'</button></div></label><p class="err" id="lerr"></p>'+
