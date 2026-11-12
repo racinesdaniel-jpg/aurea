@@ -287,3 +287,4 @@ exports.paypalWebhook = onRequest(
   }
 );
 exports._ppSync = ppSync;
+exports._pp = pp;
