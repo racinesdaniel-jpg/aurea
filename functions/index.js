@@ -166,3 +166,6 @@ exports.paypalPlan = pagos.paypalPlan;
 exports.paypalConfirm = pagos.paypalConfirm;
 exports.paypalWebhook = pagos.paypalWebhook;
 exports.subCancel = pagos.subCancel;
+
+// Administración de cuentas (eliminar usuarios por completo)
+exports.adminCuentas = require("./cuentas").adminCuentas;

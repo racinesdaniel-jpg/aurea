@@ -819,6 +819,20 @@ body{background:var(--bg)}
 .an-don svg{width:150px;height:150px}.an-s{stroke:var(--surface);stroke-width:2;cursor:pointer;transition:opacity .15s}.an-s.dim{opacity:.3}.an-s:hover,.an-s:focus{opacity:.85;outline:none}
 .an-dt{font-size:22px;fill:var(--fg);font-family:var(--f-display)}.an-ds{font-size:9px;fill:var(--muted);letter-spacing:.06em}
 .an-leg{display:grid;gap:2px;width:100%}.an-l{display:grid;grid-template-columns:10px 1fr auto 40px;gap:8px;align-items:center;padding:5px 8px;border:0;border-radius:8px;background:transparent;color:var(--fg);font:inherit;font-size:.85rem;text-align:left;cursor:pointer}
+.an-cmp{margin-top:16px}.an-cmp .an-sum{margin:0;font-size:1rem;line-height:1.55;max-width:70ch}.an-cmp .an-sum b{color:var(--accent);font-weight:600}
+.an-cg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}@media (max-width:640px){.an-cg{grid-template-columns:1fr}}
+.an-ct{border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:transparent;color:var(--fg);font:inherit;text-align:left;cursor:pointer;display:grid;gap:4px;position:relative;overflow:hidden}
+.an-ct::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}.an-ct span{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.an-ct b{font-family:var(--f-display);font-weight:400;font-size:2rem;line-height:1}.an-ct small{color:var(--muted);font-size:.82rem}.an-ct:hover{background:var(--bg-2)}.an-ct.on{background:var(--accent-soft);border-color:var(--accent)}.an-ct.dim{opacity:.45}
+.an-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}@media (max-width:860px){.an-2{grid-template-columns:1fr}}
+.an-h3{margin:0 0 8px;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.an-st{display:grid;grid-template-columns:62px 1fr;gap:10px;align-items:center;font-size:.85rem;margin:6px 0}.an-st div{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--bg-2)}.an-st i{display:block;height:100%}
+.an-mx{width:100%;border-collapse:separate;border-spacing:3px;font-size:.8rem;font-variant-numeric:tabular-nums}.an-mx th{font-weight:600;color:var(--muted);padding:2px 4px;text-align:center}.an-mx th[scope=row]{text-align:right;white-space:nowrap}
+.an-mx td{text-align:center;padding:7px 2px;border-radius:6px;background:var(--bg-2)}.an-mx td.dg{outline:1px dashed var(--line)}
+.an-trg{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:4px}.an-tr svg{width:100%;height:160px;display:block}.an-tr .gl{stroke:var(--line);stroke-width:1}.an-ty{display:flex;flex-direction:column;justify-content:space-between;font-size:.75rem;color:var(--muted);text-align:right;height:160px;padding:0}.an-ty span{line-height:12px}.an-tx{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}.an-tr .la{fill:none;stroke:#D6A21E;stroke-width:2.5}.an-tr .lp{fill:none;stroke:#4B4F9E;stroke-width:2.5}
+.an-key{display:flex;gap:16px;font-size:.82rem;color:var(--muted);margin:4px 0 0}.an-key i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.an-ul{margin-top:16px;scroll-margin-top:96px}.an-ul .atable td small{display:block;color:var(--muted)}.an-ul .mo-t{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.an-ul .mo-t i{width:9px;height:9px;border-radius:50%}
+.a-orph{margin-top:16px;border-left:4px solid var(--danger)}.a-orph p{margin:0;color:var(--muted)}.a-orph ul{margin:0;padding-left:18px;font-size:.92rem}
 .an-l i{width:10px;height:10px;border-radius:50%}.an-l b{font-variant-numeric:tabular-nums}.an-l small{color:var(--muted);text-align:right}.an-empty{font-size:.9rem}
 .ia-sw{display:flex;gap:10px;align-items:center;font-weight:600}.login .ia-sw label{display:block;cursor:pointer}.akpis.ia-k{grid-template-columns:1fr 1fr}.ia-k .akpi b{font-size:2rem}.ia-sw input{width:18px;height:18px;accent-color:var(--accent)}.ia-h{font-size:.9rem;margin:6px 0 -4px;color:var(--muted);font-weight:600}
 .mt-op.done{cursor:default;color:var(--accent);border-color:var(--accent)}.mt-op:disabled:hover{background:var(--surface)}
@@ -2455,7 +2469,7 @@ function diaryBook(main){
     '<div class="dia-grid"><section class="dia-page"><div class="dia-mode" role="tablist"><button type="button" role="tab" data-m="manana">'+LX('Mañana · Intención','Morning · Intention')+'</button><button type="button" role="tab" data-m="noche">'+LX('Noche · Revisión','Evening · Review')+'</button></div>'+
       '<div class="dia-mood"><span id="dMoodH">'+LX('¿Cómo te sientes?','How do you feel?')+'</span><div>'+MOODS.map(function(m){ return '<button type="button" class="mo mo'+m.v+'" data-v="'+m.v+'"><i></i>'+m.l+'</button>'; }).join('')+'</div></div>'+
       '<div id="dBody"></div><p class="dia-saved" id="dSaved" aria-live="polite"></p></section>'+
-      '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>'+LX('Páginas anteriores','Previous pages')+'</h2><div id="dPast"></div></section><p class="dia-priv">'+LX('🔒 Solo tú puedes leer tu diario. Ni el equipo de Áurea tiene acceso. Solo cómo te sientes se usa, sin tus textos, para estadísticas generales.','🔒 Only you can read your journal. Not even the Áurea team has access. Only how you feel is used, without your writing, for general statistics.')+'</p></aside></div>';
+      '<aside class="dia-side"><section class="pcard"><h2 id="dCalH"></h2><div class="dia-cal" id="dCal"></div></section><section class="pcard"><h2>'+LX('Páginas anteriores','Previous pages')+'</h2><div id="dPast"></div></section><p class="dia-priv">'+LX('🔒 Solo tú puedes leer lo que escribes. Ni el equipo de Áurea tiene acceso. El ánimo que marcas sí lo ve el equipo de Áurea, sin tus textos, para acompañarte y para estadísticas generales.','🔒 Only you can read what you write. Not even the Áurea team has access. The mood you mark is seen by the Áurea team, without your writing, to support you and for general statistics.')+'</p></aside></div>';
   var body=main.querySelector('#dBody'), saved=main.querySelector('#dSaved'), T=null;
   function persist(){ clearTimeout(T); saved.textContent=LX('Guardando…','Saving…'); T=setTimeout(function(){ e.updatedAt=Date.now(); diaPut(today,JSON.parse(JSON.stringify(e))).then(function(){ saved.textContent=LX('Guardado','Saved'); main.querySelector('#dStreak').textContent=diaStreak(); main.querySelector('#dCount').textContent=Object.keys(DIA).length; cal(); past(); }).catch(function(er){ saved.textContent=LX('No se pudo guardar. ','Could not save. ')+fbErr(er); }); },700); }
   /* El texto de Áurea se escribe letra a letra solo la primera vez que aparece; después queda fijo */
@@ -2763,8 +2777,13 @@ function admUsers(m){
   var L=uList();
   m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Usuarios <small>'+L.length+'</small></h1></div><input class="lfield asearch" id="aq" type="search" placeholder="Buscar por nombre, correo o país" aria-label="Buscar usuarios"></div>'+
     '<div class="atable-wrap"><table class="atable"><thead><tr><th>Usuario</th><th>Ubicación</th><th>Registro</th><th>Ruta</th><th>Avance</th><th>Estado</th></tr></thead><tbody id="arows"></tbody></table></div>'+
-    '<p class="adm-foot">Toca un usuario para ver sus datos de registro y todas sus respuestas.</p>';
+    '<div id="aOrph"></div><p class="adm-foot">Toca un usuario para ver sus datos de registro y todas sus respuestas.</p>';
   var tb=m.querySelector('#arows');
+  /* Accesos que quedaron sin datos (usuarios eliminados antes de que existiera el borrado completo): impiden registrarse otra vez con ese correo */
+  if(cloud()) fnCall('adminCuentas',{accion:'huerfanas'}).then(function(r){ var box=m.querySelector('#aOrph'), C=(r&&r.cuentas)||[]; if(!box||!C.length) return;
+    box.innerHTML='<section class="pcard a-orph"><h2>Accesos sin datos <small>'+C.length+'</small></h2><p>Estas cuentas se eliminaron de la lista pero su acceso sigue activo, así que ese correo no puede volver a registrarse.</p><ul>'+C.map(function(c){ return '<li>'+esc(c.correo||'(sin correo)')+'</li>'; }).join('')+'</ul><div class="m-act"><button type="button" class="btn btn-ghost ad-del" id="aOrphDel">Borrar estos accesos</button></div></section>';
+    box.querySelector('#aOrphDel').onclick=function(){ askOk('Borrar accesos','Se borrarán '+C.length+' acceso'+(C.length>1?'s':'')+' sin datos. Esos correos podrán registrarse de nuevo.','Borrar',function(){
+      fnCall('adminCuentas',{accion:'limpiar'}).then(function(x){ box.innerHTML=''; toast('Listo: '+(x&&x.borradas||0)+' acceso'+((x&&x.borradas)===1?'':'s')+' borrado'+((x&&x.borradas)===1?'':'s')+'.'); }).catch(function(e){ toast(e&&e.message||fbErr(e)); }); }); }; }).catch(function(){});
   function paint(f){ f=String(f||'').toLowerCase();
     var R=L.filter(function(u){ var r=u.reg; return !f||[r.name,r.email,r.country,r.city].join(' ').toLowerCase().indexOf(f)>=0; });
     tb.innerHTML=R.length?R.map(function(u){ var r=u.reg, s=uStatus(u), lv=withUser(u,function(){ return S.route?level().name+' · '+doneCount()+' cápsulas':'Diagnóstico pendiente'; });
@@ -2801,8 +2820,13 @@ function userDetail(key){
     if(cloud()){
       ov.querySelector('#adExt').onclick=function(){ var s2=JSON.parse(JSON.stringify(u)); var id=s2._id; delete s2._id; s2.dayOffset=(s2.dayOffset||0)-7;
         FB.f.updateDoc(userRef(id),{state:JSON.stringify(s2),updatedAt:Date.now()}).then(function(){ close(); adminPanel('usuarios'); toast('Se agregaron 7 días de prueba.'); }).catch(function(e){ toast(fbErr(e)); }); };
-      ov.querySelector('#adDel').onclick=function(){ askOk('Eliminar datos','Se borrarán las respuestas y el progreso de '+tc(r.name)+'. Esta acción no se puede deshacer.','Eliminar',function(){
-        FB.f.deleteDoc(userRef(u._id)).then(function(){ close(); adminPanel('usuarios'); toast('Datos eliminados. Su acceso se borra en Firebase → Authentication.'); }).catch(function(e){ toast(fbErr(e)); }); }); };
+      ov.querySelector('#adDel').onclick=function(){ askOk('Eliminar usuario','Se borrarán la cuenta, las respuestas, el diario y el progreso de '+tc(r.name)+(u.subscribed?' y se cancelará su suscripción de PayPal si la tiene':'')+'. Podrá volver a registrarse con el mismo correo. Esta acción no se puede deshacer.','Eliminar',function(){
+        toast('Eliminando…');
+        fnCall('adminCuentas',{accion:'eliminar',uid:u._id}).then(function(){ close(); adminPanel('usuarios'); toast('Usuario eliminado. Ya puede volver a registrarse con ese correo.'); })
+        .catch(function(e){ var c=String(e&&e.code||'');
+          /* Si la función aún no está publicada en Firebase, se borran al menos sus datos; el acceso se limpia después desde Usuarios. */
+          if(c.indexOf('not-found')>=0||c.indexOf('internal')>=0||c.indexOf('unavailable')>=0) FB.f.deleteDoc(userRef(u._id)).then(function(){ close(); adminPanel('usuarios'); toast('Datos eliminados. Falta publicar la función adminCuentas para borrar también su acceso.'); }).catch(function(e2){ toast(fbErr(e2)); });
+          else toast(e&&e.message||fbErr(e)); }); }); };
       return; }
     ov.querySelector('#adExt').onclick=function(){ var all=users(); all[key].dayOffset=(all[key].dayOffset||0)-7; jset(UKEY,all); if(mailKey(S.reg.email)===key){ S.dayOffset=all[key].dayOffset; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} } close(); adminPanel('usuarios'); userDetail(key); toast('Se agregaron 7 días de prueba.'); };
     ov.querySelector('#adDel').onclick=function(){ askOk('Eliminar usuario','Se borrarán la cuenta, las respuestas y el progreso de '+tc(r.name)+'. Esta acción no se puede deshacer.','Eliminar',function(){
@@ -2841,13 +2865,19 @@ var ANF={}, ANP=30;
 function admAnalytics(m){
   var L=uList(), MC={1:'#8C93A8',2:'#7C9CD6',3:'#5FB3A4',4:'#0E8C78',5:'#D6A21E'}, ML={1:'Muy mal',2:'Mal',3:'Más o menos',4:'Bien',5:'Muy bien'};
   var AGES=['18–24','25–34','35–44','45–54','55–64','65 o más'], SEXC={'Mujer':'var(--spirit)','Hombre':'var(--matter)','Prefiero no decirlo':'var(--vital)'};
-  var DIMS={pais:'País',ciudad:'Ciudad',edad:'Edad',genero:'Género',am:'Ánimo al empezar el día',pm:'Ánimo al terminar el día'};
+  var DIMS={pais:'País',ciudad:'Ciudad',edad:'Edad',genero:'Género',am:'Ánimo al empezar el día',pm:'Ánimo al terminar el día',cmp:'Del inicio al fin del día'};
+  var CMP={mejor:['Terminó mejor','#0E8C78'],igual:['Terminó igual','#8C93A8'],peor:['Terminó peor','#C0564B']};
   function ageR(a){ a=+a; if(!(a>0)) return 'Sin dato'; return a<25?AGES[0]:a<35?AGES[1]:a<45?AGES[2]:a<55?AGES[3]:a<65?AGES[4]:AGES[5]; }
   function uv(u,d){ var r=u.reg||{}; return d==='pais'?(tc(r.country||'')||'Sin dato'):d==='ciudad'?(tc(r.city||'')||'Sin dato'):d==='edad'?ageR(r.age):(r.sex||'Sin dato'); }
   var since=ANP?dKey(new Date(Date.now()-(ANP-1)*864e5)):'0000';
   function ents(u,slot){ var M=u.moods||{}, out=[]; Object.keys(M).forEach(function(k){ if(k>=since && M[k][slot]) out.push(+M[k][slot]); }); return out; }
+  /* Días en que la persona marcó su ánimo al empezar y al terminar (respetando los filtros de ánimo elegidos) */
+  function pairs(u){ var M=u.moods||{}, out=[]; Object.keys(M).sort().forEach(function(k){ var a=+M[k].am, p=+M[k].pm; if(k<since||!a||!p) return;
+    if(ANF.am!=null&&a!==+ANF.am) return; if(ANF.pm!=null&&p!==+ANF.pm) return; out.push({k:k,a:a,p:p,c:p>a?'mejor':p<a?'peor':'igual'}); }); return out; }
   function pass(u,ex){ return Object.keys(ANF).every(function(d){ if(d===ex) return true; var f=ANF[d];
+    if(d==='cmp') return pairs(u).some(function(x){ return x.c===f; });
     if(d==='am'||d==='pm') return ents(u,d).indexOf(+f)>=0; return uv(u,d)===f; }); }
+  function fv(d,v){ return (d==='am'||d==='pm')?ML[v]:d==='cmp'?CMP[v][0]:v; }
   function counts(d){ var c={}; L.forEach(function(u){ if(!pass(u,d)) return; if(d==='am'||d==='pm') ents(u,d).forEach(function(v){ c[v]=(c[v]||0)+1; }); else { var k=uv(u,d); c[k]=(c[k]||0)+1; } }); return c; }
   function bars(d,order,top){ var c=counts(d), ks=order?order.filter(function(k){ return c[k]; }):Object.keys(c).sort(function(a,b){ return c[b]-c[a]||a.localeCompare(b); });
     var more=0; if(top&&ks.length>top){ ks.slice(top).forEach(function(k){ more+=c[k]; }); ks=ks.slice(0,top); }
@@ -2870,7 +2900,58 @@ function admAnalytics(m){
   var U=L.filter(function(u){ return pass(u,null); }), am=[], pm=[];
   U.forEach(function(u){ am=am.concat(ents(u,'am')); pm=pm.concat(ents(u,'pm')); });
   function avg(a){ if(!a.length) return '—'; var v=a.reduce(function(x,y){return x+y;},0)/a.length; return ML[Math.round(v)]+' <small>'+v.toFixed(1).replace('.',',')+'</small>'; }
-  var chips=Object.keys(ANF).map(function(d){ var v=ANF[d]; return '<button type="button" class="an-chip" data-x="'+d+'">'+esc(DIMS[d])+': <b>'+esc((d==='am'||d==='pm')?ML[v]:v)+'</b> ✕</button>'; }).join('');
+  var chips=Object.keys(ANF).map(function(d){ var v=ANF[d]; return '<button type="button" class="an-chip" data-x="'+d+'">'+esc(DIMS[d])+': <b>'+esc(fv(d,v))+'</b> ✕</button>'; }).join('');
+  /* ---- Comparación: cómo empezaron el día y cómo lo terminaron ---- */
+  function nf(x,dec){ return x.toFixed(dec==null?1:dec).replace('.',','); }
+  function compare(){
+    var P=[], selC=ANF.cmp; L.forEach(function(u){ if(pass(u,'cmp')) pairs(u).forEach(function(x){ P.push(x); }); });
+    if(!P.length) return '<section class="pcard an-cmp"><h2>Cómo empezaron el día y cómo lo terminaron</h2><p class="muted an-empty">Todavía no hay días con el ánimo de la mañana y de la noche registrados'+(Object.keys(ANF).length?' con estos filtros':'')+'.</p></section>';
+    var n={mejor:0,igual:0,peor:0}, da=0, dp=0; P.forEach(function(x){ n[x.c]++; da+=x.a; dp+=x.p; });
+    var T=P.length, aA=da/T, aP=dp/T, dlt=aP-aA, pc=function(k){ return Math.round(n[k]/T*100); };
+    var sum='En <b>'+T+'</b> día'+(T>1?'s':'')+' con los dos registros, el ánimo promedio pasó de <b>'+ML[Math.round(aA)]+' ('+nf(aA)+')</b> al empezar a <b>'+ML[Math.round(aP)]+' ('+nf(aP)+')</b> al terminar: '+
+      (Math.abs(dlt)<0.05?'en general, la gente <b>termina el día igual</b> que como lo empieza.':dlt>0?'en general, el día <b>mejora</b> el ánimo ('+(dlt>0?'+':'')+nf(dlt)+' puntos).':'en general, el día <b>desgasta</b> el ánimo ('+nf(dlt)+' puntos).')+
+      ' El '+pc('mejor')+' % de los días terminó mejor, el '+pc('igual')+' % igual y el '+pc('peor')+' % peor.';
+    var tiles=['mejor','igual','peor'].map(function(k){ var on=selC===k, dim=selC!=null&&!on;
+      return '<button type="button" class="an-ct'+(on?' on':'')+(dim?' dim':'')+'" style="--c:'+CMP[k][1]+'" data-d="cmp" data-v="'+k+'" aria-pressed="'+on+'"><span>'+CMP[k][0]+'</span><b>'+pc(k)+' %</b><small>'+n[k]+' día'+(n[k]===1?'':'s')+' · toca para ver quiénes</small></button>'; }).join('');
+    function stack(slot,lab){ var c={}; P.forEach(function(x){ var v=slot==='am'?x.a:x.p; c[v]=(c[v]||0)+1; });
+      return '<div class="an-st"><span>'+lab+'</span><div>'+[1,2,3,4,5].filter(function(v){ return c[v]; }).map(function(v){ return '<i style="width:'+(c[v]/T*100)+'%;background:'+MC[v]+'" title="'+ML[v]+': '+c[v]+' ('+Math.round(c[v]/T*100)+' %)"></i>'; }).join('')+'</div></div>'; }
+    var key='<div class="an-key">'+[1,2,3,4,5].map(function(v){ return '<span><i style="background:'+MC[v]+';width:10px;height:10px;border-radius:50%"></i>'+ML[v]+'</span>'; }).join('')+'</div>';
+    /* Matriz: filas = ánimo al empezar, columnas = ánimo al terminar */
+    var mx={}, mmax=1; P.forEach(function(x){ var k=x.a+'-'+x.p; mx[k]=(mx[k]||0)+1; if(mx[k]>mmax) mmax=mx[k]; });
+    var mat='<table class="an-mx"><thead><tr><th></th>'+[1,2,3,4,5].map(function(v){ return '<th scope="col">'+ML[v]+'</th>'; }).join('')+'</tr></thead><tbody>'+[5,4,3,2,1].map(function(a){
+      return '<tr><th scope="row">'+ML[a]+'</th>'+[1,2,3,4,5].map(function(p){ var c=mx[a+'-'+p]||0, col=p>a?'14,140,120':p<a?'192,86,75':'140,147,168';
+        return '<td class="'+(a===p?'dg':'')+'" style="'+(c?'background:rgba('+col+','+(0.15+0.7*c/mmax).toFixed(2)+')':'')+'" title="Empezó '+ML[a]+', terminó '+ML[p]+': '+c+'">'+(c||'')+'</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table>';
+    /* Tendencia diaria del ánimo promedio */
+    var D={}; P.forEach(function(x){ var o=D[x.k]||(D[x.k]={a:0,p:0,n:0}); o.a+=x.a; o.p+=x.p; o.n++; });
+    var ks=Object.keys(D).sort(), tr='';
+    if(ks.length>1){ var W=600,H=160, X=function(i){ return W*i/(ks.length-1); }, Y=function(v){ return 6+(H-12)*(5-v)/4; };
+      var g=[1,2,3,4,5].map(function(v){ return '<line class="gl" x1="0" x2="'+W+'" y1="'+Y(v)+'" y2="'+Y(v)+'" vector-effect="non-scaling-stroke"/>'; }).join('');
+      var line=function(f){ return ks.map(function(k,i){ return X(i).toFixed(1)+','+Y(D[k][f]/D[k].n).toFixed(1); }).join(' '); };
+      var lab=function(k){ var d=new Date(k+'T12:00:00'); return d.getDate()+' '+d.toLocaleDateString('es',{month:'short'}).replace('.',''); };
+      tr='<div class="an-tr"><p class="an-h3">Ánimo promedio por día</p><div class="an-trg"><div class="an-ty">'+[5,4,3,2,1].map(function(v){ return '<span>'+ML[v]+'</span>'; }).join('')+'</div>'+
+        '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Ánimo promedio por día, al empezar y al terminar">'+g+'<polyline class="la" vector-effect="non-scaling-stroke" points="'+line('a')+'"/><polyline class="lp" vector-effect="non-scaling-stroke" points="'+line('p')+'"/></svg>'+
+        '<span></span><div class="an-tx"><span>'+lab(ks[0])+'</span><span>'+lab(ks[ks.length-1])+'</span></div></div><div class="an-key"><span><i style="background:#D6A21E"></i>Al empezar</span><span><i style="background:#4B4F9E"></i>Al terminar</span></div></div>'; }
+    return '<section class="pcard an-cmp"><h2>Cómo empezaron el día y cómo lo terminaron</h2><p class="an-sum">'+sum+'</p><div class="an-cg">'+tiles+'</div>'+
+      '<div class="an-2"><div><p class="an-h3">Distribución del ánimo</p>'+stack('am','Empezar')+stack('pm','Terminar')+key+'</div><div><p class="an-h3">De cómo empezaron (filas) a cómo terminaron (columnas)</p>'+mat+'</div></div>'+tr+'</section>'; }
+  /* ---- Listado de usuarios de la categoría elegida ---- */
+  function userList(){
+    var act=Object.keys(ANF); if(!act.length) return '<section class="pcard an-ul"><h2>Usuarios por categoría</h2><p class="muted an-empty">Toca una categoría (por ejemplo «Mal» en el ánimo al empezar, o «Terminó peor») para ver aquí el listado de usuarios que están en ella.</p></section>';
+    var mo=function(v){ return v?'<span class="mo-t"><i style="background:'+MC[v]+'"></i>'+ML[v]+'</span>':'—'; };
+    var rows=U.map(function(u){ var M=u.moods||{}, ks=Object.keys(M).filter(function(k){ return k>=since; }).sort(), hit=0, last='';
+      ks.forEach(function(k){ var m=M[k], ok=true;
+        if(ANF.am!=null&&+m.am!==+ANF.am) ok=false; if(ANF.pm!=null&&+m.pm!==+ANF.pm) ok=false;
+        if(ANF.cmp!=null){ var a=+m.am, p=+m.pm; if(!a||!p||(p>a?'mejor':p<a?'peor':'igual')!==ANF.cmp) ok=false; }
+        if(ANF.am==null&&ANF.pm==null&&ANF.cmp==null&&!(m.am||m.pm)) ok=false;
+        if(ok){ hit++; last=k; } });
+      var lk=ks.filter(function(k){ return M[k].am||M[k].pm; }).pop();
+      return {u:u,hit:hit,last:last,lk:lk,lm:lk?M[lk]:null}; }).sort(function(a,b){ return b.hit-a.hit||(b.last>a.last?1:b.last<a.last?-1:0); });
+    var dl=function(k){ return k?new Date(k+'T12:00:00').toLocaleDateString('es',{day:'numeric',month:'short'}):'—'; };
+    var moodF=ANF.am!=null||ANF.pm!=null||ANF.cmp!=null;
+    return '<section class="pcard an-ul" id="anUL"><h2>Usuarios en esta categoría <small>'+rows.length+'</small></h2><p class="muted" style="margin:0">'+act.map(function(d){ return esc(DIMS[d])+': <b>'+esc(fv(d,ANF[d]))+'</b>'; }).join(' · ')+'</p>'+
+      (rows.length?'<div class="atable-wrap"><table class="atable"><thead><tr><th>Usuario</th><th>Ubicación</th>'+(moodF?'<th>Veces</th><th>Última vez</th>':'<th>Registros de ánimo</th>')+'<th>Último ánimo registrado</th></tr></thead><tbody>'+rows.map(function(x){ var r=x.u.reg;
+        return '<tr tabindex="0" data-e="'+esc(mailKey(r.email))+'"><td><div class="au"><span class="avatar">'+esc((r.name||'?').charAt(0).toUpperCase())+'</span><div><b>'+esc(tc(r.name))+'</b><small>'+esc(r.email)+'</small></div></div></td><td>'+esc(tc(r.city))+', '+esc(tc(r.country))+'</td>'+
+          (moodF?'<td>'+x.hit+'</td><td>'+dl(x.last)+'</td>':'<td>'+x.hit+'</td>')+'<td>'+(x.lm?'<small>'+dl(x.lk)+'</small>Mañana: '+mo(+x.lm.am)+'<br>Noche: '+mo(+x.lm.pm):'—')+'</td></tr>'; }).join('')+'</tbody></table></div>'
+      :'<p class="muted an-empty">Ningún usuario en esta categoría.</p>')+'</section>'; }
   function card(d,inner,wide){ return '<section class="pcard an-c'+(wide?' wide':'')+'"><h2>'+DIMS[d]+'</h2>'+inner+'</section>'; }
   var sexOrder=['Mujer','Hombre','Prefiero no decirlo','Sin dato'];
   m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Analítica</h1></div><p class="adm-note">Toca una barra o un sector para filtrar todos los gráficos. Vuelve a tocarlo para quitar el filtro.</p></div>'+
@@ -2878,8 +2959,11 @@ function admAnalytics(m){
     '<div class="akpis"><div class="akpi"><span>Usuarios</span><b>'+U.length+'</b></div><div class="akpi"><span>Registros de ánimo</span><b>'+(am.length+pm.length)+'</b></div><div class="akpi"><span>Ánimo promedio al empezar</span><b class="an-k">'+avg(am)+'</b></div><div class="akpi"><span>Ánimo promedio al terminar</span><b class="an-k">'+avg(pm)+'</b></div></div>'+
     '<div class="an-g">'+card('am',donut('am',[5,4,3,2,1],function(k){ return MC[k]; }))+card('pm',donut('pm',[5,4,3,2,1],function(k){ return MC[k]; }))+card('genero',donut('genero',sexOrder,function(k){ return SEXC[k]||'var(--muted)'; }))+
       card('edad',bars('edad',AGES.concat(['Sin dato'])))+card('pais',bars('pais',null,8))+card('ciudad',bars('ciudad',null,8))+'</div>'+
-    '<p class="adm-foot">El ánimo se cuenta por registro (un usuario puede marcar varios días). Los textos del diario son privados y no se usan aquí.</p>';
-  function go(d,v){ if(ANF[d]!=null&&String(ANF[d])===v) delete ANF[d]; else ANF[d]=(d==='am'||d==='pm')?+v:v; admAnalytics(m); }
+    compare()+userList()+
+    '<p class="adm-foot">El ánimo se cuenta por registro (un usuario puede marcar varios días). La comparación usa solo los días con ánimo de mañana y de noche. Los textos del diario son privados y no se usan aquí.</p>';
+  function go(d,v){ if(ANF[d]!=null&&String(ANF[d])===v) delete ANF[d]; else ANF[d]=(d==='am'||d==='pm')?+v:v; var on=ANF[d]!=null; admAnalytics(m);
+    var ul=m.querySelector('#anUL'); if(on&&ul) ul.scrollIntoView({behavior:'smooth',block:'start'}); }
+  m.querySelectorAll('#anUL tr[data-e]').forEach(function(tr){ tr.onclick=function(){ userDetail(tr.dataset.e); }; tr.onkeydown=function(e){ if(e.key==='Enter') userDetail(tr.dataset.e); }; });
   m.querySelectorAll('[data-d]').forEach(function(b){ b.onclick=function(){ go(b.dataset.d,b.dataset.v); }; b.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(b.dataset.d,b.dataset.v); } }; });
   m.querySelectorAll('[data-x]').forEach(function(b){ b.onclick=function(){ delete ANF[b.dataset.x]; admAnalytics(m); }; });
   var clr=m.querySelector('#anClr'); if(clr) clr.onclick=function(){ ANF={}; admAnalytics(m); };
