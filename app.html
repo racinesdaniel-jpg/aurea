@@ -799,7 +799,10 @@ body{background:var(--bg)}
 .mt-op{display:grid;gap:2px;justify-items:center;padding:12px 18px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-weight:600;cursor:pointer;opacity:0;transform:translateY(8px);animation:mtIn .4s ease forwards;animation-delay:calc(var(--i)*60ms);transition:border-color .15s,background .15s}
 .mt-op small{font-weight:400;font-size:.75rem;color:var(--muted)}
 .mt-ai{display:grid;gap:10px}.mt-ai textarea{width:100%;min-height:96px;resize:vertical;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;line-height:1.5}.mt-ai textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
-.mt-ai-r{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.mt-ai-r small,.mt-ai-l{color:var(--muted);font-size:.8rem}.mt-ans p{white-space:pre-line;line-height:1.6;margin:0 0 10px}.mt-ans .mt-ai-l{display:block}
+.mt-ai-r{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.mt-ai-r small,.mt-ai-l{color:var(--muted);font-size:.8rem}.mt-ans p{white-space:pre-line;line-height:1.6;margin:0 0 10px}
+.mt-chat .mt-u{justify-self:end;margin:6px 0 14px auto;max-width:85%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:var(--accent);color:#fff;white-space:pre-line;scroll-margin-top:90px}
+.mt-chat .mt-a+.mt-a{margin-top:0}
+.mt-reply{margin-top:14px}.mt-ans .mt-ai-l{display:block}
 .an-f{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 16px}.an-f label{display:flex;gap:8px;align-items:center;font-size:.9rem;color:var(--muted)}.an-f select{width:auto;padding:8px 12px}
 .an-chip,.an-clear{border:1px solid var(--accent);background:var(--accent-soft);color:var(--fg);border-radius:999px;padding:7px 12px;font:inherit;font-size:.85rem;cursor:pointer}.an-clear{background:transparent;border-color:var(--line)}
 .an-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}@media (max-width:980px){.an-g{grid-template-columns:1fr 1fr}}@media (max-width:640px){.an-g{grid-template-columns:1fr}}
@@ -837,6 +840,24 @@ body{background:var(--bg)}
 .dia-top h1{font-family:var(--f-display);font-weight:300;font-size:clamp(1.8rem,4vw,2.6rem);margin:0}
 .dia-stats{display:flex;align-items:center;gap:18px}.dia-stats div{display:grid;justify-items:center}.dia-stats b{font-family:var(--f-display);font-size:1.7rem;font-weight:400;line-height:1}.dia-stats span{font-size:.75rem;color:var(--muted)}
 .dia-grid{display:grid;gap:20px}
+.dia-views{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--surface);border:1px solid var(--line);justify-self:start;max-width:100%}
+.dia-views button{border:0;background:transparent;padding:9px 18px;border-radius:999px;font:inherit;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.dia-views button[aria-selected="true"]{background:var(--accent);color:#fff}
+.dia-views em{font-style:normal;font-size:.72rem;min-width:20px;padding:1px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);text-align:center}
+.dia-views button[aria-selected="true"] em{background:rgba(255,255,255,.25);color:#fff}
+.fr-k{margin:0;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.fr-q{margin:0;padding:6px 0 6px 20px;border-left:3px solid var(--accent)}
+.fr-q p{margin:0;font-family:var(--f-display);font-weight:300;font-size:clamp(1.5rem,3.4vw,2.2rem);line-height:1.25}
+.fr-q cite{display:block;margin-top:10px;font-style:normal;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.fr-med{display:grid;gap:6px;padding:16px 20px;border-radius:20px;background:var(--accent-soft)}
+.fr-med p{margin:0;line-height:1.55}
+.fr-page .dia-f>span{text-transform:none;letter-spacing:0;font-size:.98rem;color:var(--fg);font-weight:600;line-height:1.4}
+.fr-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.fr-del{font-size:.85rem}
+.fr-empty{display:grid;gap:12px;justify-items:start}.fr-empty p{margin:0;line-height:1.55}
+.fr-it.on{background:var(--accent-soft)}
+.dp.fr-it b{text-transform:none;font-weight:600;line-height:1.35}#fList{display:grid;gap:8px}
+.fr-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);flex:0 0 auto;background:transparent!important}.fr-dot.has{background:var(--accent)!important}
 @media (min-width:980px){.dia-grid{grid-template-columns:1fr 320px;align-items:start}}
 .dia-page{position:relative;border-radius:28px;padding:clamp(20px,3.5vw,36px);background:var(--surface);border:1px solid var(--line);display:grid;gap:20px}
 .dia-f textarea{background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--line) 31px 32px);background-attachment:local;border-bottom:0}
@@ -2177,14 +2198,14 @@ var BELIEFS=[
 ];
 if(EN) ovl(BELIEFS,EN.beliefs);
 function lcFirst(x){ return LANG==='en'?x:x.charAt(0).toLowerCase()+x.slice(1); }
-var mentorRun=0, diaPrefill=null;
+var mentorRun=0, diaPrefill=null, diaFrase=null, diaView='dia';
 function viewMentor(main){
   var my=++mentorRun, n=tc(S.reg.name), W=wheelNow().w, need=areasByNeed(W);
   main.innerHTML='<section class="mt"><div class="mt-stage"><div class="mt-bg" aria-hidden="true"></div><p class="mt-k" id="mtK"></p><div class="mt-orb" id="mtOrb"></div>'+
     '<h1 class="mt-q" id="mtQ" aria-live="polite"></h1><div class="mt-card" id="mtC" hidden></div><div class="mt-opts" id="mtO"></div></div>'+
     '<aside class="mt-side" id="mtS"></aside></section>';
   main.querySelector('#mtOrb').appendChild(makeOrb()); startOrbs();
-  var K=main.querySelector('#mtK'), Q=main.querySelector('#mtQ'), C=main.querySelector('#mtC'), O=main.querySelector('#mtO');
+  var K=main.querySelector('#mtK'), Q=main.querySelector('#mtQ'), C=main.querySelector('#mtC'), O=main.querySelector('#mtO'), conv=[];
   function side(){ var L=S.mentorSaved||[]; main.querySelector('#mtS').innerHTML='<h2>'+LX('Tu lista de lecturas','Your reading list')+'</h2>'+(L.length?'<ul>'+L.map(function(b,i){ return '<li><b>'+esc(b.t)+'</b><small>'+esc(b.a)+'</small><button type="button" data-rm="'+i+'" aria-label="'+LX('Quitar','Remove')+'">✕</button></li>'; }).join('')+'</ul>':'<p>'+LX('Cuando Áurea te recomiende un libro, puedes guardarlo aquí.','When Áurea recommends a book, you can save it here.')+'</p>');
     main.querySelectorAll('[data-rm]').forEach(function(b){ b.onclick=function(){ S.mentorSaved.splice(+b.dataset.rm,1); save(); side(); }; }); }
   side();
@@ -2234,10 +2255,17 @@ function viewMentor(main){
     return tr?'Tu prueba gratuita de '+cfg().trialDays+' días incluye '+L[0]+' conversaciones al día y '+L[1]+' en total.':'Tu plan incluye '+L[0]+' conversaciones al día y '+L[1]+' al mes.'; }
   function ask(){
     if(!aiOn()){ say(LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'),LX(['Muy pronto podrás conversar conmigo libremente, '+n+'.','Tu plan incluirá '+aiLim()[0]+' conversaciones al día. Mientras tanto, explora los temas que preparé para ti.'],['Very soon you will be able to talk with me freely, '+n+'.','Your plan will include '+aiLim()[0]+' conversations a day. In the meantime, explore the topics I prepared for you.']),null,[BACK]); return; }
+    conv=[];
     if(!AI_LEFT){ aiLeftLoad().then(function(){ if(my===mentorRun && !C.hidden){ var sm=C.querySelector('.mt-ai-r small'); if(sm) sm.textContent=leftTxt(); } }); }
     say(LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'),AIH.length?LX('¿Qué más quieres preguntarme, '+n+'?','What else would you like to ask me, '+n+'?'):LX('Pregúntame lo que quieras, '+n+': sobre tu ruta, tus cápsulas o lo que estás viviendo.','Ask me anything, '+n+': about your path, your capsules or what you are going through.'),
-      '<form class="mt-ai" id="mtAi" novalidate><textarea id="mtAiT" maxlength="800" rows="3" placeholder="'+LX('Escribe tu pregunta','Write your question')+'" aria-label="'+LX('Tu pregunta','Your question')+'"></textarea><div class="mt-ai-r"><small>'+esc(leftTxt())+'</small><button class="btn btn-primary" type="submit">'+LX('Enviar','Send')+'</button></div><p class="err" id="mtAiE"></p></form>',
+      aiForm(LX('Escribe tu pregunta','Write your question'),3),
       [BACK]);
+    bindAi();
+    setTimeout(function(){ var t=C.querySelector('#mtAiT'); if(t&&!C.hidden) t.focus(); },50);
+  }
+  /* Formulario para escribirle a Áurea: sirve para la primera pregunta y para seguir la conversación */
+  function aiForm(ph,rows){ return '<form class="mt-ai" id="mtAi" novalidate><textarea id="mtAiT" maxlength="800" rows="'+rows+'" placeholder="'+esc(ph)+'" aria-label="'+esc(ph)+'"></textarea><div class="mt-ai-r"><small>'+esc(leftTxt())+'</small><button class="btn btn-primary" type="submit">'+LX('Enviar','Send')+'</button></div><p class="err" id="mtAiE"></p></form>'; }
+  function bindAi(){
     C.onsubmit=function(e){ if(e.target.id!=='mtAi') return; e.preventDefault(); var t=C.querySelector('#mtAiT'), q=t.value.trim(), er=C.querySelector('#mtAiE');
       if(q.length<2){ er.textContent=LX('Escribe tu pregunta.','Write your question.'); t.focus(); return; }
       var bt=C.querySelector('button[type=submit]'); bt.disabled=true; bt.textContent=LX('Pensando…','Thinking…'); er.textContent='';
@@ -2245,14 +2273,19 @@ function viewMentor(main){
         if(my!==mentorRun) return; AIH.push({role:'user',text:q},{role:'assistant',text:r.text}); AIH=AIH.slice(-16); aiHistSave(); AI_LEFT=r.left||null; answer(q,r.text);
       }).catch(function(e2){ if(my!==mentorRun) return; bt.disabled=false; bt.textContent=LX('Enviar','Send'); er.textContent=aiErr(e2); });
     };
-    setTimeout(function(){ var t=C.querySelector('#mtAiT'); if(t&&!C.hidden) t.focus(); },50);
   }
+  /* La conversación sigue en el mismo lugar: las respuestas anteriores quedan arriba y debajo puedes seguir escribiendo */
   function answer(q,txt){
-    K.textContent=LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'); O.innerHTML=''; C.onsubmit=null; Q.style.minHeight='';
-    Q.textContent=LX('«','“')+(q.length>140?q.slice(0,137)+'…':q)+LX('»','”');
-    C.innerHTML='<div class="mt-info mt-ans"><p id="mtA"></p><small class="mt-ai-l">'+esc(leftTxt())+'</small></div>'; C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); });
+    conv.push({q:q,a:txt}); var last=conv.length-1, q0=conv[0].q;
+    K.textContent=LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'); O.innerHTML=''; Q.style.minHeight='';
+    Q.textContent=LX('«','“')+(q0.length>140?q0.slice(0,137)+'…':q0)+LX('»','”');
+    C.innerHTML='<div class="mt-info mt-ans mt-chat">'+conv.map(function(x,i){ return (i?'<p class="mt-u">'+esc(x.q)+'</p>':'')+'<p class="mt-a"'+(i===last?' id="mtA"':'')+'>'+(i===last?'':esc(x.a))+'</p>'; }).join('')+'<small class="mt-ai-l">'+esc(leftTxt())+'</small></div>';
+    C.hidden=false; requestAnimationFrame(function(){ C.classList.add('in'); });
+    if(last){ var u=C.querySelectorAll('.mt-u'); u=u[u.length-1]; if(u) u.scrollIntoView({block:'start',behavior:reduce?'auto':'smooth'}); }
     typeText(C.querySelector('#mtA'),txt,6,function(){ if(my!==mentorRun) return;
-      var opts=[{l:LX('Hacer otra pregunta','Ask another question'),main:true,go:ask},{l:LX('Llevarlo a mi diario','Take it to my journal'),tag:LX('escribir sobre esto','write about this'),go:function(){ toDiary(q); }},BACK];
+      var lt=C.querySelector('.mt-chat .mt-ai-l'); if(lt) lt.remove(); C.insertAdjacentHTML('beforeend','<div class="mt-reply">'+aiForm(LX('Responde a Áurea o sigue preguntando…','Reply to Áurea or keep asking…'),2)+'</div>'); bindAi();
+      var opts=[{l:LX('Llevarlo a mi diario','Take it to my journal'),tag:LX('escribir sobre esto','write about this'),go:function(){ toDiary(LX('Hoy conversé con Áurea sobre «'+q0+'». ¿Qué me llevo de esa conversación?','Today I talked with Áurea about “'+q0+'”. What do I take away from that conversation?'),true); }},
+        {l:LX('Nuevo tema','New topic'),tag:LX('empezar otra conversación','start another conversation'),go:ask},BACK];
       O.innerHTML=opts.map(function(o,i){ return '<button type="button" class="mt-op'+(o.main?' main':'')+'" style="--i:'+i+'">'+esc(o.l)+(o.tag?'<small>'+esc(o.tag)+'</small>':'')+'</button>'; }).join('');
       O.querySelectorAll('.mt-op').forEach(function(b,i){ b.onclick=function(){ opts[i].go(); }; }); });
   }
@@ -2273,7 +2306,7 @@ function viewMentor(main){
   function authors(){ say(LX('Mentor · Autores','Mentor · Authors'),LX('¿A quién te gustaría conocer?','Who would you like to meet?'),null,AUTHORS.map(function(x,i){ return {l:x.n,go:function(){ author(i); }}; }).concat([BACK])); }
   function author(i){ var x=AUTHORS[i];
     say(LX('Mentor · Autores','Mentor · Authors'),x.n+'.','<div class="mt-info"><p class="mt-ck">'+esc(x.k)+'</p><p>'+esc(x.t)+'</p><blockquote>'+esc(x.i)+'</blockquote></div>',
-      [{l:LX('Otro autor','Another author'),main:true,go:function(){ author((i+1)%AUTHORS.length); }},{l:LX('Ver todos','See all'),go:authors},{l:LX('Escribir sobre esto en mi diario','Write about this in my journal'),go:function(){ toDiary(LX('¿Qué te enseña hoy esta idea de '+x.n+': «'+x.i+'»?','What does this idea from '+x.n+' teach you today: “'+x.i+'”?')); }},BACK]); }
+      [{l:LX('Otro autor','Another author'),main:true,go:function(){ author((i+1)%AUTHORS.length); }},{l:LX('Ver todos','See all'),go:authors},{l:LX('Escribir sobre esto en mi diario','Write about this in my journal'),tag:LX('se guarda en Mis frases','saved to My sentences'),go:function(){ toFrase({q:x.i,by:x.n,k:'idea'}); }},BACK]); }
   function philos(){ say(LX('Mentor · Filosofías','Mentor · Philosophies'),LX('¿Qué tradición quieres explorar?','Which tradition would you like to explore?'),null,PHILOS.map(function(k,i){ return {l:TRAD[k].n,go:function(){ philo(i); }}; }).concat([BACK])); }
   function philo(i){ var T=TRAD[PHILOS[i]];
     say(LX('Mentor · Filosofías','Mentor · Philosophies'),T.n+'.','<div class="mt-info"><p>'+esc(T.t)+'</p></div>',[{l:LX('Otra filosofía','Another philosophy'),main:true,go:function(){ philo((i+1)%PHILOS.length); }},{l:LX('Ver todas','See all'),go:philos},BACK]); }
@@ -2297,26 +2330,40 @@ function viewMentor(main){
   function beliefs(){ say(LX('Mentor · Creencias limitantes','Mentor · Limiting beliefs'),LX(['Una creencia limitante es una idea sobre ti que das por cierta y que te frena.','¿Cuál de estas frases te has dicho alguna vez?'],['A limiting belief is an idea about yourself that you take as true and that holds you back.','Which of these sentences have you ever told yourself?']),null,BELIEFS.map(function(b,i){ return {l:LX('«','“')+b.f+LX('»','”'),go:function(){ belief(i); }}; }).concat([BACK])); }
   function belief(i){ var b=BELIEFS[i];
     say(LX('Mentor · Creencias limitantes','Mentor · Limiting beliefs'),LX('Revisemos juntos «'+b.f+'».','Let’s look together at “'+b.f+'”.'),'<div class="mt-info"><p class="mt-ck">'+LX('Lo que muestran los hechos','What the facts show')+'</p><p>'+esc(b.e)+'</p><p class="mt-ck">'+LX('Prueba decirlo así','Try saying it like this')+'</p><blockquote>'+esc(b.r)+'</blockquote><p class="mt-tip">'+LX('Repite la frase nueva cada mañana durante una semana y anota qué cambia.','Repeat the new sentence every morning for a week and write down what changes.')+'</p></div>',
-      [{l:LX('Trabajarla en mi diario','Work on it in my journal'),main:true,go:function(){ toDiary(LX('Hoy reviso la idea «'+b.f+'». ¿Qué pruebas tengo de que no siempre es cierta?','Today I am looking at the idea “'+b.f+'”. What evidence do I have that it is not always true?')); }},{l:LX('Otra frase','Another sentence'),go:beliefs},BACK]); }
+      [{l:LX('Trabajarla en mi diario','Work on it in my journal'),tag:LX('se guarda en Mis frases','saved to My sentences'),main:true,go:function(){ toFrase({q:b.f,r:b.r,k:'creencia'}); }},{l:LX('Otra frase','Another sentence'),go:beliefs},BACK]); }
   function idea(){ var ks=Object.keys(LEARN).filter(function(k){return LEARN[k].q;}), k=ks[Math.floor(Math.random()*ks.length)], L=LEARN[k];
     say(LX('Mentor · Una idea para hoy','Mentor · An idea for today'),LX('«','“')+L.q+LX('»','”'),'<div class="mt-info"><p class="mt-ck">'+esc(L.qa)+'</p>'+(L.idea?'<p>'+esc(L.idea)+'</p>':'')+'</div>',
-      [{l:LX('Otra idea','Another idea'),main:true,go:idea},{l:LX('Escribir sobre esto en mi diario','Write about this in my journal'),go:function(){ toDiary(LX('¿Qué significa para ti esta frase: «'+L.q+'»?','What does this sentence mean to you: “'+L.q+'”?')); }},BACK]); }
-  function toDiary(p){ diaPrefill=p; renderApp('diario'); window.scrollTo(0,0); }
+      [{l:LX('Otra idea','Another idea'),main:true,go:idea},{l:LX('Escribir sobre esto en mi diario','Write about this in my journal'),tag:LX('se guarda en Mis frases','saved to My sentences'),go:function(){ toFrase({q:L.q,by:L.qa,k:'idea'}); }},BACK]); }
+  function toDiary(p){ diaPrefill=p; diaView='dia'; renderApp('diario'); window.scrollTo(0,0); }
+  function toFrase(f){ diaFrase=f; diaView='frases'; renderApp('diario'); window.scrollTo(0,0); }
   home(false);
 }
 
 /* ================= DIARIO PERSONAL ================= */
 /* Privado: en la nube se guarda en users/{uid}/diario, que solo puede leer su dueño (ni el administrador). */
-var DIA=null;
+var DIA=null, FR={};
 function diaLocalKey(){ return 'aurea-diario-'+mailKey(S.reg.email); }
+/* Las frases guardadas viven en la misma colección privada del diario, con id «f-…»; aquí se separan de las páginas por día */
+function diaSplit(){ FR={}; Object.keys(DIA).forEach(function(k){ if(k.indexOf('f-')===0){ FR[k]=DIA[k]; delete DIA[k]; } }); }
 function diaLoad(){
   if(DIA) return Promise.resolve();
   if(cloud()&&fbUser) return FB.f.getDocs(FB.f.collection(FB.db,'users',fbUser.uid,'diario')).then(function(snap){ DIA={}; snap.forEach(function(d){ DIA[d.id]=d.data(); });
-    var loc=jget(diaLocalKey(),null); if(!loc) return;
+    var loc=jget(diaLocalKey(),null); if(!loc){ diaSplit(); return; }
     var up=Object.keys(loc).filter(function(k){ return !DIA[k] && loc[k]; });
-    return Promise.all(up.map(function(k){ DIA[k]=loc[k]; return FB.f.setDoc(FB.f.doc(FB.db,'users',fbUser.uid,'diario',k),loc[k]); })).then(function(){ try{ localStorage.removeItem(diaLocalKey()); }catch(e){} }).catch(function(){}); });
-  DIA=jget(diaLocalKey(),{}); return Promise.resolve();
+    return Promise.all(up.map(function(k){ DIA[k]=loc[k]; return FB.f.setDoc(FB.f.doc(FB.db,'users',fbUser.uid,'diario',k),loc[k]); })).then(function(){ try{ localStorage.removeItem(diaLocalKey()); }catch(e){} }).catch(function(){}).then(diaSplit); });
+  DIA=jget(diaLocalKey(),{}); diaSplit(); return Promise.resolve();
 }
+function frPut(k,e){
+  FR[k]=e;
+  if(cloud()&&fbUser) return FB.f.setDoc(FB.f.doc(FB.db,'users',fbUser.uid,'diario',k),e);
+  var all=jget(diaLocalKey(),{}); all[k]=e; jset(diaLocalKey(),all); return Promise.resolve();
+}
+function frDel(k){
+  delete FR[k];
+  if(cloud()&&fbUser) return FB.f.deleteDoc(FB.f.doc(FB.db,'users',fbUser.uid,'diario',k));
+  var all=jget(diaLocalKey(),{}); delete all[k]; jset(diaLocalKey(),all); return Promise.resolve();
+}
+function frKey(q){ var h=0; for(var i=0;i<q.length;i++){ h=(h*31+q.charCodeAt(i))|0; } return 'f-'+(h>>>0).toString(36); }
 /* Solo el ánimo (no lo que escribes) se guarda en tu perfil para la analítica anónima del administrador */
 function moodLog(day,slot,v){ S.moods=S.moods||{}; var m=S.moods[day]||{}; m[slot]=v; S.moods[day]=m;
   var ks=Object.keys(S.moods).sort(); while(ks.length>180){ delete S.moods[ks.shift()]; } save(); }
@@ -2336,6 +2383,12 @@ var DIA_Q={
  g:['¿Qué te hizo sonreír hoy?','¿Qué paso, por pequeño que sea, diste hoy hacia tu meta?','¿Qué situación de hoy pudiste manejar mejor y cómo?','¿De qué te sientes orgulloso u orgullosa esta semana?']
 };
 if(EN) ovl(DIA_Q,EN.diaQ);
+var FR_Q={
+ idea:LX(['Léela despacio. ¿Qué te dice esta frase hoy, con tus propias palabras?','¿En qué momento reciente de tu vida se aplica?','¿Qué pequeña acción puedes hacer hoy para vivirla?'],
+   ['Read it slowly. What does this sentence tell you today, in your own words?','In what recent moment of your life does it apply?','What small action can you take today to live it?']),
+ creencia:LX(['¿Cuándo empezaste a creer esta idea? ¿De quién la escuchaste por primera vez?','¿Qué pruebas tienes de que no siempre es cierta?','¿Cómo cambiaría tu día si creyeras la frase nueva?'],
+   ['When did you start believing this idea? Who did you first hear it from?','What evidence do you have that it is not always true?','How would your day change if you believed the new sentence?'])
+};
 function diaPrompt(){
   var d=new Date(), nm=DAYS[(d.getDay()+6)%7].n, cn=capDays(), ix=cn.map(function(x){return x.toLowerCase();}).indexOf(nm);
   var p=ix>=0?['s','m','v'][ix]:'g', L=DIA_Q[p], doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
@@ -2366,14 +2419,18 @@ function diaryIntro(main){
     '<div class="dia-start"><button class="btn btn-primary" type="button" id="diaGo">Open my journal</button><p>Only you can read what you write here.</p></div>');
   main.querySelector('#diaGo').onclick=function(){ S.diarioIntro=true; save(); renderApp('diario'); window.scrollTo(0,0); };
 }
+function diaTabs(){ var n=Object.keys(FR).length;
+  return '<div class="dia-views" role="tablist" aria-label="'+LX('Secciones del diario','Journal sections')+'"><button type="button" role="tab" data-view="dia" aria-selected="'+(diaView!=='frases')+'">'+LX('Mi día','My day')+'</button><button type="button" role="tab" data-view="frases" aria-selected="'+(diaView==='frases')+'">'+LX('Mis frases','My sentences')+(n?' <em>'+n+'</em>':'')+'</button></div>'; }
+function diaTabsWire(main){ main.querySelectorAll('[data-view]').forEach(function(b){ b.onclick=function(){ if(diaView===b.dataset.view) return; diaView=b.dataset.view; renderApp('diario'); }; }); }
 function diaryBook(main){
+  if(diaView==='frases'){ diaryFrases(main); return; }
   var today=dKey(), e=Object.assign({mood:0,intent:'',answer:'',good:'',better:'',grat:['','',''],prompt:''},DIA[today]||{});
-  var P=diaPrompt(); if(!e.prompt) e.prompt=diaPrefill||P.q; else if(diaPrefill) e.prompt=diaPrefill; diaPrefill=null;
-  var night=new Date().getHours()>=17, mode=night?'noche':'manana';
+  var fromMentor=!!diaPrefill, P=diaPrompt(); if(!e.prompt) e.prompt=diaPrefill||P.q; else if(diaPrefill) e.prompt=diaPrefill; diaPrefill=null;
+  var night=new Date().getHours()>=17&&!fromMentor, mode=night?'noche':'manana';
   if(e.mood && e.moodAm==null && e.moodPm==null) e.moodAm=e.mood;
   var dlabel=new Date().toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'});
   main.innerHTML='<section class="dia-top"><div><p class="eyebrow">'+LX('Diario personal','Personal journal')+'</p><h1>'+esc(dlabel.charAt(0).toUpperCase()+dlabel.slice(1))+'</h1></div>'+
-      '<div class="dia-stats"><div><b id="dStreak">'+diaStreak()+'</b><span>'+LX('días seguidos','days in a row')+'</span></div><div><b id="dCount">'+Object.keys(DIA).length+'</b><span>'+LX('páginas','pages')+'</span></div><button type="button" class="pd-ed" id="dWhy">'+LX('Por qué un diario','Why a journal')+'</button></div></section>'+
+      '<div class="dia-stats"><div><b id="dStreak">'+diaStreak()+'</b><span>'+LX('días seguidos','days in a row')+'</span></div><div><b id="dCount">'+Object.keys(DIA).length+'</b><span>'+LX('páginas','pages')+'</span></div><button type="button" class="pd-ed" id="dWhy">'+LX('Por qué un diario','Why a journal')+'</button></div></section>'+diaTabs()+
     '<div class="dia-grid"><section class="dia-page"><div class="dia-mode" role="tablist"><button type="button" role="tab" data-m="manana">'+LX('Mañana · Intención','Morning · Intention')+'</button><button type="button" role="tab" data-m="noche">'+LX('Noche · Revisión','Evening · Review')+'</button></div>'+
       '<div class="dia-mood"><span id="dMoodH">'+LX('¿Cómo te sientes?','How do you feel?')+'</span><div>'+MOODS.map(function(m){ return '<button type="button" class="mo mo'+m.v+'" data-v="'+m.v+'"><i></i>'+m.l+'</button>'; }).join('')+'</div></div>'+
       '<div id="dBody"></div><p class="dia-saved" id="dSaved" aria-live="polite"></p></section>'+
@@ -2418,7 +2475,49 @@ function diaryBook(main){
       (x.prompt&&x.answer?'<blockquote>'+esc(x.prompt)+'</blockquote>':'')+sec(LX('Tu respuesta','Your answer'),x.answer)+sec(LX('Tu intención','Your intention'),x.intent)+sec(LX('Lo que hiciste bien','What you did well'),x.good)+sec(LX('Lo que harías distinto','What you would do differently'),x.better)+
       ((x.grat||[]).filter(Boolean).length?'<h4>'+LX('Agradeciste','You were grateful for')+'</h4><ul>'+x.grat.filter(Boolean).map(function(g){return '<li>'+esc(g)+'</li>';}).join('')+'</ul>':'')+'</div>'); }
   main.querySelector('#dWhy').onclick=function(){ S.diarioIntro=false; save(); renderApp('diario'); window.scrollTo(0,0); };
+  diaTabsWire(main);
   draw(); moods(); cal(); past();
+  if(fromMentor && e.prompt!==P.q) persist();
+}
+
+/* ---- Mis frases: frases guardadas desde el Mentor, con preguntas para meditarlas y anotaciones libres ---- */
+function diaryFrases(main){
+  var add=diaFrase; diaFrase=null;
+  if(add){ var k0=frKey(add.q); if(!FR[k0]){ FR[k0]={q:add.q,by:add.by||'',r:add.r||'',k:add.k||'idea',a:['','',''],notes:'',savedAt:Date.now(),updatedAt:Date.now()}; frPut(k0,JSON.parse(JSON.stringify(FR[k0]))).catch(function(){}); } }
+  var cur=add?frKey(add.q):null;
+  function keys(){ return Object.keys(FR).sort(function(a,b){ return (FR[b].savedAt||0)-(FR[a].savedAt||0); }); }
+  if(!cur) cur=keys()[0]||null;
+  main.innerHTML='<section class="dia-top"><div><p class="eyebrow">'+LX('Diario personal','Personal journal')+'</p><h1>'+LX('Mis frases','My sentences')+'</h1></div>'+
+      '<div class="dia-stats"><div><b id="fCount">'+keys().length+'</b><span>'+LX('frases guardadas','saved sentences')+'</span></div></div></section>'+diaTabs()+
+    '<div class="dia-grid fr-grid"><section class="dia-page fr-page" id="fPage"></section>'+
+      '<aside class="dia-side"><section class="pcard"><h2>'+LX('Tus frases','Your sentences')+'</h2><div id="fList"></div></section><p class="dia-priv">'+LX('🔒 Tus frases y anotaciones son privadas, igual que tu diario.','🔒 Your sentences and notes are private, just like your journal.')+'</p></aside></div>';
+  diaTabsWire(main);
+  var page=main.querySelector('#fPage'), T=null;
+  function list(){ var ks=keys(), box=main.querySelector('#fList'); main.querySelector('#fCount').textContent=ks.length;
+    var tb=main.querySelector('[data-view="frases"]'); if(tb) tb.innerHTML=LX('Mis frases','My sentences')+(ks.length?' <em>'+ks.length+'</em>':'');
+    box.innerHTML=ks.length?ks.map(function(k){ var x=FR[k], n=(x.a||[]).filter(Boolean).length+(x.notes?1:0); return '<button type="button" class="dp fr-it'+(k===cur?' on':'')+'" data-k="'+k+'"><i class="fr-dot'+(n?' has':'')+'"></i><span><b>'+esc(x.q.length>70?x.q.slice(0,67)+'…':x.q)+'</b><small>'+esc(x.by||(x.k==='creencia'?LX('Creencia limitante','Limiting belief'):''))+(n?' · '+LX('con anotaciones','with notes'):'')+'</small></span></button>'; }).join('')
+      :'<p class="dia-empty">'+LX('Aún no guardas frases. En Mentor, abre «Una idea para hoy», un autor o una creencia limitante y toca «Escribir sobre esto en mi diario».','You have not saved any sentences yet. In Mentor, open “An idea for today”, an author or a limiting belief and tap “Write about this in my journal”.')+'</p>';
+    box.querySelectorAll('.fr-it').forEach(function(b){ b.onclick=function(){ cur=b.dataset.k; draw(); list(); if(window.innerWidth<980) page.scrollIntoView({block:'start',behavior:'smooth'}); }; }); }
+  function draw(){
+    var x=cur&&FR[cur];
+    if(!x){ page.innerHTML='<div class="fr-empty"><p class="dia-q">'+LX('Aquí guardarás las frases que te inspiren.','Here you will keep the sentences that inspire you.')+'</p><p>'+LX('Cada frase tendrá su propia página para meditarla con preguntas guiadas y escribir tus anotaciones.','Each sentence will have its own page to reflect on it with guided questions and write your notes.')+'</p><button type="button" class="btn btn-primary" id="fGo">'+LX('Buscar una idea en Mentor','Find an idea in Mentor')+'</button></div>';
+      page.querySelector('#fGo').onclick=function(){ renderApp('mentor'); window.scrollTo(0,0); }; return; }
+    var Qs=FR_Q[x.k]||FR_Q.idea, d=new Date(x.savedAt||Date.now());
+    page.innerHTML='<p class="fr-k">'+LX('Guardada el ','Saved on ')+esc(d.toLocaleDateString(LOC,{day:'numeric',month:'long',year:'numeric'}))+'</p>'+
+      '<blockquote class="fr-q"><p>'+LX('«','“')+esc(x.q)+LX('»','”')+'</p>'+(x.by?'<cite>'+esc(x.by)+'</cite>':'')+'</blockquote>'+
+      (x.r?'<div class="dia-ask"><span class="dia-who">'+logo(18)+LX('Prueba decirlo así','Try saying it like this')+'</span><p class="dia-q">'+LX('«','“')+esc(x.r)+LX('»','”')+'</p></div>':'')+
+      '<div class="fr-med"><span class="dia-who">'+logo(18)+LX('Medita sobre esta frase','Reflect on this sentence')+'</span><p>'+LX('Respira hondo tres veces y léela despacio, en voz baja. Luego responde sin prisa, con lo primero que venga.','Take three deep breaths and read it slowly, under your breath. Then answer without hurrying, with whatever comes first.')+'</p></div>'+
+      Qs.map(function(q,i){ return '<label class="dia-f"><span>'+(i+1)+'. '+esc(q)+'</span><textarea data-a="'+i+'" rows="3">'+esc((x.a||[])[i]||'')+'</textarea></label>'; }).join('')+
+      '<label class="dia-f"><span>'+LX('Mis anotaciones','My notes')+'</span><textarea data-n="1" rows="4" placeholder="'+LX('Lo que quieras recordar de esta frase…','Whatever you want to remember about this sentence…')+'">'+esc(x.notes||'')+'</textarea></label>'+
+      '<div class="fr-foot"><p class="dia-saved" id="fSaved" aria-live="polite"></p><button type="button" class="btn btn-ghost fr-del" id="fDel">'+LX('Quitar de mis frases','Remove from my sentences')+'</button></div>';
+    var sv=page.querySelector('#fSaved'), k=cur;
+    function persist(){ clearTimeout(T); sv.textContent=LX('Guardando…','Saving…'); T=setTimeout(function(){ x.updatedAt=Date.now(); frPut(k,JSON.parse(JSON.stringify(x))).then(function(){ if(sv.isConnected) sv.textContent=LX('Guardado','Saved'); list(); }).catch(function(er){ if(sv.isConnected) sv.textContent=LX('No se pudo guardar. ','Could not save. ')+fbErr(er); }); },700); }
+    page.querySelectorAll('[data-a]').forEach(function(t){ t.oninput=function(){ x.a=x.a||['','','']; x.a[+t.dataset.a]=t.value; persist(); }; });
+    page.querySelector('[data-n]').oninput=function(){ x.notes=this.value; persist(); };
+    page.querySelector('#fDel').onclick=function(){ askOk(LX('Quitar esta frase','Remove this sentence'),LX('Se borrarán también tus respuestas y anotaciones sobre ella.','Your answers and notes about it will also be deleted.'),LX('Quitar','Remove'),function(){ clearTimeout(T); frDel(k).catch(function(){}); cur=keys()[0]||null; draw(); list(); toast(LX('Frase quitada de tu diario.','Sentence removed from your journal.')); }); };
+  }
+  draw(); list();
+  if(add) toast(LX('Frase guardada en tu diario.','Sentence saved to your journal.'));
 }
 
 /* ---- Cápsula ---- */
