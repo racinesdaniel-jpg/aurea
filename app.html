@@ -3580,7 +3580,7 @@ function cloudPush(now){
   if(!cloud()||!fbUser||!S.reg||!S.reg.registeredAt||mailKey(S.reg.email)!==mailKey(fbUser.email)) return;
   clearTimeout(pushT); pushT=null;
   function go(){ pushT=null; var js=JSON.stringify(packState(S)), at=Date.now(); lastPushed=js; lastAt=Math.max(lastAt,at);
-    FB.f.setDoc(userRef(fbUser.uid),{email:mailKey(S.reg.email),name:S.reg.name||'',registeredAt:S.reg.registeredAt||0,updatedAt:at,state:js}).catch(function(e){ console.warn('No se pudo guardar en la nube',e); }); }
+    FB.f.setDoc(userRef(fbUser.uid),{email:mailKey(fbUser.email||S.reg.email),name:String(S.reg.name||'').slice(0,80),registeredAt:S.reg.registeredAt||0,updatedAt:at,state:js}).catch(function(e){ console.warn('No se pudo guardar en la nube',e); }); }
   if(now) go(); else pushT=setTimeout(go,400);
 }
 /* Sincronización entre dispositivos: si la persona avanza en otro equipo, este se actualiza solo. */
@@ -3710,7 +3710,7 @@ function cloudChangePw(cur,nw){
 /* --- Administración en la nube --- */
 function cloudLoadAll(){
   return FB.f.getDocs(FB.f.collection(FB.db,'users')).then(function(snap){ var all={};
-    snap.forEach(function(d){ var s=cleanState(unpack(d)); if(s&&s.reg&&s.reg.email){ s._id=d.id; all[mailKey(s.reg.email)]=s; } }); admCache=all; });
+    snap.forEach(function(d){ var s=cleanState(unpack(d)), em=String((d.data()||{}).email||''); if(s&&s.reg&&(em||s.reg.email)){ s._id=d.id; if(em) s.reg.email=em; all[mailKey(s.reg.email)]=s; } }); admCache=all; });
 }
 function cloudAdminOk(){ return cloud() && fbUser && isAdmEmail(fbUser.email) && fbUser.emailVerified; }
 function adminLoginCloud(){

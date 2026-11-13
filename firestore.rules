@@ -9,19 +9,39 @@ service cloud.firestore {
         && request.auth.token.email in ['racinesdaniel@gmail.com'];
     }
 
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    // Perfil: solo estos campos, con su tipo y tamaño; el correo debe ser el de la cuenta
+    function validUser() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['email', 'name', 'registeredAt', 'updatedAt', 'state'])
+        && d.email is string && request.auth.token.email != null && d.email.lower() == request.auth.token.email.lower()
+        && (!('name' in d) || (d.name is string && d.name.size() <= 80))
+        && (!('registeredAt' in d) || d.registeredAt is number)
+        && (!('updatedAt' in d) || d.updatedAt is number)
+        && (!('state' in d) || (d.state is string && d.state.size() < 400000));
+    }
+
     // Cada persona solo lee y escribe su propio documento; el administrador ve y gestiona todos
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validUser();
       allow read, update, delete: if isAdmin();
 
       // Diario personal: privado, solo su dueño lo lee y escribe (el administrador no tiene acceso)
+      // Id: fecha AAAA-MM-DD (páginas) o f-xxxx (frases guardadas); a lo sumo 40 campos por página
       match /diario/{dia} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && (dia.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') || dia.matches('^f-[a-z0-9]{1,13}$'))
+          && request.resource.data.keys().size() <= 40;
       }
 
       // Datos privados (conversación con el Mentor IA): solo su dueño los lee y escribe, ni el administrador
       match /privado/{doc} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && doc == 'mentor' && request.resource.data.keys().size() <= 10;
       }
 
       // Consultas al Mentor con IA: la persona ve cuántas usó; solo el servidor las escribe
