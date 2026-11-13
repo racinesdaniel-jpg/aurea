@@ -190,3 +190,4 @@ exports.miPrueba = miPrueba;
 
 // Administración de cuentas (eliminar usuarios por completo)
 exports.adminCuentas = require("./cuentas").adminCuentas;
+exports.miCuenta = require("./cuentas").miCuenta;

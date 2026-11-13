@@ -1751,7 +1751,7 @@ function pwHash(pw,email){ var str='aurea|'+String(email||'').trim().toLowerCase
 var AUTH_KEY='aurea-sesion', authMem=false;
 function isAuth(){ if(cloud()) return !!fbUser && mailKey(fbUser.email)===mailKey(S.reg&&S.reg.email); try{ return sessionStorage.getItem(AUTH_KEY)==='1'; }catch(e){ return authMem; } }
 function setAuth(on){ authMem=on; try{ if(on) sessionStorage.setItem(AUTH_KEY,'1'); else sessionStorage.removeItem(AUTH_KEY); }catch(e){} }
-function logout(){ DIA=null; if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
+function logout(){ DIA=null; if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ if(fsCleared){ location.replace('app.html#login'); return; } window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
 function loginScreen(){
   var el=botScreen({phase:LX('Iniciar sesión','Sign in')}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
@@ -2066,6 +2066,7 @@ function renderApp(t){
       '<button type="button" role="menuitem" data-u="editar">'+uIc('M4 20h4L19 9l-4-4L4 16v4Z')+LX('Editar perfil','Edit profile')+'</button>'+
       '<button type="button" role="menuitem" data-u="lang" lang="'+LX('en','es')+'">'+uIc('M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3.6 9h16.8M3.6 15h16.8M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18')+LX('English','Español')+'</button>'+
       '<button type="button" role="menuitem" data-u="pw">'+uIc('M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3')+LX('Cambiar contraseña','Change password')+'</button>'+
+      '<button type="button" role="menuitem" data-u="borrar">'+uIc('M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3')+LX('Eliminar mi cuenta','Delete my account')+'</button>'+
       '<button type="button" role="menuitem" data-u="salir" class="ud-out">'+uIc('M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10')+LX('Cerrar sesión','Sign out')+'</button></div></div></div></header>'+
     '<main class="app-main gutter" id="main"></main></div>'+
     '<nav class="bnav" aria-label="'+LX('Secciones','Sections')+'">'+nav('bnav-b')+'</nav>';
@@ -2723,6 +2724,26 @@ function changePw(){
     ov.querySelector('#c-cur').focus({preventScroll:true});
   });
 }
+/* Eliminar mi cuenta: borra el acceso, el perfil, el diario, la conversación con el Mentor y la suscripción. Pide la contraseña otra vez. */
+function deleteAccount(){
+  modal(LX('Eliminar mi cuenta','Delete my account'),'<form class="login mform" novalidate><p class="m-note">'+
+    LX('Se borrarán para siempre tu cuenta, tus respuestas, tu ruta, tu diario y tus conversaciones con Áurea. Si tienes una suscripción de PayPal, se cancelará. Esta acción no se puede deshacer.','Your account, answers, path, journal and conversations with Áurea will be permanently deleted. If you have a PayPal subscription, it will be cancelled. This cannot be undone.')+'</p>'+
+    pwFld('x-pw',LX('Escribe tu contraseña para confirmar','Type your password to confirm'),'current-password')+
+    '<p class="err" id="x-err"></p><div class="m-act"><button type="button" class="btn btn-ghost" data-x>'+LX('Cancelar','Cancel')+'</button><button type="submit" class="btn btn-primary ad-del" id="x-ok">'+LX('Eliminar mi cuenta','Delete my account')+'</button></div></form>',
+  function(ov,close){
+    wireEyes(ov); var err=ov.querySelector('#x-err'), ok=ov.querySelector('#x-ok'); ov.querySelector('[data-x]').onclick=close;
+    ov.querySelector('form').onsubmit=function(e){ e.preventDefault(); var pw=ov.querySelector('#x-pw').value; if(!pw){ err.textContent=LX('Escribe tu contraseña.','Type your password.'); return; }
+      if(!cloud()){ if(pwHash(pw,S.reg.email)!==S.reg.pw){ err.textContent=LX('La contraseña no es correcta.','The password is not correct.'); return; }
+        var all=users(); delete all[mailKey(S.reg.email)]; jset(UKEY,all); try{ localStorage.removeItem(diaLocalKey()); }catch(x){} S=fresh(); save(); setAuth(false); close(); loginScreen(); toast(LX('Tu cuenta se eliminó.','Your account was deleted.')); return; }
+      ok.disabled=true; err.textContent=LX('Eliminando…','Deleting…');
+      FB.a.reauthenticateWithCredential(fbUser,FB.a.EmailAuthProvider.credential(fbUser.email,pw)).then(function(){ return fbUser.getIdToken(true); })
+        .then(function(){ return fnCall('miCuenta',{accion:'eliminar'}); })
+        .then(function(){ close(); return cloudLogout(); }).then(function(){ toast(LX('Tu cuenta y tus datos se eliminaron.','Your account and data were deleted.')); setTimeout(function(){ location.replace('app.html'); },1200); })
+        .catch(function(e){ ok.disabled=false; var c=String(e&&e.code||'');
+          err.textContent=(c==='auth/invalid-credential'||c==='auth/wrong-password')?LX('La contraseña no es correcta.','The password is not correct.'):(c.indexOf('functions/')===0&&e.message?e.message:fbErr(e)); }); };
+    ov.querySelector('#x-pw').focus({preventScroll:true});
+  });
+}
 function wireUserMenu(el){
   ['#sideSub','#chipSub'].forEach(function(q){ var x=el.querySelector(q); if(x) x.onclick=function(){ if(S.subscribed){ renderApp('perfil'); window.scrollTo(0,0); } else paywall(); }; });
   var b=el.querySelector('#ubtn'), d=el.querySelector('#udrop');
@@ -2731,7 +2752,7 @@ function wireUserMenu(el){
   function esck(e){ if(e.key==='Escape'){ set(false); b.focus(); } }
   b.onclick=function(){ set(d.hidden); if(!d.hidden) d.querySelector('button').focus({preventScroll:true}); };
   d.querySelectorAll('[data-u]').forEach(function(x){ x.onclick=function(){ set(false); var a=x.dataset.u;
-    if(a==='perfil'){ renderApp('perfil'); window.scrollTo(0,0); } else if(a==='editar') editProfile(); else if(a==='pw') changePw(); else if(a==='lang') setLang(LANG==='en'?'es':'en'); else logout(); }; });
+    if(a==='perfil'){ renderApp('perfil'); window.scrollTo(0,0); } else if(a==='editar') editProfile(); else if(a==='pw') changePw(); else if(a==='borrar') deleteAccount(); else if(a==='lang') setLang(LANG==='en'?'es':'en'); else logout(); }; });
 }
 
 /* ================= ADMINISTRACIÓN ================= */
@@ -3720,7 +3741,12 @@ function cloudRegister(onOk,onErr){
 function cloudLogin(mail,pw){
   return FB.a.signInWithEmailAndPassword(FB.auth,String(mail).trim(),pw).then(function(cr){ fbUser=cr.user; return loadMine(); });
 }
-function cloudLogout(){ if(pushT) cloudPush(true); syncStop(); return FB.a.signOut(FB.auth).catch(function(){}).then(function(){ fbUser=null; S=fresh(); DIA=null; AIH=[]; AI_LEFT=null; SUB=null; lastPushed=null; lastAt=0; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }); }
+/* Datos personales guardados en este navegador: se borran al cerrar sesión (computadoras compartidas) */
+function clearLocalPersonal(){ try{ Object.keys(localStorage).forEach(function(k){ if(k===KEY||k===AUTH_KEY||k.indexOf('aurea-diario-')===0||k==='aurea-visto') localStorage.removeItem(k); }); }catch(e){} }
+var fsCleared=false;
+function cloudLogout(){ if(pushT) cloudPush(true); syncStop(); return FB.a.signOut(FB.auth).catch(function(){}).then(function(){
+    /* La copia sin conexión de Firestore (incluido el diario) se borra; después hay que recargar la página para volver a ingresar */
+    return FB.f.terminate(FB.db).then(function(){ return FB.f.clearIndexedDbPersistence(FB.db); }).then(function(){ fsCleared=true; }).catch(function(e){ console.warn('No se pudo borrar la copia local',e); fsCleared=true; }); }).then(function(){ clearLocalPersonal(); fbUser=null; S=fresh(); DIA=null; AIH=[]; AI_LEFT=null; SUB=null; lastPushed=null; lastAt=0; try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }); }
 function cloudChangePw(cur,nw){
   return FB.a.reauthenticateWithCredential(fbUser,FB.a.EmailAuthProvider.credential(fbUser.email,cur)).then(function(){ return FB.a.updatePassword(fbUser,nw); });
 }

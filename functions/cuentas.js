@@ -38,6 +38,21 @@ async function borrar(uid) {
   return paypal;
 }
 
+/* La persona elimina su propia cuenta y todos sus datos (y su suscripción de PayPal, si la tiene).
+   Exige haber ingresado la contraseña hace poco (la app la pide de nuevo justo antes). */
+exports.miCuenta = onCall(
+  { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 3, timeoutSeconds: 120, memory: "256MiB" },
+  async (req) => {
+    if (!req.auth) throw new HttpsError("unauthenticated", "Inicia sesión.");
+    if (!(req.data && req.data.accion === "eliminar")) throw new HttpsError("invalid-argument", "Acción desconocida.");
+    const t = req.auth.token;
+    if (!t.auth_time || Date.now() / 1000 - t.auth_time > 600) throw new HttpsError("failed-precondition", "Por seguridad, vuelve a escribir tu contraseña.", { scope: "reauth" });
+    if (ADMINS.includes(String(t.email || "").toLowerCase())) throw new HttpsError("failed-precondition", "La cuenta de administrador no se elimina desde aquí.");
+    const paypal = await borrar(req.auth.uid);
+    return { ok: true, paypal };
+  }
+);
+
 exports.adminCuentas = onCall(
   { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 3, timeoutSeconds: 120, memory: "256MiB" },
   async (req) => {
