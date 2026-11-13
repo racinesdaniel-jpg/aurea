@@ -54,6 +54,12 @@ exports.payphoneStart = onCall(
     const total = plan === "anual" ? +s.priceA : +s.priceM;
     if (!(total > 0)) throw new HttpsError("failed-precondition", "El precio del plan no está configurado.");
     const m = montos(total, +s.payIva);
+    // Límite: como máximo 5 pagos iniciados por persona en la última hora (evita llenar «pagos» de registros basura)
+    const hora = Date.now() - 3600e3;
+    const previos = await db().collection("pagos").where("uid", "==", req.auth.uid).get();
+    if (previos.docs.filter((d) => (d.data().createdAt || 0) > hora).length >= 5) {
+      throw new HttpsError("resource-exhausted", "Ya iniciaste varios pagos en la última hora. Espera un momento e intenta de nuevo.");
+    }
     const ref = db().collection("pagos").doc();
     const clientTransactionId = ref.id; // único, 20 caracteres
     await ref.set({ uid: req.auth.uid, email: req.auth.token.email || "", plan, ...m, currency: "USD", provider: "payphone", status: "pendiente", createdAt: Date.now() });
@@ -140,7 +146,19 @@ exports.subsDaily = onSchedule({ schedule: "0 3 * * *", timeZone: "America/Guaya
   console.log("Suscripciones vencidas:", vencidas.length);
 });
 
-exports._test = { montos, nuevoFin };
+/* ¿Se acepta este plan de PayPal? key = "<entorno>_<plan>_<centavos>" guardado en admin/paypal.
+   - Siempre debe ser del entorno actual (sandbox o live).
+   - Una suscripción nueva solo se acepta con el precio vigente en settings/app.
+   - Una suscripción que ya era de esa persona (renovación) conserva su precio original. */
+function planAceptado(key, env, precios, yaEraSuya) {
+  const m = /^(sandbox|live)_(mensual|anual)_(\d+)$/.exec(key || "");
+  if (!m || m[1] !== env) return false;
+  if (yaEraSuya) return true;
+  const vigente = Math.round((m[2] === "anual" ? +precios.priceA : +precios.priceM) * 100);
+  return vigente > 0 && +m[3] === vigente;
+}
+
+exports._test = { montos, nuevoFin, planAceptado };
 // Fase 2: el cifrado del titular que exige Payphone para cobrar con cardToken (AES-256-CBC, IV vacío, Base64).
 exports._cifrarTitular = (nombre, clave) => {
   const c = crypto.createCipheriv("aes-256-cbc", Buffer.from(clave, "utf8"), Buffer.alloc(16));
@@ -154,6 +172,7 @@ const PAYPAL_SECRET = defineSecret("PAYPAL_SECRET");
 const PAYPAL_CLIENT_ID = defineSecret("PAYPAL_CLIENT_ID"); // no es secreto, pero así se guarda igual que el Secret
 const PAYPAL_ENV = defineString("PAYPAL_ENV", { default: "sandbox" }); // "sandbox" (pruebas) o "live"
 const ppBase = () => (PAYPAL_ENV.value() === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com");
+const PAYPAL_WEBHOOK_ID = defineString("PAYPAL_WEBHOOK_ID", { default: "" }); // PayPal → Apps & Credentials → tu app → Webhooks
 const GRACIA = 3 * 864e5; // días de margen tras la fecha de cobro, por si PayPal tarda en cobrar
 
 let ppTok = null;
@@ -209,12 +228,19 @@ async function ppSync(subId, uidEsperado) {
   const uid = s.custom_id;
   if (!uid || (uidEsperado && uid !== uidEsperado)) throw new Error("La suscripción no corresponde a esta cuenta");
   const map = ((await db().doc("admin/paypal").get()).data() || {});
-  const plan = Object.keys(map).find((k) => map[k] === s.plan_id);
+  const plan = Object.keys(map).find((k) => map[k] === s.plan_id && k.indexOf("product_") !== 0);
   if (!plan) throw new Error("Plan de PayPal desconocido");
-  const next = s.billing_info && s.billing_info.next_billing_time ? Date.parse(s.billing_info.next_billing_time) : 0;
-  const activa = s.status === "ACTIVE";
   const ref = db().doc("subs/" + uid);
   const cur = (await ref.get()).data() || {};
+  const precios = { ...DEF, ...((await db().doc("settings/app").get()).data() || {}) };
+  if (!planAceptado(plan, PAYPAL_ENV.value(), precios, cur.paypalSub === subId)) throw new Error("Plan de PayPal no vigente: " + plan);
+  // Además, el precio real del plan en PayPal debe coincidir con el guardado
+  const pl = await pp("GET", "/v1/billing/plans/" + encodeURIComponent(s.plan_id));
+  const cyc = (pl.billing_cycles || []).find((c) => c.tenure_type === "REGULAR") || {};
+  const real = Math.round(+(((cyc.pricing_scheme || {}).fixed_price || {}).value || 0) * 100);
+  if (real !== +plan.split("_")[2]) throw new Error("El precio del plan en PayPal no coincide: " + real);
+  const next = s.billing_info && s.billing_info.next_billing_time ? Date.parse(s.billing_info.next_billing_time) : 0;
+  const activa = s.status === "ACTIVE";
   // Si la persona canceló, conserva el acceso hasta el fin del período que ya pagó
   const fin = activa ? (next ? next + GRACIA : nuevoFin(0, plan.includes("_anual_") ? "anual" : "mensual")) : (cur.paypalSub === subId ? cur.currentPeriodEnd || 0 : 0);
   const d = { provider: "paypal", paypalSub: subId, paypalStatus: s.status, plan: plan.includes("_anual_") ? "anual" : "mensual",
@@ -278,6 +304,20 @@ exports.paypalWebhook = onRequest(
   { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
   async (req, res) => {
     const b = req.body || {};
+    const wid = PAYPAL_WEBHOOK_ID.value();
+    const h = (k) => String(req.get(k) || "");
+    // Sin PAYPAL_WEBHOOK_ID no se puede verificar la firma: se sigue como antes (solo se usa el id para preguntarle a PayPal)
+    if (!wid) console.warn("PAYPAL_WEBHOOK_ID sin configurar: aviso sin verificar");
+    else try {
+      const v = await pp("POST", "/v1/notifications/verify-webhook-signature", {
+        auth_algo: h("paypal-auth-algo"), cert_url: h("paypal-cert-url"), transmission_id: h("paypal-transmission-id"),
+        transmission_sig: h("paypal-transmission-sig"), transmission_time: h("paypal-transmission-time"), webhook_id: wid, webhook_event: b,
+      });
+      if (v.verification_status !== "SUCCESS") return res.status(400).send("firma no válida");
+    } catch (e) {
+      console.error("PayPal verificar firma", e.status, e.message);
+      return res.status(400).send("firma no válida");
+    }
     const r = b.resource || {};
     const id = /^BILLING\.SUBSCRIPTION\./.test(b.event_type || "") ? r.id : r.billing_agreement_id;
     if (id && /^I-[A-Z0-9]{6,40}$/.test(id)) {
