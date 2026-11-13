@@ -1516,7 +1516,7 @@ function pwHash(pw,email){ var str='aurea|'+String(email||'').trim().toLowerCase
 var AUTH_KEY='aurea-sesion', authMem=false;
 function isAuth(){ if(cloud()) return !!fbUser && mailKey(fbUser.email)===mailKey(S.reg&&S.reg.email); try{ return sessionStorage.getItem(AUTH_KEY)==='1'; }catch(e){ return authMem; } }
 function setAuth(on){ authMem=on; try{ if(on) sessionStorage.setItem(AUTH_KEY,'1'); else sessionStorage.removeItem(AUTH_KEY); }catch(e){} }
-function logout(){ DIA=null; if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ if(fsCleared){ location.replace('app.html#login'); return; } window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
+function logout(){ DIA=null; if(cloud()){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; cloudLogout().then(function(){ if(fsCleared){ /* un cambio de solo «#login» no recarga la página: se fuerza la recarga para reiniciar Firestore */ try{ history.replaceState(null,'',location.pathname+location.search+'#login'); }catch(e){} location.reload(); return; } window.scrollTo(0,0); loginScreen(); }); return; } setAuth(false); document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; window.scrollTo(0,0); loginScreen(); }
 function loginScreen(){
   var el=botScreen({phase:LX('Iniciar sesión','Sign in')}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots'), tap=el.querySelector('#tap');
@@ -2504,7 +2504,7 @@ function deleteAccount(){
       ok.disabled=true; err.textContent=LX('Eliminando…','Deleting…');
       FB.a.reauthenticateWithCredential(fbUser,FB.a.EmailAuthProvider.credential(fbUser.email,pw)).then(function(){ return fbUser.getIdToken(true); })
         .then(function(){ return fnCall('miCuenta',{accion:'eliminar'}); })
-        .then(function(){ close(); return cloudLogout(); }).then(function(){ toast(LX('Tu cuenta y tus datos se eliminaron.','Your account and data were deleted.')); setTimeout(function(){ location.replace('app.html'); },1200); })
+        .then(function(){ close(); return cloudLogout(); }).then(function(){ toast(LX('Tu cuenta y tus datos se eliminaron.','Your account and data were deleted.')); setTimeout(function(){ try{ history.replaceState(null,'',location.pathname); }catch(e){} location.reload(); },1200); })
         .catch(function(e){ ok.disabled=false; var c=String(e&&e.code||'');
           err.textContent=(c==='auth/invalid-credential'||c==='auth/wrong-password')?LX('La contraseña no es correcta.','The password is not correct.'):(c.indexOf('functions/')===0&&e.message?e.message:fbErr(e)); }); };
     ov.querySelector('#x-pw').focus({preventScroll:true});
