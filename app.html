@@ -3494,7 +3494,7 @@ function cloudInit(){
 var pendingPw=null;
 function cloudRegister(onOk,onErr){
   var mail=String(S.reg.email||'').trim();
-  function done(u){ fbUser=u; pendingPw=null; onOk(); }
+  function done(u){ fbUser=u; pendingPw=null; markSeen(); onOk(); }
   if(fbUser && mailKey(fbUser.email)===mailKey(mail)) return done(fbUser);
   if(!pendingPw){ onErr({code:'need-pw'}); return; }
   FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ FB.a.sendEmailVerification(cr.user).catch(function(){}); done(cr.user); }).catch(function(e){
@@ -3507,8 +3507,12 @@ function cloudRegister(onOk,onErr){
     }
     onErr(e); });
 }
+/* Este navegador ya tuvo una cuenta de Áurea: solo entonces «Entrar» abre el inicio de sesión («Qué bueno verte de nuevo») */
+var SEEN_KEY='aurea-ya-ingreso';
+function markSeen(){ try{ localStorage.setItem(SEEN_KEY,'1'); }catch(e){} }
+function seenHere(){ try{ return localStorage.getItem(SEEN_KEY)==='1'; }catch(e){ return false; } }
 function cloudLogin(mail,pw){
-  return FB.a.signInWithEmailAndPassword(FB.auth,String(mail).trim(),pw).then(function(cr){ fbUser=cr.user; return loadMine(); });
+  return FB.a.signInWithEmailAndPassword(FB.auth,String(mail).trim(),pw).then(function(cr){ fbUser=cr.user; markSeen(); return loadMine(); });
 }
 /* Datos personales guardados en este navegador: se borran al cerrar sesión (computadoras compartidas) */
 function clearLocalPersonal(){ try{ Object.keys(localStorage).forEach(function(k){ if(k===KEY||k===AUTH_KEY||k.indexOf('aurea-diario-')===0||k==='aurea-visto') localStorage.removeItem(k); }); }catch(e){} }
@@ -3575,8 +3579,10 @@ function boot(){
   if(/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
   if(isAuth() && langSync()) return;
   if(cloud() && fbUser && isAdmEmail(fbUser.email) && !(S.reg && S.reg.registeredAt)){ adminEntry(); return; }
+  if(fbUser || (S.reg && S.reg.registeredAt)) markSeen();
   if(/^#login/.test(location.hash)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
-    if(!(S.reg && S.reg.registeredAt && (cloud()||S.reg.pw) && isAuth())){ loginScreen(); return; } }
+    /* En un navegador que nunca tuvo una cuenta se muestra la bienvenida (crear cuenta); desde ahí está «Ya tengo cuenta» */
+    if(seenHere() && !(S.reg && S.reg.registeredAt && (cloud()||S.reg.pw) && isAuth())){ loginScreen(); return; } }
   if(!cloud() && S.reg && S.reg.registeredAt && S.reg.email && !users()[mailKey(S.reg.email)]) save();
   if(S.stage!=='reg' && S.reg && S.reg.registeredAt){
     if(!cloud() && !S.reg.pw){ createPwScreen(); return; }
