@@ -172,7 +172,7 @@ const PAYPAL_SECRET = defineSecret("PAYPAL_SECRET");
 const PAYPAL_CLIENT_ID = defineSecret("PAYPAL_CLIENT_ID"); // no es secreto, pero así se guarda igual que el Secret
 const PAYPAL_ENV = defineString("PAYPAL_ENV", { default: "sandbox" }); // "sandbox" (pruebas) o "live"
 const ppBase = () => (PAYPAL_ENV.value() === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com");
-const PAYPAL_WEBHOOK_ID = defineString("PAYPAL_WEBHOOK_ID", { default: "" }); // PayPal → Apps & Credentials → tu app → Webhooks
+const PAYPAL_WEBHOOK_ID = defineString("PAYPAL_WEBHOOK_ID", { default: "no" }); // "no" = sin configurar (evita que firebase deploy lo pregunte) // PayPal → Apps & Credentials → tu app → Webhooks
 const GRACIA = 3 * 864e5; // días de margen tras la fecha de cobro, por si PayPal tarda en cobrar
 
 let ppTok = null;
@@ -304,7 +304,7 @@ exports.paypalWebhook = onRequest(
   { secrets: [PAYPAL_CLIENT_ID, PAYPAL_SECRET], region: "us-central1", maxInstances: 5, timeoutSeconds: 30, memory: "256MiB" },
   async (req, res) => {
     const b = req.body || {};
-    const wid = PAYPAL_WEBHOOK_ID.value();
+    const wid = /^[A-Z0-9]{8,40}$/.test(PAYPAL_WEBHOOK_ID.value()) ? PAYPAL_WEBHOOK_ID.value() : "";
     const h = (k) => String(req.get(k) || "");
     // Sin PAYPAL_WEBHOOK_ID no se puede verificar la firma: se sigue como antes (solo se usa el id para preguntarle a PayPal)
     if (!wid) console.warn("PAYPAL_WEBHOOK_ID sin configurar: aviso sin verificar");
