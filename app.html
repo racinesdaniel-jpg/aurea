@@ -2032,7 +2032,9 @@ function calWeek(){ return Math.max(0,Math.floor((Date.now()-routeStart())/WEEK_
 function nextOpenDate(){ return new Date(routeStart()+(calWeek()+1)*WEEK_MS); }
 function fmtOpen(d){ var s=d.toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'}); return s; }
 function currentWeek(){ var w=weeksDone(); return Math.min(w, calWeek(), S.route.length-1); }
-function trialLeft(){ var days=Math.floor((Date.now()-S.reg.registeredAt)/86400000)+S.dayOffset; return Math.max(0,cfg().trialDays-days); }
+function trialEndOf(){ if(S._te!=null) return S._te; if(cloud()&&fbUser&&SUB&&SUB.trialEnd!=null&&S.reg&&mailKey(S.reg.email)===mailKey(fbUser.email)) return SUB.trialEnd; return null; }
+function trialLeft(){ var te=trialEndOf(); if(te!=null) return Math.max(0,Math.ceil((te-Date.now())/86400000));
+  var days=Math.floor((Date.now()-S.reg.registeredAt)/86400000)+S.dayOffset; return Math.max(0,cfg().trialDays-days); }
 function locked(){ return !S.subscribed && trialLeft()<=0; }
 
 var tab='ruta';
@@ -2329,7 +2331,7 @@ function viewMentor(main){
     C.onsubmit=function(e){ if(e.target.id!=='mtAi') return; e.preventDefault(); var t=C.querySelector('#mtAiT'), q=t.value.trim(), er=C.querySelector('#mtAiE');
       if(q.length<2){ er.textContent=LX('Escribe tu pregunta.','Write your question.'); t.focus(); return; }
       var bt=C.querySelector('button[type=submit]'); bt.disabled=true; bt.textContent=LX('Pensando…','Thinking…'); er.textContent='';
-      aiCall({message:q,history:AIH.slice(-8),ctx:{week:weekTitles()},lang:LANG}).then(function(r){
+      aiCall({message:q,history:AIH.slice(-6).map(function(h){ return {role:h.role,text:String(h.text||'').slice(0,800)}; }),ctx:{week:weekTitles()},lang:LANG}).then(function(r){
         if(my!==mentorRun) return; AIH.push({role:'user',text:q},{role:'assistant',text:r.text}); AIH=AIH.slice(-16); aiHistSave(); AI_LEFT=r.left||null; answer(q,r.text);
       }).catch(function(e2){ if(my!==mentorRun) return; bt.disabled=false; bt.textContent=LX('Enviar','Send'); er.textContent=aiErr(e2); });
     };
@@ -2845,8 +2847,11 @@ function userDetail(key){
     if(cloud()){
       /* Se parte del documento original (no de la copia normalizada que muestra el panel) para no alterar otros datos de la persona */
       ov.querySelector('#adExt').onclick=function(){ var id=u._id;
+        fnCall('adminCuentas',{accion:'extender',uid:id,dias:7}).then(function(){ close(); adminPanel('usuarios'); toast('Se agregaron 7 días de prueba.'); }).catch(function(e0){ var c0=String(e0&&e0.code||'');
+        if(!(c0.indexOf('not-found')>=0||c0.indexOf('internal')>=0||c0.indexOf('invalid-argument')>=0)){ toast(e0&&e0.message||fbErr(e0)); return; }
+        /* Si la función aún no está publicada: método anterior */
         FB.f.getDoc(userRef(id)).then(function(x){ var s2=unpack(x); if(!s2) throw new Error('No se pudo leer el usuario.'); delete s2._id; s2.dayOffset=num(s2.dayOffset,-36500,36500,0)-7;
-          return FB.f.updateDoc(userRef(id),{state:JSON.stringify(s2),updatedAt:Date.now()}); }).then(function(){ close(); adminPanel('usuarios'); toast('Se agregaron 7 días de prueba.'); }).catch(function(e){ toast(fbErr(e)); }); };
+          return FB.f.updateDoc(userRef(id),{state:JSON.stringify(s2),updatedAt:Date.now()}); }).then(function(){ close(); adminPanel('usuarios'); toast('Se agregaron 7 días de prueba.'); }).catch(function(e){ toast(fbErr(e)); }); }); };
       ov.querySelector('#adDel').onclick=function(){ askOk('Eliminar usuario','Se borrarán la cuenta, las respuestas, el diario y el progreso de '+tc(r.name)+(u.subscribed?' y se cancelará su suscripción de PayPal si la tiene':'')+'. Podrá volver a registrarse con el mismo correo. Esta acción no se puede deshacer.','Eliminar',function(){
         toast('Eliminando…');
         fnCall('adminCuentas',{accion:'eliminar',uid:u._id}).then(function(){ close(); adminPanel('usuarios'); toast('Usuario eliminado. Ya puede volver a registrarse con ese correo.'); })
@@ -3006,6 +3011,7 @@ function admIA(m){
    nf('ia-tok','Largo máximo de cada respuesta (tokens, 400 a 4.000)',a.aiMaxTokens,4000)+
    '<h3 class="ia-h">Prueba gratuita ('+cfg().trialDays+' días)</h3><div class="m2">'+nf('ia-td','Consultas por día',a.aiTrialDay,1000)+nf('ia-tm','Consultas en toda la prueba',a.aiTrialMonth,10000)+'</div>'+
    '<h3 class="ia-h">Suscripción de pago</h3><div class="m2">'+nf('ia-pd','Consultas por día',a.aiPaidDay,1000)+nf('ia-pm','Consultas por mes',a.aiPaidMonth,10000)+'</div>'+
+      '<h3 class="ia-h">Tope para toda la app</h3><div class="m2">'+nf('ia-gd','Consultas por día entre todos los usuarios',a.aiGlobalDay,100000)+'</div>'+
    '<p class="m-note">0 consultas bloquea el mentor con IA para ese plan. El costo aproximado incluye una pregunta y una respuesta de largo normal.</p><p class="err" id="ia1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar</button></div></form></section>'+
    '<section class="pcard"><h2>Uso de este mes</h2><div id="iaUse"><p class="muted">'+(cloud()?'Cargando…':'Disponible cuando la aplicación está conectada a Firebase.')+'</p></div>'+
    '<p class="m-note">Costo estimado con los precios de Anthropic por millón de tokens: Haiku 5.5 US$0,10 entrada y US$0,50 salida; Sonnet 5.5 US$2 y US$10; Opus 5.5 US$4 y US$20. Revisa el valor exacto en la consola de Anthropic.</p></section></div>';
@@ -3017,9 +3023,9 @@ function admIA(m){
     .catch(function(){ var box=m.querySelector('#iaUse'); if(box) box.innerHTML='<p class="muted">No se pudo leer el uso. Despliega las nuevas reglas de Firestore.</p>'; });
   m.querySelector('#ia1').onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#ia1e');
     function iv(id){ return parseInt(m.querySelector('#'+id).value,10); }
-    var d={aiEnabled:m.querySelector('#ia-on').checked,aiModel:m.querySelector('#ia-model').value,aiMaxTokens:iv('ia-tok'),aiTrialDay:iv('ia-td'),aiTrialMonth:iv('ia-tm'),aiPaidDay:iv('ia-pd'),aiPaidMonth:iv('ia-pm')};
+    var d={aiEnabled:m.querySelector('#ia-on').checked,aiModel:m.querySelector('#ia-model').value,aiMaxTokens:iv('ia-tok'),aiTrialDay:iv('ia-td'),aiTrialMonth:iv('ia-tm'),aiPaidDay:iv('ia-pd'),aiPaidMonth:iv('ia-pm'),aiGlobalDay:iv('ia-gd')};
     if(!(d.aiMaxTokens>=400&&d.aiMaxTokens<=4000)){ er.textContent='El largo máximo debe estar entre 400 y 4.000.'; return; }
-    if([d.aiTrialDay,d.aiTrialMonth,d.aiPaidDay,d.aiPaidMonth].some(function(x){ return !(x>=0); })){ er.textContent='Escribe límites válidos (0 o más).'; return; }
+    if([d.aiTrialDay,d.aiTrialMonth,d.aiPaidDay,d.aiPaidMonth,d.aiGlobalDay].some(function(x){ return !(x>=0); })){ er.textContent='Escribe límites válidos (0 o más).'; return; }
     function ok(){ var cc=jget(CKEY,{}); AI_KEYS.forEach(function(k){ cc[k]=d[k]; }); jset(CKEY,cc); er.textContent=''; toast(cloud()?'Mentor IA guardado para todos.':'Mentor IA guardado.'); }
     if(cloud()){ var x={updatedAt:Date.now()}; AI_KEYS.forEach(function(k){ x[k]=d[k]; }); FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),x,{merge:true}).then(ok).catch(function(e2){ er.textContent=fbErr(e2); }); return; }
     ok(); };
@@ -3526,8 +3532,8 @@ function admConfig(m){
 }
 
 /* ---- Mentor con IA (Anthropic, a través de la función segura "mentor" de Firebase) ---- */
-var AI_KEYS=['aiEnabled','aiModel','aiMaxTokens','aiTrialDay','aiTrialMonth','aiPaidDay','aiPaidMonth'];
-var AI_DEF={aiEnabled:false,aiModel:'claude-haiku-5-5',aiMaxTokens:1500,aiTrialDay:5,aiTrialMonth:40,aiPaidDay:20,aiPaidMonth:300};
+var AI_KEYS=['aiEnabled','aiModel','aiMaxTokens','aiTrialDay','aiTrialMonth','aiPaidDay','aiPaidMonth','aiGlobalDay'];
+var AI_DEF={aiEnabled:false,aiModel:'claude-haiku-5-5',aiMaxTokens:1500,aiTrialDay:5,aiTrialMonth:40,aiPaidDay:20,aiPaidMonth:300,aiGlobalDay:500};
 var AI_MODELS=[['claude-haiku-5-5','Haiku 5.5 · rápido y económico','≈ US$0,40'],['claude-sonnet-5-5','Sonnet 5.5 · más profundo','≈ US$8'],['claude-opus-5-5','Opus 5.5 · el más capaz','≈ US$16']];
 function aiCfg(){ var c=jget(CKEY,{}), r={}; AI_KEYS.forEach(function(k){ r[k]=c[k]!=null?c[k]:AI_DEF[k]; }); r.aiEnabled=!!r.aiEnabled; return r; }
 function aiOn(){ return cloud() && !!fbUser && aiCfg().aiEnabled; }
@@ -3537,11 +3543,18 @@ function aiHistRef(){ return FB.f.doc(FB.db,'users',fbUser.uid,'privado','mentor
 function aiHistLoad(){ if(!cloud()||!fbUser) return Promise.resolve(); var uid=fbUser.uid;
   return FB.f.getDoc(aiHistRef()).then(function(d){ if(!fbUser||fbUser.uid!==uid) return; var h=d.exists()?d.data().h:null; if(Array.isArray(h) && h.length>=AIH.length) AIH=h.slice(-16); }).catch(function(){}); }
 function aiHistSave(){ if(!cloud()||!fbUser) return; FB.f.setDoc(aiHistRef(),{h:AIH.slice(-16),updatedAt:Date.now()}).catch(function(){}); }
+var aiVerSent=false;
+function aiFresh(){ if(!fbUser||fbUser.emailVerified) return Promise.resolve();
+  return fbUser.reload().then(function(){ fbUser=FB.auth.currentUser||fbUser; if(fbUser.emailVerified) return fbUser.getIdToken(true); }).catch(function(){}); }
 function aiCall(data){
-  var go=aiFn?Promise.resolve(aiFn):import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js').then(function(fm){ aiFn=fm.httpsCallable(fm.getFunctions(FB.app,'us-central1'),'mentor',{timeout:70000}); return aiFn; });
+  var go=aiFresh().then(function(){ return 0; }).then(function(){ return aiFn?Promise.resolve(aiFn):import('https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js').then(function(fm){ aiFn=fm.httpsCallable(fm.getFunctions(FB.app,'us-central1'),'mentor',{timeout:70000}); return aiFn; }); });
   return go.then(function(fn){ return fn(data); }).then(function(r){ return r.data; });
 }
-function aiErr(e){ var c=String((e&&e.code)||'').replace('functions/','');
+function aiErr(e){ var c=String((e&&e.code)||'').replace('functions/',''), sc0=e&&e.details&&e.details.scope;
+  if(sc0==='verify'){ if(!aiVerSent&&fbUser){ aiVerSent=true; FB.a.sendEmailVerification(fbUser).catch(function(){}); }
+    return LX('Confirma tu correo para conversar con Áurea. Te enviamos un enlace a '+(fbUser?fbUser.email:'tu correo')+'; ábrelo y vuelve a intentarlo.','Confirm your email to talk with Áurea. We sent a link to '+(fbUser?fbUser.email:'your email')+'; open it and try again.'); }
+  if(sc0==='trial-ended') return LX('Tu prueba gratuita terminó. Con la suscripción podrás seguir conversando con Áurea.','Your free trial has ended. With a subscription you can keep talking with Áurea.');
+  if(sc0==='global') return LX('Áurea recibió muchas consultas hoy. Mañana podrás seguir conversando.','Áurea received many questions today. You can keep talking tomorrow.');
   if(LANG==='en'){ var sc=e&&e.details&&e.details.scope;
     return ({'resource-exhausted':sc==='trial'?'You have used all the conversations in your free trial. With a subscription you can keep talking with Áurea.':(sc==='month'?'You have reached this month’s conversations.':'You have reached today’s conversations. You can keep talking tomorrow.'),
       'failed-precondition':'The mentor is turned off for now.','unavailable':'Áurea is receiving many questions. Try again in a moment.','invalid-argument':'Write your question.','unauthenticated':'Sign in to talk with Áurea.'})[c]||'Áurea could not answer right now. Check your connection and try again in a moment.'; }
@@ -3573,7 +3586,7 @@ function fbErr(e){ var c=(e&&e.code)||'';
    'auth/invalid-email':'Revisa tu correo: parece que falta algo.','auth/missing-email':'Escribe tu correo.','auth/weak-password':'Usa una contraseña más segura.',
    'auth/too-many-requests':'Demasiados intentos. Espera unos minutos y vuelve a intentarlo.','auth/network-request-failed':'No hay conexión. Revisa tu internet e inténtalo de nuevo.',
    'auth/requires-recent-login':'Por seguridad, cierra sesión y vuelve a ingresar antes de hacer este cambio.','permission-denied':'No tienes permiso para hacer esto.'})[c]||'Algo salió mal. Inténtalo de nuevo.'; }
-function packState(s){ var o=JSON.parse(JSON.stringify(s)); if(o.reg) delete o.reg.pw; return o; }
+function packState(s){ var o=JSON.parse(JSON.stringify(s)); if(o.reg) delete o.reg.pw; delete o._te; return o; }
 function userRef(uid){ return FB.f.doc(FB.db,'users',uid); }
 var pushT=null, lastPushed=null, lastAt=0;
 function cloudPush(now){
@@ -3631,7 +3644,9 @@ function loadSub(){
   if(!cloud()||!fbUser) return Promise.resolve();
   return FB.f.getDoc(FB.f.doc(FB.db,'subs',fbUser.uid)).then(function(d){ SUB=d.exists()?d.data():null;
     S.subscribed=!!(SUB&&SUB.active===true&&!(SUB.currentPeriodEnd&&SUB.currentPeriodEnd<Date.now()));
-    if(S.subscribed&&SUB.plan) S.plan=SUB.plan; }).catch(function(){});
+    if(S.subscribed&&SUB.plan) S.plan=SUB.plan;
+    /* Primera vez: el servidor calcula la fecha de fin de la prueba desde la creación de la cuenta */
+    if(!SUB||SUB.trialEnd==null) return fnCall('miPrueba').then(function(r){ if(r&&r.trialEnd){ SUB=SUB||{}; SUB.trialEnd=r.trialEnd; } }).catch(function(){}); }).catch(function(){});
 }
 function subEnd(){ return SUB&&SUB.currentPeriodEnd?new Date(SUB.currentPeriodEnd).toLocaleDateString(LOC,{day:'numeric',month:'long',year:'numeric'}):''; }
 var FNS={};
@@ -3676,6 +3691,8 @@ function cloudInit(){
   var base='https://www.gstatic.com/firebasejs/10.12.2/';
   return Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]).then(function(m){
     var app=m[0].initializeApp(FBC);
+    /* App Check (reCAPTCHA Enterprise): se activa al poner appCheckKey en firebase-config.js; por ahora el servidor solo lo monitorea */
+    if(FBC.appCheckKey) import(base+'firebase-app-check.js').then(function(ac){ ac.initializeAppCheck(app,{provider:new ac.ReCaptchaEnterpriseProvider(FBC.appCheckKey),isTokenAutoRefreshEnabled:true}); }).catch(function(e){ console.warn('App Check no disponible',e); });
     var db; try{ db=m[2].initializeFirestore(app,{localCache:m[2].persistentLocalCache({tabManager:m[2].persistentMultipleTabManager()})}); }catch(e){ db=m[2].getFirestore(app); }
     FB={app:app,auth:m[1].getAuth(app),db:db,a:m[1],f:m[2]};
     try{ FB.auth.languageCode=LANG; }catch(e){}
@@ -3690,7 +3707,7 @@ function cloudRegister(onOk,onErr){
   function done(u){ fbUser=u; pendingPw=null; onOk(); }
   if(fbUser && mailKey(fbUser.email)===mailKey(mail)) return done(fbUser);
   if(!pendingPw){ onErr({code:'need-pw'}); return; }
-  FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ done(cr.user); }).catch(function(e){
+  FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ FB.a.sendEmailVerification(cr.user).catch(function(){}); done(cr.user); }).catch(function(e){
     if(e&&e.code==='auth/email-already-in-use'){
       /* La cuenta ya existe (por ejemplo, el acceso de administrador) pero puede no tener registro de usuario: si la contraseña coincide, se completa el registro. */
       FB.a.signInWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){
@@ -3709,8 +3726,12 @@ function cloudChangePw(cur,nw){
 }
 /* --- Administración en la nube --- */
 function cloudLoadAll(){
-  return FB.f.getDocs(FB.f.collection(FB.db,'users')).then(function(snap){ var all={};
-    snap.forEach(function(d){ var s=cleanState(unpack(d)), em=String((d.data()||{}).email||''); if(s&&s.reg&&(em||s.reg.email)){ s._id=d.id; if(em) s.reg.email=em; all[mailKey(s.reg.email)]=s; } }); admCache=all; });
+  var SUBS={};
+  return FB.f.getDocs(FB.f.collection(FB.db,'subs')).then(function(q){ q.forEach(function(d){ SUBS[d.id]=d.data()||{}; }); }).catch(function(){})
+  .then(function(){ return FB.f.getDocs(FB.f.collection(FB.db,'users')); }).then(function(snap){ var all={};
+    snap.forEach(function(d){ var s=cleanState(unpack(d)), em=String((d.data()||{}).email||''); if(s&&s.reg&&(em||s.reg.email)){ s._id=d.id; if(em) s.reg.email=em;
+      var sb=SUBS[d.id]||{}; s.subscribed=sb.active===true&&!(sb.currentPeriodEnd&&sb.currentPeriodEnd<Date.now()); if(s.subscribed&&sb.plan) s.plan=sb.plan; if(typeof sb.trialEnd==='number') s._te=sb.trialEnd;
+      all[mailKey(s.reg.email)]=s; } }); admCache=all; });
 }
 function cloudAdminOk(){ return cloud() && fbUser && isAdmEmail(fbUser.email) && fbUser.emailVerified; }
 function adminLoginCloud(){

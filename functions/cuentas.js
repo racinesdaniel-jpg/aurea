@@ -69,6 +69,16 @@ exports.adminCuentas = onCall(
       for (const c of sin) await borrar(c.uid);
       return { borradas: sin.length };
     }
+    // Extender la prueba gratuita: mueve subs/{uid}.trialEnd (que la persona no puede escribir)
+    if (accion === "extender") {
+      const uid = String((req.data && req.data.uid) || "");
+      if (!/^[A-Za-z0-9]{6,128}$/.test(uid)) throw new HttpsError("invalid-argument", "Usuario no válido.");
+      const dias = Math.min(365, Math.max(1, parseInt(req.data && req.data.dias, 10) || 7));
+      const { finPrueba } = require("./prueba");
+      const fin = Math.max(await finPrueba(uid), Date.now()) + dias * 864e5;
+      await db().doc("subs/" + uid).set({ trialEnd: fin, updatedAt: Date.now() }, { merge: true });
+      return { trialEnd: fin };
+    }
     throw new HttpsError("invalid-argument", "Acción desconocida.");
   }
 );

@@ -7,6 +7,7 @@ const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const AnthropicModule = require("@anthropic-ai/sdk");
+const { finPrueba, miPrueba } = require("./prueba");
 const Anthropic = AnthropicModule.default || AnthropicModule;
 
 initializeApp();
@@ -22,6 +23,7 @@ const DEF = {
   aiTrialMonth: 40, // en la prueba gratuita es el total de toda la prueba, no por mes
   aiPaidDay: 20,
   aiPaidMonth: 300,
+  aiGlobalDay: 500, // tope diario de consultas para toda la app (protege el saldo de Anthropic)
 };
 const TZ = "America/Guayaquil";
 
@@ -30,6 +32,8 @@ function settingsFrom(v) {
   for (const k of Object.keys(DEF)) if (v && v[k] != null) c[k] = v[k];
   if (!MODELS.includes(c.aiModel)) c.aiModel = DEF.aiModel;
   c.aiMaxTokens = Math.min(4000, Math.max(400, Number(c.aiMaxTokens) || DEF.aiMaxTokens));
+  c.aiGlobalDay = Math.min(100000, Math.max(0, Number(c.aiGlobalDay)));
+  if (!isFinite(c.aiGlobalDay)) c.aiGlobalDay = DEF.aiGlobalDay;
   return c;
 }
 function clip(x, n) { return String(x == null ? "" : x).slice(0, n); }
@@ -52,7 +56,11 @@ exports.mentor = onCall(
   { secrets: [ANTHROPIC_API_KEY], region: "us-central1", maxInstances: 5, timeoutSeconds: 60, memory: "256MiB" },
   async (req) => {
     if (!req.auth) throw new HttpsError("unauthenticated", "Inicia sesión para hablar con Áurea.");
+    // Solo cuentas con el correo confirmado (evita que alguien cree muchas cuentas falsas para consumir consultas)
+    if (!req.auth.token.email_verified) throw new HttpsError("failed-precondition", "Confirma tu correo para conversar con Áurea. Te enviamos un enlace; ábrelo y vuelve a intentarlo.", { scope: "verify" });
     const uid = req.auth.uid;
+    // App Check en modo de solo monitoreo: se cuenta cuántas llamadas vienen de la app real, sin bloquear todavía
+    const appOk = !!req.app;
     const c = settingsFrom((await db.doc("settings/app").get()).data());
     if (!c.aiEnabled) throw new HttpsError("failed-precondition", "El mentor con inteligencia artificial está desactivado por ahora.");
 
@@ -68,14 +76,20 @@ exports.mentor = onCall(
     const sd = subSnap.exists ? subSnap.data() : {};
     const paid = sd.active === true && !(sd.currentPeriodEnd && sd.currentPeriodEnd < Date.now());
     const lim = paid ? [c.aiPaidDay, c.aiPaidMonth] : [c.aiTrialDay, c.aiTrialMonth];
+    // Sin suscripción, la prueba debe estar vigente (la fecha de fin la calcula el servidor, no el navegador)
+    if (!paid && (await finPrueba(uid)) < Date.now()) throw new HttpsError("failed-precondition", "Tu prueba gratuita terminó. Con la suscripción podrás seguir conversando con Áurea.", { scope: "trial-ended" });
 
     // Reservar la consulta antes de llamar a la IA, para que nadie supere el límite con varias pestañas a la vez.
     const day = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
     const month = day.slice(0, 7);
     const usageRef = db.doc(`users/${uid}/ia/uso`);
+    const globalRef = db.doc("admin/iaDia");
     let used;
     await db.runTransaction(async (t) => {
       const u = (await t.get(usageRef)).data() || {};
+      const g = (await t.get(globalRef)).data() || {};
+      const gN = g.day === day ? g.n || 0 : 0;
+      if (gN >= c.aiGlobalDay) throw new HttpsError("resource-exhausted", "Áurea recibió muchas consultas hoy. Mañana podrás seguir conversando.", { scope: "global" });
       const dayN = u.day === day ? u.dayN || 0 : 0;
       const monN = u.month === month ? u.monN || 0 : 0;
       const totN = u.totN || 0; // total acumulado: en la prueba el límite es para toda la prueba
@@ -84,6 +98,7 @@ exports.mentor = onCall(
       if (capN >= lim[1]) throw new HttpsError("resource-exhausted", paid ? "Llegaste a tus consultas de este mes." : "Ya usaste todas las conversaciones de tu prueba gratuita. Con la suscripción podrás seguir conversando con Áurea.", { scope: paid ? "month" : "trial" });
       used = { dayN: dayN + 1, capN: capN + 1 };
       t.set(usageRef, { day, dayN: dayN + 1, month, monN: monN + 1, totN: totN + 1, plan: paid ? "pago" : "prueba", updatedAt: Date.now() }, { merge: true });
+      t.set(globalRef, { day, n: gN + 1 });
     });
 
     // Contexto de la persona (lo lee el servidor de su propio documento; las cápsulas de la semana las envía la app)
@@ -100,11 +115,12 @@ exports.mentor = onCall(
       Array.isArray(ctx.week) && ctx.week.length ? `Cápsulas de esta semana: ${ctx.week.slice(0, 3).map((x) => clip(x, 90)).join("; ")}` : "",
     ].filter(Boolean).join("\n");
 
-    const history = Array.isArray(req.data && req.data.history) ? req.data.history.slice(-8) : [];
+    // Historial corto: como máximo 6 mensajes de 800 caracteres (limita el costo por consulta)
+    const history = Array.isArray(req.data && req.data.history) ? req.data.history.slice(-6) : [];
     const messages = [];
     for (const h of history) {
       const role = h && h.role === "assistant" ? "assistant" : "user";
-      const text = clip(h && h.text, 1500).trim();
+      const text = clip(h && h.text, 800).trim();
       if (!text) continue;
       if (messages.length && messages[messages.length - 1].role === role) continue;
       if (!messages.length && role !== "user") continue;
@@ -129,6 +145,7 @@ exports.mentor = onCall(
     } catch (e) {
       // Devolver la consulta reservada si la IA no respondió
       await usageRef.set({ dayN: FieldValue.increment(-1), monN: FieldValue.increment(-1), totN: FieldValue.increment(-1) }, { merge: true }).catch(() => {});
+      await globalRef.set({ n: FieldValue.increment(-1) }, { merge: true }).catch(() => {});
       console.error("Anthropic error", e && e.status, e && e.message);
       if (e instanceof Anthropic.RateLimitError) throw new HttpsError("unavailable", "Áurea está recibiendo muchas consultas. Intenta de nuevo en un momento.");
       throw new HttpsError("internal", "Áurea no pudo responder ahora. Intenta de nuevo en un momento.");
@@ -150,6 +167,7 @@ exports.mentor = onCall(
         inTok: FieldValue.increment(inTok),
         outTok: FieldValue.increment(u.output_tokens || 0),
         [c.aiModel.replace(/[^a-z0-9]/g, "_")]: FieldValue.increment(1),
+        [appOk ? "appCheckOk" : "appCheckSin"]: FieldValue.increment(1),
       },
     }, { merge: true }).catch(() => {});
 
@@ -166,6 +184,9 @@ exports.paypalPlan = pagos.paypalPlan;
 exports.paypalConfirm = pagos.paypalConfirm;
 exports.paypalWebhook = pagos.paypalWebhook;
 exports.subCancel = pagos.subCancel;
+
+// Prueba gratuita calculada en el servidor
+exports.miPrueba = miPrueba;
 
 // Administración de cuentas (eliminar usuarios por completo)
 exports.adminCuentas = require("./cuentas").adminCuentas;
