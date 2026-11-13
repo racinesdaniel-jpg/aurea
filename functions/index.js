@@ -194,3 +194,7 @@ exports.miCuenta = require("./cuentas").miCuenta;
 
 // Contenido de las cápsulas en Firestore (lo publica el administrador)
 exports.cargarCapsulas = require("./capsulas").cargarCapsulas;
+
+// Correos propios desde info@aureamentor.com (confirmar correo y crear contraseña nueva)
+exports.correoVerificacion = require("./correos").correoVerificacion;
+exports.correoClave = require("./correos").correoClave;

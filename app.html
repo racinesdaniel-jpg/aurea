@@ -1552,7 +1552,7 @@ function loginScreen(){
   };
   el.querySelector('#forgot').onclick=function(){ err.textContent='';
     if(cloud()){ var em=mail.value.trim(); if(!em){ err.textContent=LX('Escribe tu correo arriba y vuelve a tocar «¿Olvidaste tu contraseña?».','Write your email above and tap “Forgot your password?” again.'); mail.focus(); return; }
-      FB.a.sendPasswordResetEmail(FB.auth,em).then(function(){ hint.textContent=LX('Si existe una cuenta con '+em+', te llegará un correo con un enlace para crear una contraseña nueva.','If an account exists for '+em+', you will receive an email with a link to create a new password.'); }).catch(function(e){ err.textContent=fbErr(e); }); return; } hint.textContent=LX('En la versión final recibirás en tu correo un enlace para crear una contraseña nueva.','In the final version you will receive an email with a link to create a new password.'); };
+      sendReset(em).then(function(){ hint.textContent=LX('Si existe una cuenta con '+em+', te llegará un correo con un enlace para crear una contraseña nueva.','If an account exists for '+em+', you will receive an email with a link to create a new password.'); }).catch(function(e){ err.textContent=fbErr(e); }); return; } hint.textContent=LX('En la versión final recibirás en tu correo un enlace para crear una contraseña nueva.','In the final version you will receive an email with a link to create a new password.'); };
   back.disabled=false;
   back.onclick=function(){ S=fresh(); try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} setAuth(false); startReg(); };
   admLink(el);
@@ -3347,7 +3347,7 @@ function aiCall(data){
   return go.then(function(fn){ return fn(data); }).then(function(r){ return r.data; });
 }
 function aiErr(e){ var c=String((e&&e.code)||'').replace('functions/',''), sc0=e&&e.details&&e.details.scope;
-  if(sc0==='verify'){ if(!aiVerSent&&fbUser){ aiVerSent=true; FB.a.sendEmailVerification(fbUser).catch(function(){}); }
+  if(sc0==='verify'){ if(!aiVerSent&&fbUser){ aiVerSent=true; sendVerify(fbUser).catch(function(){}); }
     return LX('Confirma tu correo para conversar con Áurea. Te enviamos un enlace a '+(fbUser?fbUser.email:'tu correo')+'; ábrelo y vuelve a intentarlo.','Confirm your email to talk with Áurea. We sent a link to '+(fbUser?fbUser.email:'your email')+'; open it and try again.'); }
   if(sc0==='trial-ended') return LX('Tu prueba gratuita terminó. Con la suscripción podrás seguir conversando con Áurea.','Your free trial has ended. With a subscription you can keep talking with Áurea.');
   if(sc0==='global') return LX('Áurea recibió muchas consultas hoy. Mañana podrás seguir conversando.','Áurea received many questions today. You can keep talking tomorrow.');
@@ -3503,7 +3503,7 @@ function cloudRegister(onOk,onErr){
   function done(u){ fbUser=u; pendingPw=null; markSeen(); onOk(); setTimeout(function(){ if(fbUser) loadSub(); },1500); }
   if(fbUser && mailKey(fbUser.email)===mailKey(mail)) return done(fbUser);
   if(!pendingPw){ onErr({code:'need-pw'}); return; }
-  FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ FB.a.sendEmailVerification(cr.user).catch(function(){}); done(cr.user); }).catch(function(e){
+  FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ fbUser=cr.user; setTimeout(function(){ sendVerify(cr.user).catch(function(){}); },1200); done(cr.user); }).catch(function(e){
     if(e&&e.code==='auth/email-already-in-use'){
       /* La cuenta ya existe (por ejemplo, el acceso de administrador) pero puede no tener registro de usuario: si la contraseña coincide, se completa el registro. */
       FB.a.signInWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){
@@ -3512,6 +3512,32 @@ function cloudRegister(onOk,onErr){
       return;
     }
     onErr(e); });
+}
+/* Correos de Áurea desde info@aureamentor.com (si la función no está disponible, se usa el correo de Firebase) */
+function sendVerify(u){ return fnCall('correoVerificacion',{lang:LANG,nombre:(S.reg&&S.reg.name)||''}).catch(function(e){ if(String(e&&e.code||'').indexOf('resource-exhausted')>=0) throw e; return FB.a.sendEmailVerification(u||fbUser); }); }
+function sendReset(em){ return fnCall('correoClave',{email:em,lang:LANG}).catch(function(e){ var c=String(e&&e.code||''); if(c.indexOf('resource-exhausted')>=0||c.indexOf('invalid-argument')>=0) throw e; return FB.a.sendPasswordResetEmail(FB.auth,em); }); }
+/* Enlaces de los correos: ?modo=verificar|clave&codigo=… */
+function mailAction(){
+  var q=new URLSearchParams(location.search), modo=q.get('modo'), code=q.get('codigo'); if(!cloud()||!code||(modo!=='verificar'&&modo!=='clave')) return false;
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}
+  function msg(t,x,go){ modal(t,'<p class="m-note">'+x+'</p><div class="m-act"><button type="button" class="btn btn-primary" data-x>'+LX('Continuar','Continue')+'</button></div>',function(ov,close){ ov.querySelector('[data-x]').onclick=function(){ close(); go&&go(); }; }); }
+  if(modo==='verificar'){
+    FB.a.applyActionCode(FB.auth,code).then(function(){ var u=FB.auth.currentUser; return u?u.reload().then(function(){ return u.getIdToken(true); }):null; })
+      .then(function(){ boot(); msg(LX('Tu correo quedó confirmado','Your email is confirmed'),LX('Gracias. Ya puedes conversar con Áurea y usar toda la app.','Thank you. You can now talk with Áurea and use the whole app.')); })
+      .catch(function(){ boot(); msg(LX('No pudimos confirmar tu correo','We could not confirm your email'),LX('El enlace ya se usó o venció. Si tu correo aún no está confirmado, Áurea te enviará uno nuevo cuando lo necesites.','The link was already used or has expired. If your email is not confirmed yet, Áurea will send you a new one when needed.')); });
+    return true; }
+  FB.a.verifyPasswordResetCode(FB.auth,code).then(function(email){
+    root.innerHTML='';
+    modal(LX('Crea una contraseña nueva','Create a new password'),'<form class="login mform" novalidate><p class="m-note">'+esc(email)+'</p>'+pwFld('r-new',LX('Contraseña nueva','New password'),'new-password')+pwFld('r-rep',LX('Repite la contraseña','Repeat the password'),'new-password')+
+      '<p class="m-note">'+LX('Usa al menos 8 caracteres y combina letras y números.','Use at least 8 characters and combine letters and numbers.')+'</p><p class="err" id="r-err"></p><div class="m-act"><button type="submit" class="btn btn-primary">'+LX('Guardar contraseña','Save password')+'</button></div></form>',
+    function(ov,close){ wireEyes(ov); var err=ov.querySelector('#r-err'); ov.querySelector('.close').onclick=function(){ close(); boot(); };
+      ov.querySelector('form').onsubmit=function(e){ e.preventDefault(); var nw=ov.querySelector('#r-new').value, rp=ov.querySelector('#r-rep').value, m0=regRule('pw')(nw);
+        if(m0){ err.textContent=m0; return; } if(nw!==rp){ err.textContent=LX('Las contraseñas no coinciden.','The passwords do not match.'); return; }
+        FB.a.confirmPasswordReset(FB.auth,code,nw).then(function(){ close(); markSeen(); try{ history.replaceState(null,'',location.pathname+'#login'); }catch(x){} boot(); toast(LX('Tu contraseña se cambió. Ya puedes ingresar con ella.','Your password was changed. You can now sign in with it.')); })
+          .catch(function(x){ err.textContent=fbErr(x); }); };
+      ov.querySelector('#r-new').focus({preventScroll:true}); });
+  }).catch(function(){ boot(); msg(LX('El enlace ya no es válido','The link is no longer valid'),LX('Ya se usó o venció. Pide uno nuevo con «¿Olvidaste tu contraseña?».','It was already used or has expired. Request a new one with “Forgot your password?”.')); });
+  return true;
 }
 /* Este navegador ya tuvo una cuenta de Áurea: solo entonces «Entrar» abre el inicio de sesión («Qué bueno verte de nuevo») */
 var SEEN_KEY='aurea-ya-ingreso';
@@ -3600,7 +3626,7 @@ function boot(){
   else if(S.stage==='diag') welcomeDiag();
   else startReg();
 }
-cloudInit().then(function(){ boot(); payReturn(); });
+cloudInit().then(function(){ if(!mailAction()) boot(); payReturn(); });
 window.addEventListener('hashchange',function(){ if(FBC && !cloud()) return; if(/^#admin/.test(location.hash)&&!adminMode){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; adminEntry(); } });
 if(reduce) setInterval(drawOrbs,1000);
 })();
