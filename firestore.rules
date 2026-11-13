@@ -78,6 +78,18 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Texto completo de las cápsulas: solo con la prueba vigente o una suscripción activa (lo escribe el servidor)
+    function entitled() {
+      let ref = /databases/$(database)/documents/subs/$(request.auth.uid);
+      let now = request.time.toMillis();
+      return exists(ref) && (
+        (get(ref).data.get('trialEnd', 0) is number && get(ref).data.get('trialEnd', 0) > now)
+        || (get(ref).data.get('active', false) == true && get(ref).data.get('currentPeriodEnd', now + 1) > now));
+    }
+    match /capsulas/{id} {
+      allow read: if request.auth != null && (isAdmin() || entitled());
+    }
+
     // Días de prueba y precios: cualquiera los lee (la landing los muestra), solo el administrador los cambia
     match /settings/{doc} {
       allow read: if true;

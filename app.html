@@ -1488,6 +1488,18 @@ var DEEP={
   steps:['Cuando sientas estrés, detente y escribe qué pasó.','Anota el pensamiento que tuviste en ese momento.','Escribe otra forma posible de verlo, más amable y realista.']}
 };
 if(EN){ ovl(TRAD,EN.trad); ovl(LEARN,EN.learn); ovl(DEEP,EN.deep); }
+/* Texto completo de una cápsula: en Firestore (capsulas/{id}), solo para quien tiene prueba vigente o suscripción */
+var CAPS_V='6674b3c468ff', CAPTX={};
+function capTxHTML(t){ t=t||{}; var D=t;
+  if(!t.body) return '<div class="body"><p class="muted">'+LX('Cargando…','Loading…')+'</p></div>';
+  return '<div class="body">'+t.body.concat(t.more||[]).map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</div>'+
+    (D.steps?'<div class="steps"><b>'+LX('Cómo aplicarlo','How to apply it')+'</b><ol>'+D.steps.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>':'')+
+    (D.exp?'<aside class="expert"><span class="ex-k">'+LX('Lo que dicen los expertos','What the experts say')+'</span><div class="ex-who"><span class="ex-av" aria-hidden="true">'+esc(String(D.exp.who||'').charAt(0))+'</span><span><b>'+esc(D.exp.who)+'</b><small>'+esc(D.exp.bk)+'</small></span></div><p>'+esc(D.exp.t)+'</p></aside>':''); }
+function capText(id){
+  if(CAPTX[id]) return Promise.resolve(CAPTX[id]);
+  if(!cloud()||!fbUser) return Promise.resolve(null);
+  return (subReady||Promise.resolve()).then(function(){ return FB.f.getDoc(FB.f.doc(FB.db,'capsulas',id)); }).then(function(d){
+    if(!d.exists()) return null; var v=d.data()||{}, t=v[LANG==='en'?'en':'es']||v.es; if(t&&t.body){ CAPTX[id]=t; return t; } return null; }); }
 function capMin(c){ return c.min+(DEEP[c.id]?3:0); }
 var LEVELS=[{n:'I',name:'Origen',w:0,d:'Comienzas tu ruta.'},{n:'II',name:'Despertar',w:4,d:'4 semanas completas.'},{n:'III',name:'Práctica',w:8,d:'8 semanas y tus primeros hábitos.'},{n:'IV',name:'Constancia',w:13,d:'13 semanas. Ruta de 3 meses.'},{n:'V',name:'Claridad',w:26,d:'26 semanas. Ruta de 6 meses.'},{n:'VI',name:'Maestría',w:39,d:'39 semanas de práctica.'},{n:'VII',name:'Plenitud',w:52,d:'52 semanas. La espiral completa.'}];
 var WEEKS={3:13,6:26,12:52};
@@ -2597,18 +2609,19 @@ function diaryFrases(main){
 function openCap(id){
   if(locked()){ paywall(); return; }
   var c=CAP[id], P=PILLARS[c.p], wasDone=!!S.done[id], before=level(); var D=DEEP[id]||{};
+  var TX={body:c.body,practice:c.practice,more:D.more,steps:D.steps,exp:D.exp};
   var ov=document.createElement('div'); ov.className='ov gutter';
   ov.innerHTML='<article class="sheet '+P.cls+'" role="dialog" aria-modal="true" aria-label="'+esc(c.title)+'"><button class="close" type="button" aria-label="'+LX('Cerrar','Close')+'">✕</button>'+
-    '<span class="k">'+P.name+' · '+dayFor(c.p)+' · '+capMin(c)+' min</span><h2>'+esc(c.title)+'</h2>'+(function(f){ return f?'<p class="cap-f">'+LX('Elegida para ti: trabaja tu área de <b>'+esc(f.a.n)+'</b>, que hoy está en '+f.v+'/10.','Chosen for you: it works on your <b>'+esc(f.a.n)+'</b> area, which is at '+f.v+'/10 today.')+'</p>':''; })(capFocus(id))+'<div class="body">'+c.body.concat(D.more||[]).map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</div>'+
-    (D.steps?'<div class="steps"><b>'+LX('Cómo aplicarlo','How to apply it')+'</b><ol>'+D.steps.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol></div>':'')+
-    (D.exp?'<aside class="expert"><span class="ex-k">'+LX('Lo que dicen los expertos','What the experts say')+'</span><div class="ex-who"><span class="ex-av" aria-hidden="true">'+esc(D.exp.who.charAt(0))+'</span><span><b>'+esc(D.exp.who)+'</b><small>'+esc(D.exp.bk)+'</small></span></div><p>'+esc(D.exp.t)+'</p></aside>':'')+
-    '<div class="practice"><b>'+LX('Práctica de la semana','Practice of the week')+'</b><p>'+esc(c.practice)+'</p><label class="check"><input type="checkbox" id="pr-'+id+'" '+(S.practice[id]?'checked':'')+'> '+LX('Me comprometo a realizarla esta semana','I commit to doing it this week')+'</label></div>'+
+    '<span class="k">'+P.name+' · '+dayFor(c.p)+' · '+capMin(c)+' min</span><h2>'+esc(c.title)+'</h2>'+(function(f){ return f?'<p class="cap-f">'+LX('Elegida para ti: trabaja tu área de <b>'+esc(f.a.n)+'</b>, que hoy está en '+f.v+'/10.','Chosen for you: it works on your <b>'+esc(f.a.n)+'</b> area, which is at '+f.v+'/10 today.')+'</p>':''; })(capFocus(id))+'<div id="capTx">'+capTxHTML(TX)+'</div>'+
+    '<div class="practice"><b>'+LX('Práctica de la semana','Practice of the week')+'</b><p id="capPr">'+(TX.practice?esc(TX.practice):'<span class="muted">'+LX('Cargando…','Loading…')+'</span>')+'</p><label class="check"><input type="checkbox" id="pr-'+id+'" '+(S.practice[id]?'checked':'')+'> '+LX('Me comprometo a realizarla esta semana','I commit to doing it this week')+'</label></div>'+
     '<div id="orig"></div><div class="actions" id="act"></div></article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   function close(){ ov.remove(); document.body.style.overflow=''; renderApp(); }
   ov.querySelector('.close').onclick=close;
   ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
   document.addEventListener('keydown',function k(e){ if(e.key==='Escape'){ document.removeEventListener('keydown',k); if(ov.isConnected) close(); } });
+  capText(id).then(function(t){ if(!t||!ov.isConnected) return; var a=ov.querySelector('#capTx'), b=ov.querySelector('#capPr'); if(a) a.innerHTML=capTxHTML(t); if(b&&t.practice) b.textContent=t.practice; })
+    .catch(function(e){ if(TX.body||!ov.isConnected) return; var a=ov.querySelector('#capTx'); if(a) a.innerHTML='<p class="muted">'+(String(e&&e.code||'').indexOf('permission')>=0?LX('Esta cápsula está disponible durante tu prueba gratuita o con tu suscripción.','This capsule is available during your free trial or with your subscription.'):LX('No pudimos cargar la cápsula. Revisa tu conexión e inténtalo de nuevo.','We could not load the capsule. Check your connection and try again.'))+'</p>'; });
   ov.querySelector('#pr-'+id).onchange=function(e){ if(e.target.checked) S.practice[id]=true; else delete S.practice[id]; save(); };
   var orig=ov.querySelector('#orig'), act=ov.querySelector('#act');
   function showOrigin(){ var L=LEARN[c.id]||{tr:[]};
@@ -2791,6 +2804,7 @@ function withUser(u,fn){ var old=S; S=u; try{ return fn(); } finally{ S=old; } }
 function uStatus(u){ return withUser(u,function(){ if(S.subscribed) return ['sub','Suscrito']; if(!S.reg.registeredAt) return ['', 'Sin terminar']; return trialLeft()>0?['trial','Prueba · '+trialLeft()+' d']:['end','Prueba terminada']; }); }
 function uList(){ var u=users(); return Object.keys(u).map(function(k){return u[k];}).filter(function(x){ return x&&x.reg; }).sort(function(a,b){ return (b.reg.registeredAt||0)-(a.reg.registeredAt||0); }); }
 function fdate(t){ return t?new Date(t).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'}):'—'; }
+var capsSync=false;
 function adminPanel(t,cached){
   adminMode=true; var TAB=t||'resumen';
   if(cloud() && !cached){ root.innerHTML='<div class="boot-load" role="status"><span></span>Cargando usuarios…</div>';
@@ -2806,6 +2820,8 @@ function adminPanel(t,cached){
   el.querySelector('#aout').onclick=leaveAdmin;
   var tb=el.querySelector('.adm-tabs'), cu=tb.querySelector('[aria-current]'); if(cu && tb.scrollWidth>tb.clientWidth) tb.scrollLeft=cu.offsetLeft-(tb.clientWidth-cu.offsetWidth)/2;
   var m=el.querySelector('#amain');
+  if(cloud()&&!capsSync) { capsSync=true; FB.f.getDoc(FB.f.doc(FB.db,'admin','capsulas')).then(function(d){ if(d.exists()&&d.data().v===CAPS_V) return;
+    return fnCall('cargarCapsulas').then(function(r){ toast('Contenido de las cápsulas publicado ('+(r&&r.n||0)+').'); }); }).catch(function(e){ console.warn('Cápsulas sin publicar',e); capsSync=false; }); }
   if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else if(TAB==='ia') admIA(m); else if(TAB==='analitica') admAnalytics(m); else if(TAB==='landing') admLanding(m); else admConfig(m);
 }
 function admSummary(m){
@@ -3660,10 +3676,10 @@ function loadMine(){
   }).then(function(){ syncStart(); return Promise.all([loadSub(), aiHistLoad()]); });
 }
 /* La suscripción válida la escribe solo el servidor de pagos en subs/{uid} */
-var SUB=null;
+var SUB=null, subReady=null;
 function loadSub(){
   if(!cloud()||!fbUser) return Promise.resolve();
-  return FB.f.getDoc(FB.f.doc(FB.db,'subs',fbUser.uid)).then(function(d){ SUB=d.exists()?d.data():null;
+  return subReady=FB.f.getDoc(FB.f.doc(FB.db,'subs',fbUser.uid)).then(function(d){ SUB=d.exists()?d.data():null;
     S.subscribed=!!(SUB&&SUB.active===true&&!(SUB.currentPeriodEnd&&SUB.currentPeriodEnd<Date.now()));
     if(S.subscribed&&SUB.plan) S.plan=SUB.plan;
     /* Primera vez: el servidor calcula la fecha de fin de la prueba desde la creación de la cuenta */
