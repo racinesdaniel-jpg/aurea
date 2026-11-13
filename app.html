@@ -1251,8 +1251,14 @@ function capTxHTML(t){ t=t||{}; var D=t;
 function capText(id){
   if(CAPTX[id]) return Promise.resolve(CAPTX[id]);
   if(!cloud()||!fbUser) return Promise.resolve(null);
-  return (subReady||Promise.resolve()).then(function(){ return FB.f.getDoc(FB.f.doc(FB.db,'capsulas',id)); }).then(function(d){
-    if(!d.exists()) return null; var v=d.data()||{}, t=v[LANG==='en'?'en':'es']||v.es; if(t&&t.body){ CAPTX[id]=t; return t; } return null; }); }
+  /* La regla exige la fecha de fin de la prueba en subs/{uid}: si aún no existe (por ejemplo, recién registrada), se crea antes */
+  function ready(){ if(S.subscribed||(SUB&&SUB.trialEnd!=null)) return Promise.resolve(); return subReady||loadSub(); }
+  function read(){ return FB.f.getDoc(FB.f.doc(FB.db,'capsulas',id)); }
+  function limit(p){ return Promise.race([p,new Promise(function(_,no){ setTimeout(function(){ no({code:'timeout'}); },20000); })]); }
+  return limit(ready().then(read).catch(function(e){
+    if(String(e&&e.code||'').indexOf('permission')<0) throw e;
+    return fnCall('miPrueba').then(function(r){ if(r&&r.trialEnd){ SUB=SUB||{}; SUB.trialEnd=r.trialEnd; } return read(); }); }))
+  .then(function(d){ if(!d||!d.exists()) return null; var v=d.data()||{}, t=v[LANG==='en'?'en':'es']||v.es; if(t&&t.body){ CAPTX[id]=t; return t; } return null; }); }
 function capMin(c){ return c.min+(DEEP[c.id]?3:0); }
 var LEVELS=[{n:'I',name:'Origen',w:0,d:'Comienzas tu ruta.'},{n:'II',name:'Despertar',w:4,d:'4 semanas completas.'},{n:'III',name:'Práctica',w:8,d:'8 semanas y tus primeros hábitos.'},{n:'IV',name:'Constancia',w:13,d:'13 semanas. Ruta de 3 meses.'},{n:'V',name:'Claridad',w:26,d:'26 semanas. Ruta de 6 meses.'},{n:'VI',name:'Maestría',w:39,d:'39 semanas de práctica.'},{n:'VII',name:'Plenitud',w:52,d:'52 semanas. La espiral completa.'}];
 var WEEKS={3:13,6:26,12:52};
@@ -3494,7 +3500,7 @@ function cloudInit(){
 var pendingPw=null;
 function cloudRegister(onOk,onErr){
   var mail=String(S.reg.email||'').trim();
-  function done(u){ fbUser=u; pendingPw=null; markSeen(); onOk(); }
+  function done(u){ fbUser=u; pendingPw=null; markSeen(); onOk(); setTimeout(function(){ if(fbUser) loadSub(); },1500); }
   if(fbUser && mailKey(fbUser.email)===mailKey(mail)) return done(fbUser);
   if(!pendingPw){ onErr({code:'need-pw'}); return; }
   FB.a.createUserWithEmailAndPassword(FB.auth,mail,pendingPw).then(function(cr){ FB.a.sendEmailVerification(cr.user).catch(function(){}); done(cr.user); }).catch(function(e){
