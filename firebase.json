@@ -16,6 +16,13 @@
     "cleanUrls": false,
     "rewrites": [
       {
+        "source": "/api/t",
+        "function": {
+          "functionId": "trafico",
+          "region": "us-central1"
+        }
+      },
+      {
         "source": "/pago/payphone",
         "function": {
           "functionId": "payphoneReturn",
