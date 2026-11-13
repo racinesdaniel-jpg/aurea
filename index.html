@@ -1206,5 +1206,28 @@ nav.top .wrap>.btn{margin-left:auto}
 })();
 </script>
 
+<script>
+/* Tráfico de la landing (sin cookies ni servicios externos): una vista por visita y un evento por clic, a /api/t.
+   Solo se guardan contadores por hora; la ubicación es la zona horaria del navegador. */
+(function(){
+  try{ if(/[?&]editar=1/.test(location.search) || navigator.webdriver || !navigator.sendBeacon || location.hostname.indexOf('aureamentor.com')<0) return; }catch(e){ return; }
+  function send(o){ try{ navigator.sendBeacon('/api/t', new Blob([JSON.stringify(o)],{type:'application/json'})); }catch(e){} }
+  var hoy=new Date().toLocaleDateString('en-CA',{timeZone:'America/Guayaquil'}), nuevo=0;
+  try{ if(localStorage.getItem('aurea-t-dia')!==hoy){ localStorage.setItem('aurea-t-dia',hoy); nuevo=1; } }catch(e){}
+  var ref=''; try{ if(document.referrer){ var r=new URL(document.referrer); if(r.hostname!==location.hostname) ref=r.hostname; } }catch(e){}
+  var tz=''; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){}
+  send({t:'v',n:nuevo,tz:tz,r:ref,m:(matchMedia('(pointer:coarse)').matches||/Mobi|Android/i.test(navigator.userAgent))?1:0,l:document.documentElement.lang==='en'?'en':'es'});
+  var NOMBRES={nav:'Menú',inicio:'Inicio',metodo:'Método',mentor:'Mentor',conversa:'Conversa',diario:'Diario',precio:'Precio',app:'Instalar app',preguntas:'Preguntas',final:'Final',pie:'Pie'};
+  document.addEventListener('click',function(e){
+    var el=e.target.closest&&e.target.closest('a,button,summary'); if(!el) return;
+    var sec=el.closest('[data-sec]'), sid=sec?sec.getAttribute('data-sec'):'', zona=NOMBRES[sid]||(sec&&sec.getAttribute('data-sec-name'))||'Página';
+    var plan=el.closest('.plan'), pl=plan&&plan.querySelector('.eyebrow')?plan.querySelector('.eyebrow').textContent.trim()+' · ':'';
+    var txt=(el.getAttribute('data-trk')||el.getAttribute('aria-label')||el.textContent||'').replace(/\s+/g,' ').trim().slice(0,40);
+    if(el.id==='gaAndroid') txt='Instalar en Android'; else if(el.id==='gaIos') txt='Instalar en iPhone'; else if(el.id==='langSw'||/^(ES|EN)\s*(ES|EN)?$/.test(txt)) txt='Cambiar idioma';
+    if(!txt) return;
+    send({t:'c',b:zona+' · '+pl+txt});
+  },true);
+})();
+</script>
 </body>
 </html>

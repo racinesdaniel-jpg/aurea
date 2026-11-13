@@ -90,6 +90,11 @@ service cloud.firestore {
       allow read: if request.auth != null && (isAdmin() || entitled());
     }
 
+    // Tráfico de la landing: lo escribe la función «trafico»; solo el administrador lo lee
+    match /trafico/{dia} {
+      allow read: if isAdmin();
+    }
+
     // Días de prueba y precios: cualquiera los lee (la landing los muestra), solo el administrador los cambia
     match /settings/{doc} {
       allow read: if true;

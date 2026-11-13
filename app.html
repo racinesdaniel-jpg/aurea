@@ -654,6 +654,11 @@ body{background:var(--bg)}
 .bot-top{gap:14px}.bot-top .phase{margin-left:auto}
 /* ===== Administración ===== */
 .adm{min-height:100%;background:var(--bg)}
+.tr-card{margin-bottom:22px}.tr-card .ab{grid-template-columns:minmax(0,1.5fr) minmax(40px,1fr) auto;margin-bottom:6px}.tr-card .ab span{white-space:normal;line-height:1.3}.tr-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:flex-start}.tr-top h2{margin:0 0 4px}
+.tr-ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.85rem}.tr-ctl select{font:inherit;padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.seg-s{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}.seg-s button{font:inherit;font-size:.82rem;border:0;background:transparent;color:var(--fg);padding:6px 12px;cursor:pointer}.seg-s button[aria-pressed=true]{background:var(--accent);color:var(--accent-fg,#fff)}
+.tr-hours{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;height:150px;align-items:end;margin:8px 0 18px}.tr-h{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;opacity:.35}.tr-h.on{opacity:1}
+.tr-h i{display:block;width:100%;border-radius:4px 4px 0 0;background:var(--accent)}.tr-h span{font-size:.62rem;color:var(--muted);height:12px}
 .adm-top{position:sticky;top:0;z-index:30;background:var(--grad);color:#fff;box-shadow:0 12px 30px -18px rgba(10,14,30,.7)}
 .adm-in{display:flex;align-items:center;gap:20px;padding-block:14px;max-width:1240px;margin:0 auto;flex-wrap:wrap}
 .adm-top .brand{color:#fff}.adm-top .brand svg{color:#2BD4B4}
@@ -2581,7 +2586,7 @@ function adminPanel(t,cached){
   var m=el.querySelector('#amain');
   if(cloud()&&!capsSync) { capsSync=true; FB.f.getDoc(FB.f.doc(FB.db,'admin','capsulas')).then(function(d){ if(d.exists()&&d.data().v===CAPS_V) return;
     return fnCall('cargarCapsulas').then(function(r){ toast('Contenido de las cápsulas publicado ('+(r&&r.n||0)+').'); }); }).catch(function(e){ console.warn('Cápsulas sin publicar',e); capsSync=false; }); }
-  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else if(TAB==='ia') admIA(m); else if(TAB==='analitica') admAnalytics(m); else if(TAB==='landing') admLanding(m); else admConfig(m);
+  if(TAB==='resumen') admSummary(m); else if(TAB==='usuarios') admUsers(m); else if(TAB==='anim') admAnim(m); else if(TAB==='ia') admIA(m); else if(TAB==='analitica'){ m.innerHTML='<div id="anTr"></div><div id="anUs"></div>'; admTraffic(m.querySelector('#anTr')); admAnalytics(m.querySelector('#anUs')); } else if(TAB==='landing') admLanding(m); else admConfig(m);
 }
 function admSummary(m){
   var L=uList(), c=cfg(), st={trial:0,sub:0,end:0,'':0}, ruta={3:0,6:0,12:0}, foc={s:0,m:0,v:0}, ctry={};
@@ -2688,6 +2693,46 @@ function admAnim(m){
     if(cloud()){ var d={updatedAt:Date.now()}; ANIM_KEYS.forEach(function(k){ d[k]=v[k]; }); FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),d,{merge:true}).then(ok).catch(function(e2){ er.textContent=fbErr(e2); }); return; }
     ok(); };
 }
+/* ---- Tráfico de la landing: contadores por hora que guarda la función «trafico» en trafico/{día} ---- */
+var TRP=7, TRH=[0,23];
+var TZC={Guayaquil:'Ecuador',Galapagos:'Ecuador',Bogota:'Colombia',Lima:'Perú',Caracas:'Venezuela',La_Paz:'Bolivia',Santiago:'Chile',Asuncion:'Paraguay',Montevideo:'Uruguay',Buenos_Aires:'Argentina',Cordoba:'Argentina',Mendoza:'Argentina',Mexico_City:'México',Monterrey:'México',Cancun:'México',Tijuana:'México',Panama:'Panamá',Costa_Rica:'Costa Rica',El_Salvador:'El Salvador',Guatemala:'Guatemala',Tegucigalpa:'Honduras',Managua:'Nicaragua',Havana:'Cuba',Santo_Domingo:'Rep. Dominicana',Puerto_Rico:'Puerto Rico',New_York:'EE. UU.',Chicago:'EE. UU.',Denver:'EE. UU.',Los_Angeles:'EE. UU.',Phoenix:'EE. UU.',Toronto:'Canadá',Vancouver:'Canadá',Sao_Paulo:'Brasil',Madrid:'España',Canary:'España',London:'Reino Unido',Paris:'Francia',Rome:'Italia',Berlin:'Alemania',Lisbon:'Portugal',Amsterdam:'Países Bajos',Zurich:'Suiza'};
+function tzName(z){ var c=String(z).split('/').pop(), p=TZC[c]; return c.replace(/_/g,' ')+(p?' ('+p+')':''); }
+function admTraffic(box){
+  if(!box) return;
+  if(!cloud()){ box.innerHTML=''; return; }
+  var days=[]; for(var i=0;i<TRP;i++) days.push(dKeyEC(new Date(Date.now()-i*864e5)));
+  box.innerHTML='<section class="pcard tr-card"><h2>Tráfico de la landing</h2><p class="muted">Cargando…</p></section>';
+  Promise.all(days.map(function(d){ return FB.f.getDoc(FB.f.doc(FB.db,'trafico',d)).then(function(x){ return x.exists()?x.data():null; }).catch(function(){ return null; }); })).then(function(docs){
+    if(!box.isConnected) return;
+    var T={v:0,u:0,c:0,z:{},f:{},d:{},l:{},b:{},hv:{},hc:{}}, a=TRH[0], b=TRH[1];
+    function add(o,src){ Object.keys(src||{}).forEach(function(k){ o[k]=(o[k]||0)+(+src[k]||0); }); }
+    docs.forEach(function(doc){ var H=(doc&&doc.h)||{}; Object.keys(H).forEach(function(hh){ var n=+hh, x=H[hh]||{};
+      T.hv[n]=(T.hv[n]||0)+(+x.v||0); T.hc[n]=(T.hc[n]||0)+(+x.ct||0);
+      if(n<a||n>b) return;
+      T.v+=+x.v||0; T.u+=+x.u||0; T.c+=+x.ct||0; add(T.z,x.z); add(T.f,x.f); add(T.d,x.d); add(T.l,x.l); add(T.b,x.c); }); });
+    function list(o,name,top){ var ks=Object.keys(o).sort(function(p,q){ return o[q]-o[p]; }), tot=ks.reduce(function(s,k){ return s+o[k]; },0)||1, more=0;
+      if(top&&ks.length>top){ ks.slice(top).forEach(function(k){ more+=o[k]; }); ks=ks.slice(0,top); }
+      if(!ks.length) return '<p class="muted an-empty">Sin datos en este rango.</p>';
+      return ks.map(function(k){ return '<div class="ab"><span title="'+esc(name(k))+'">'+esc(name(k))+'</span><div class="ab-bar"><i style="width:'+Math.max(2,Math.round(o[k]/tot*100))+'%"></i></div><b>'+o[k]+'</b></div>'; }).join('')+(more?'<p class="an-more">Otros: '+more+'</p>':''); }
+    var mx=1; for(var h=0;h<24;h++) mx=Math.max(mx,T.hv[h]||0);
+    var chart='<div class="tr-hours" role="img" aria-label="Visitas por hora">'+Array.apply(null,{length:24}).map(function(_,h){ var v=T.hv[h]||0, on=h>=a&&h<=b;
+      return '<div class="tr-h'+(on?' on':'')+'" title="'+String(h).padStart(2,'0')+':00 · '+v+' visita'+(v===1?'':'s')+', '+(T.hc[h]||0)+' clics"><i style="height:'+Math.max(v?6:0,Math.round(v/mx*100))+'%"></i><span>'+(h%3===0?String(h).padStart(2,'0'):'')+'</span></div>'; }).join('')+'</div>';
+    var opts=function(sel){ return Array.apply(null,{length:24}).map(function(_,h){ return '<option value="'+h+'"'+(h===sel?' selected':'')+'>'+String(h).padStart(2,'0')+':00</option>'; }).join(''); };
+    var srcName=function(k){ return k==='directo'?'Directo o sin dato':k.replace(/^www\./,''); }, devName=function(k){ return k==='movil'?'Celular':'Computadora'; }, lanName=function(k){ return k==='en'?'Inglés':'Español'; };
+    box.innerHTML='<section class="pcard tr-card"><div class="tr-top"><div><h2>Tráfico de la landing</h2><p class="muted">Visitas a www.aureamentor.com en hora de Ecuador. La ubicación es aproximada (zona horaria del navegador).</p></div>'+
+      '<div class="tr-ctl"><div class="seg-s">'+[[1,'Hoy'],[7,'7 días'],[30,'30 días']].map(function(x){ return '<button type="button" data-trp="'+x[0]+'" aria-pressed="'+(TRP===x[0])+'">'+x[1]+'</button>'; }).join('')+'</div>'+
+      '<label>Desde <select id="trA">'+opts(a)+'</select></label><label>Hasta <select id="trB">'+opts(b)+'</select></label></div></div>'+
+      '<div class="akpis"><div class="akpi"><span>Visitas</span><b>'+T.v+'</b></div><div class="akpi"><span>Personas</span><b>'+T.u+'</b></div><div class="akpi"><span>Clics</span><b>'+T.c+'</b></div><div class="akpi"><span>Clics por visita</span><b>'+(T.v?(T.c/T.v).toFixed(1).replace('.',','):'—')+'</b></div></div>'+
+      '<h3 class="ad-h3">Visitas por hora</h3>'+chart+
+      '<div class="agrid"><section><h3 class="ad-h3">Botones más tocados</h3>'+list(T.b,function(k){ return k; },10)+'</section>'+
+      '<section><h3 class="ad-h3">Desde dónde</h3>'+list(T.z,tzName,8)+'</section>'+
+      '<section><h3 class="ad-h3">Cómo llegaron</h3>'+list(T.f,srcName,8)+'<h3 class="ad-h3">Dispositivo</h3>'+list(T.d,devName)+'<h3 class="ad-h3">Idioma</h3>'+list(T.l,lanName)+'</section></div></section>';
+    box.querySelectorAll('[data-trp]').forEach(function(x){ x.onclick=function(){ TRP=+x.dataset.trp; admTraffic(box); }; });
+    box.querySelector('#trA').onchange=function(e){ TRH[0]=+e.target.value; if(TRH[0]>TRH[1]) TRH[1]=TRH[0]; admTraffic(box); };
+    box.querySelector('#trB').onchange=function(e){ TRH[1]=+e.target.value; if(TRH[1]<TRH[0]) TRH[0]=TRH[1]; admTraffic(box); };
+  });
+}
+function dKeyEC(d){ return d.toLocaleDateString('en-CA',{timeZone:'America/Guayaquil'}); }
 /* ---- Analítica: gráficos enlazados; al tocar una barra o un sector se filtran todos los demás ---- */
 var ANF={}, ANP=30;
 function admAnalytics(m){

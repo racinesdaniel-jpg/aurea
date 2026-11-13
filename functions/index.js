@@ -198,3 +198,6 @@ exports.cargarCapsulas = require("./capsulas").cargarCapsulas;
 // Correos propios desde info@aureamentor.com (confirmar correo y crear contraseña nueva)
 exports.correoVerificacion = require("./correos").correoVerificacion;
 exports.correoClave = require("./correos").correoClave;
+
+// Tráfico de la landing (contadores por hora, sin datos personales)
+exports.trafico = require("./trafico").trafico;
