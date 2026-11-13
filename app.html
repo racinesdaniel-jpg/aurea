@@ -2643,7 +2643,7 @@ function paywall(){
       (cfg().payPayphone?'<button class="pw-card" id="sub" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg><span>'+LX('Tarjeta de crédito o débito','Credit or debit card')+'</span><i class="pw-pph">payphone</i></button>':'')+
       (cfg().payPaypal?'<div id="ppBtn" class="pp-box"><span class="pp-wait">'+LX('Cargando PayPal…','Loading PayPal…')+'</span></div>':'')+
       (cfg().payPayphone||cfg().payPaypal?'</div><p class="pw-fine"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>'+LX('Pago seguro. Áurea no ve ni guarda los datos de tu tarjeta.','Secure payment. Áurea never sees or stores your card details.')+(cfg().payPayphone?LX(' Con tarjeta pagas el periodo elegido.',' With a card you pay for the chosen period.'):'')+(cfg().payPaypal?LX(' Con PayPal se renueva solo y puedes cancelar cuando quieras.',' With PayPal it renews automatically and you can cancel anytime.'):'')+' <a href="terminos.html" target="_blank" rel="noopener">'+LX('Términos','Terms')+'</a></span></p>':'<p class="note">'+LX('Muy pronto podrás suscribirte aquí con tarjeta o PayPal.','Very soon you will be able to subscribe here with a card or PayPal.')+'</p>')+
-      '<p class="note err" id="payErr" hidden></p>')+'<p class="note" id="payNote" hidden>'+LX('En la versión final, este botón abre el pago seguro con tarjeta. Ningún dato de tarjeta pasa por esta vista previa.','In the final version, this button opens the secure card payment. No card data goes through this preview.')+' <button class="btn btn-ghost" id="simPay" type="button" style="margin-top:10px;padding:.5em 1.1em">'+LX('Simular pago aprobado','Simulate approved payment')+'</button></p></article>';
+      '<p class="note err" id="payErr" hidden></p>')+'</article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   
   var cl=ov.querySelector('.close'); if(cl) cl.onclick=function(){ ov.remove(); document.body.style.overflow=''; };
@@ -2651,12 +2651,12 @@ function paywall(){
   var ppb=ov.querySelector('#ppBtn');
   if(ppb) paypalMount(ppb,ov.querySelector('#payErr'),function(){ ov.remove(); document.body.style.overflow=''; renderApp(); toast(LX('Suscripción activa con PayPal. Tu ruta continúa.','Subscription active with PayPal. Your path continues.')); });
   var sb=ov.querySelector('#sub'); if(sb) sb.onclick=function(){
-    if(!cloud()||!fbUser){ ov.querySelector('#payNote').hidden=false; return; }
+    if(!cloud()||!fbUser){ var pe0=ov.querySelector('#payErr'); if(pe0){ pe0.textContent=LX('Sin conexión. Revisa tu internet e inténtalo de nuevo.','No connection. Check your internet and try again.'); pe0.hidden=false; } return; }
     var b=this, er=ov.querySelector('#payErr'); b._h=b.innerHTML; b.disabled=true; b.innerHTML='<span>'+LX('Abriendo el pago seguro…','Opening the secure payment…')+'</span>'; er.hidden=true;
     payStart(S.plan==='mensual'?'mensual':'anual').then(function(r){ location.href=r.url; })
       .catch(function(e){ b.disabled=false; b.innerHTML=b._h; er.textContent=LANG==='en'?'I could not open the payment. Please try again.':((e&&e.message)||'No pude abrir el pago. Intenta de nuevo.'); er.hidden=false; });
   };
-  ov.querySelector('#simPay').onclick=function(){ S.subscribed=true; save(); ov.remove(); document.body.style.overflow=''; renderApp(); toast(LX('Suscripción activa. Tu ruta continúa.','Subscription active. Your path continues.')); };
+  
   var msg= ended ? LX(n+', tu prueba gratuita ha terminado. Completaste '+doneCount()+' cápsulas y llegaste al nivel '+level().name+'. Para continuar tu ruta, elige tu plan.',n+', your free trial has ended. You completed '+doneCount()+' capsules and reached the '+level().name+' level. To continue your path, choose your plan.') : LX(n+', estos son los planes para continuar tu ruta cuando termine tu prueba gratuita.',n+', these are the plans to continue your path when your free trial ends.');
   typeText(ov.querySelector('#pt'), up(msg), 22);
 }
@@ -3794,7 +3794,15 @@ function cloudSaveSettings(d,pm,pa,iva,pph,ppl){
 /* ================= ARRANQUE ================= */
 drawOrbs();
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ if(reduce) drawOrbs(); });
+function offlineScreen(){
+  root.innerHTML='<div class="boot-load" role="alert" style="flex-direction:column;gap:14px;text-align:center;padding:24px"><p style="margin:0">'+
+    LX('No pudimos conectarnos con Áurea. Revisa tu conexión a internet e inténtalo de nuevo.','We could not connect to Áurea. Check your internet connection and try again.')+
+    '</p><button class="btn btn-primary" type="button" id="offRetry">'+LX('Intentar de nuevo','Try again')+'</button></div>';
+  root.querySelector('#offRetry').onclick=function(){ location.reload(); };
+}
 function boot(){
+  /* Con Firebase configurado, la app solo funciona en la nube; el modo local queda para pruebas sin configuración */
+  if(FBC && !cloud()){ offlineScreen(); return; }
   if(/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
   if(isAuth() && langSync()) return;
   if(cloud() && fbUser && isAdmEmail(fbUser.email) && !(S.reg && S.reg.registeredAt)){ adminEntry(); return; }
@@ -3812,7 +3820,7 @@ function boot(){
   else startReg();
 }
 cloudInit().then(function(){ boot(); payReturn(); });
-window.addEventListener('hashchange',function(){ if(/^#admin/.test(location.hash)&&!adminMode){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; adminEntry(); } });
+window.addEventListener('hashchange',function(){ if(FBC && !cloud()) return; if(/^#admin/.test(location.hash)&&!adminMode){ document.querySelectorAll('.ov').forEach(function(o){o.remove();}); document.body.style.overflow=''; adminEntry(); } });
 if(reduce) setInterval(drawOrbs,1000);
 })();
 </script>
