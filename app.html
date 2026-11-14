@@ -7,7 +7,8 @@
 <script>/* Idioma de la app: español o inglés. Se elige en la primera pantalla o en el perfil, y se recuerda. */
 (function(){var l=null,m=/[?&]lang=(es|en)(&|$)/.exec(location.search);try{if(m){l=m[1];localStorage.setItem('aurea-lang',l);localStorage.setItem('aurea-lang-at',String(Date.now()));}else l=localStorage.getItem('aurea-lang');}catch(e){if(m)l=m[1];}
 if(l!=='es'&&l!=='en')l=/^en/i.test(navigator.language||'')?'en':'es';window.AUREA_LANG=l;document.documentElement.lang=l;if(l==='en')document.write('<script src="app-en.js"><\/script>');})();</script>
-<link rel="manifest" href="manifest.webmanifest">
+<script>/* App de Administración para Android: se abre con ?app=admin y se instala con su propio manifiesto (abre directo en el panel). */
+window.AUREA_ADMIN_APP=/[?&]app=admin(&|$)/.test(location.search);document.write('<link rel="manifest" href="'+(window.AUREA_ADMIN_APP?'admin.webmanifest':'manifest.webmanifest')+'">');</script>
 <meta name="theme-color" content="#111833">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=2">
 <link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png?v=2">
@@ -668,6 +669,9 @@ body{background:var(--bg)}
 .adm-tabs button[aria-current]{background:#fff;color:#111833}
 .adm-out{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;font:inherit;font-size:.88rem;font-weight:600;padding:.5em 1.1em;border-radius:999px;cursor:pointer}
 .adm-out:hover{background:rgba(255,255,255,.1)}
+.aapp-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 18px;padding:14px 18px;border-radius:18px;background:var(--grad);color:#fff}.aapp-bar svg{color:#2BD4B4;flex:0 0 auto}.aapp-bar p{flex:1 1 220px;margin:0;font-size:.92rem;line-height:1.45;color:rgba(255,255,255,.85)}.aapp-bar b{color:#fff}.aapp-bar .btn{flex:0 0 auto}
+.aapp-ol{margin:.8em 0 0;padding-left:1.3em;line-height:1.6}.aapp-ol li{margin:.3em 0}
+.aapp-url{display:flex;gap:.6em;align-items:center;flex-wrap:wrap;margin:.6em 0 .2em}.aapp-url code{flex:1 1 220px;min-width:0;word-break:break-all;font-size:.85rem;padding:.6em .8em;border-radius:10px;background:var(--surface-2,rgba(127,127,127,.12))}
 @media (max-width:760px){.adm-tabs{order:3;margin-left:0;width:100%;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;border-radius:18px}.adm-tabs::-webkit-scrollbar{display:none}.adm-tabs button{flex:0 0 auto;white-space:nowrap}.adm-out{margin-left:auto}}
 .adm-main{max-width:1240px;margin:0 auto;padding-block:32px 60px;display:grid;gap:22px}
 .adm-h{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
@@ -2536,7 +2540,11 @@ function wireUserMenu(el){
 var AKEY='aurea-admin-sesion', admMem=false;
 function isAdm(){ try{ return sessionStorage.getItem(AKEY)==='1'; }catch(e){ return admMem; } }
 function setAdm(on){ admMem=on; try{ if(on) sessionStorage.setItem(AKEY,'1'); else sessionStorage.removeItem(AKEY); }catch(e){} }
-function leaveAdmin(){ if(cloud()){ adminMode=false; admCache=null; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} var out=(fbUser&&!(S.reg&&S.reg.registeredAt))?FB.a.signOut(FB.auth).catch(function(){}):Promise.resolve(); out.then(function(){ location.reload(); }); return; } setAdm(false); try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} adminMode=false; window.scrollTo(0,0); boot(); }
+var ADMIN_APP=!!window.AUREA_ADMIN_APP, admInstall=null;
+window.addEventListener('beforeinstallprompt',function(e){ if(!ADMIN_APP) return; e.preventDefault(); admInstall=e; });
+window.addEventListener('appinstalled',function(){ admInstall=null; });
+function leaveAdmin(){ if(ADMIN_APP){ admCache=null; (cloud()&&fbUser?FB.a.signOut(FB.auth).catch(function(){}):Promise.resolve()).then(function(){ if(!cloud()) setAdm(false); try{ history.replaceState(null,'',location.pathname+'?app=admin#admin'); }catch(e){} location.reload(); }); return; }
+  if(cloud()){ adminMode=false; admCache=null; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} var out=(fbUser&&!(S.reg&&S.reg.registeredAt))?FB.a.signOut(FB.auth).catch(function(){}):Promise.resolve(); out.then(function(){ location.reload(); }); return; } setAdm(false); try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} adminMode=false; window.scrollTo(0,0); boot(); }
 var adminMode=false;
 function adminEntry(){ adminMode=true; if(cloud()){ if(cloudAdminOk()) adminPanel('resumen'); else adminLoginCloud(); return; } if(isAdm()) adminPanel('resumen'); else adminLogin(); }
 function adminLogin(){
@@ -2544,7 +2552,7 @@ function adminLogin(){
   var el=botScreen({phase:'Administración',noLang:true}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots');
   el.querySelector('#tap').remove(); dots.innerHTML='';
-  back.textContent='← Volver'; back.disabled=false; back.onclick=leaveAdmin; next.textContent=setup?'Crear acceso':'Ingresar';
+  back.textContent='← Volver'; back.disabled=false; back.onclick=leaveAdmin; if(ADMIN_APP) back.style.visibility='hidden'; next.textContent=setup?'Crear acceso':'Ingresar';
   ans.innerHTML='<form class="login" novalidate>'+fld('a-mail','Correo de administrador','', 'email','maxlength="80" autocomplete="username" placeholder="admin@ejemplo.com"')+
     pwFld('a-pw','Contraseña',setup?'new-password':'current-password')+(setup?pwFld('a-rep','Repite la contraseña','new-password'):'')+'<p class="err" id="a-err"></p></form>';
   wireEyes(ans);
@@ -2563,6 +2571,32 @@ function adminLogin(){
     err.textContent='El correo o la contraseña no son correctos.'; ans.querySelector('#a-pw').value='';
   };
   typeQA(q,setup?'Configura tu acceso de administrador.':'Acceso de administrador.',hint,setup?'Este será el único usuario con permiso para ver los registros y cambiar la configuración.':'Ingresa con tu correo y tu contraseña de administrador.',function(){ ans.classList.remove('wait'); ans.querySelector('#a-mail').focus({preventScroll:true}); });
+}
+function admStandalone(){ try{ return ADMIN_APP && (matchMedia('(display-mode: standalone)').matches||navigator.standalone===true); }catch(e){ return false; } }
+function admAppSheet(){
+  var ua=navigator.userAgent, android=/Android/i.test(ua), ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var url=location.origin+location.pathname+'?app=admin#admin';
+  var dots='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-3px"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+  var steps='<ol class="aapp-ol"><li>Toca el menú '+dots+' de Chrome, arriba a la derecha.</li><li>Elige <b>Instalar app</b> o <b>Agregar a pantalla principal</b>.</li><li>Confirma con <b>Instalar</b>. Aparecerá <b>Áurea Admin</b> junto a tus apps, con el ícono claro.</li></ol>';
+  var body;
+  if(android && ADMIN_APP){
+    body='<p class="ad-sub">Instala el panel como una app propia. Al abrirla entra directo en Administración y recuerda tu sesión; no muestra la parte de los usuarios.</p>'+
+      (admInstall?'<div style="display:flex;justify-content:flex-end;margin-top:1em"><button type="button" class="btn btn-primary" id="aaInst">Instalar Áurea Admin</button></div>':steps);
+  } else if(android){
+    body='<p class="ad-sub">La app de Administración se instala desde su propia dirección. Toca el botón, ingresa con tu correo de administrador y vuelve a tocar <b>App Android</b> para instalarla.</p>'+
+      '<div style="display:flex;justify-content:flex-end;margin-top:1em"><a class="btn btn-primary" href="'+esc(url)+'" id="aaGo">Abrir la app de Administración</a></div>';
+  } else {
+    body='<p class="ad-sub">Áurea Admin es una app para tu celular Android que abre directo en este panel y recuerda tu sesión. Para instalarla:</p>'+
+      '<ol class="aapp-ol"><li>En tu celular Android, abre en <b>Chrome</b> esta dirección (puedes copiarla y enviártela):</li></ol>'+
+      '<div class="aapp-url"><code>'+esc(url)+'</code><button type="button" class="btn btn-ghost" id="aaCopy">Copiar</button></div>'+
+      '<ol class="aapp-ol" start="2"><li>Ingresa con tu correo de administrador.</li><li>Toca el menú '+dots+' de Chrome y elige <b>Instalar app</b>.</li></ol>'+
+      (ios?'<p class="ad-sub" style="margin-top:.8em">En iPhone también funciona: abre la dirección en Safari, toca Compartir y elige <b>Agregar a inicio</b>.</p>':'');
+  }
+  modal('App de Administración para Android',body,function(ov,close){
+    var b=ov.querySelector('#aaInst'); if(b) b.onclick=function(){ var p=admInstall; admInstall=null; p.prompt(); p.userChoice.then(function(r){ close(); if(r&&r.outcome==='accepted') toast('Listo: Áurea Admin quedó instalada en tu celular.'); }).catch(close); };
+    var g=ov.querySelector('#aaGo'); if(g) g.onclick=function(e){ e.preventDefault(); location.href=url; };
+    var c=ov.querySelector('#aaCopy'); if(c) c.onclick=function(){ (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(function(){ c.textContent='Copiada'; }).catch(function(){ var r=document.createRange(); r.selectNodeContents(ov.querySelector('.aapp-url code')); var sl=getSelection(); sl.removeAllRanges(); sl.addRange(r); }); };
+  });
 }
 function withUser(u,fn){ var old=S; S=u; try{ return fn(); } finally{ S=old; } }
 function uStatus(u){ return withUser(u,function(){ if(S.subscribed) return ['sub','Suscrito']; if(!S.reg.registeredAt) return ['', 'Sin terminar']; return trialLeft()>0?['trial','Prueba · '+trialLeft()+' d']:['end','Prueba terminada']; }); }
@@ -2594,12 +2628,13 @@ function admSummary(m){
   var n=L.length||1;
   function bars(rows){ return rows.map(function(r){ return '<div class="ab"><span>'+r[0]+'</span><div class="ab-bar"><i style="width:'+Math.round(r[1]/n*100)+'%;'+(r[2]?'background:'+r[2]:'')+'"></i></div><b>'+r[1]+'</b></div>'; }).join(''); }
   var ct=Object.keys(ctry).sort(function(a,b){return ctry[b]-ctry[a];}).slice(0,6).map(function(k){return [esc(k),ctry[k]];});
-  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Resumen</h1></div><p class="adm-note">Periodo de prueba actual: <b>'+c.trialDays+' días</b> · Planes: <b>$'+fmtP(c.priceM)+'</b> al mes, <b>$'+fmtP(c.priceA)+'</b> al año</p></div>'+
+  m.innerHTML=(admStandalone()?'':'<div class="aapp-bar"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18h2"/></svg><p><b>App de Administración para Android.</b> Instálala en tu celular: al abrirla entra directo en este panel.</p><button type="button" class="btn btn-primary" id="aapp">Descargar app</button></div>')+'<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Resumen</h1></div><p class="adm-note">Periodo de prueba actual: <b>'+c.trialDays+' días</b> · Planes: <b>$'+fmtP(c.priceM)+'</b> al mes, <b>$'+fmtP(c.priceA)+'</b> al año</p></div>'+
     '<div class="akpis"><div class="akpi"><span>Usuarios registrados</span><b>'+L.length+'</b></div><div class="akpi"><span>En periodo de prueba</span><b>'+st.trial+'</b></div><div class="akpi"><span>Suscritos</span><b>'+st.sub+'</b></div><div class="akpi"><span>Prueba terminada</span><b>'+st.end+'</b></div></div>'+
     (L.length?'<div class="agrid"><section class="pcard"><h2>Duración de ruta elegida</h2>'+bars([['3 meses',ruta[3]],['6 meses',ruta[6]],['12 meses',ruta[12]]])+'</section>'+
     '<section class="pcard"><h2>Pilar prioritario</h2>'+bars([['Espíritu',foc.s,'var(--spirit)'],['Prosperidad',foc.m,'var(--matter)'],['Vitalidad',foc.v,'var(--vital)']])+'</section>'+
     '<section class="pcard"><h2>Países</h2>'+bars(ct)+'</section></div>':'<section class="pcard aempty"><h2>Todavía no hay usuarios registrados.</h2><p>Cuando alguien cree su cuenta en la aplicación, aparecerá aquí con sus datos y sus respuestas.</p></section>')+
     '<p class="adm-foot">Vista previa: este panel muestra las cuentas creadas en este navegador. En la versión final, con servidor, verás todas las cuentas desde cualquier dispositivo.</p>';
+  var ap=m.querySelector('#aapp'); if(ap) ap.onclick=admAppSheet;
 }
 function admUsers(m){
   var L=uList();
@@ -3614,7 +3649,7 @@ function adminLoginCloud(){
   var el=botScreen({phase:'Administración',noLang:true}); el.classList.add('compact');
   var q=el.querySelector('#q'), hint=el.querySelector('#hint'), ans=el.querySelector('#answer'), next=el.querySelector('#next'), back=el.querySelector('#back'), dots=el.querySelector('#dots');
   el.querySelector('#tap').remove(); dots.innerHTML='<button type="button" class="forgot" id="aNew">Primera vez: crear mi acceso</button>';
-  back.textContent='← Volver'; back.disabled=false; back.onclick=leaveAdmin; next.textContent='Ingresar';
+  back.textContent='← Volver'; back.disabled=false; back.onclick=leaveAdmin; if(ADMIN_APP) back.style.visibility='hidden'; next.textContent='Ingresar';
   ans.innerHTML='<form class="login" novalidate>'+fld('a-mail','Correo de administrador',fbUser?fbUser.email:'','email','maxlength="80" autocomplete="username" placeholder="tucorreo@ejemplo.com"')+pwFld('a-pw','Contraseña','current-password')+'<p class="err" id="a-err"></p></form>';
   wireEyes(ans);
   var err=ans.querySelector('#a-err');
@@ -3653,7 +3688,7 @@ function offlineScreen(){
 function boot(){
   /* Con Firebase configurado, la app solo funciona en la nube; el modo local queda para pruebas sin configuración */
   if(FBC && !cloud()){ offlineScreen(); return; }
-  if(/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
+  if(ADMIN_APP||/^#admin/.test(location.hash)||adminMode){ adminEntry(); return; }
   if(isAuth() && langSync()) return;
   if(cloud() && fbUser && isAdmEmail(fbUser.email) && !(S.reg && S.reg.registeredAt)){ adminEntry(); return; }
   if(fbUser || (S.reg && S.reg.registeredAt)) markSeen();
