@@ -2881,10 +2881,10 @@ var LE_SW=['#FFFFFF','#F7F5F0','#EFEBE3','#D9D4C9','#5D6378','#141A2E','#111833'
 var LE_PH='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#E9E5DC"/><path d="M600 400 a12 12 0 0 1 12 12 a24 24 0 0 1 -24 24 a36 36 0 0 1 -36 -36 a48 48 0 0 1 48 -48 a60 60 0 0 1 60 60 a72 72 0 0 1 -72 72 a84 84 0 0 1 -84 -84 a96 96 0 0 1 96 -96" fill="none" stroke="#B9B2A4" stroke-width="6" stroke-linecap="round"/><text x="600" y="640" text-anchor="middle" font-family="system-ui,sans-serif" font-size="34" fill="#8C8577">Toca la imagen para cambiarla</text></svg>');
 var LE_TPL={
   texto:{n:'Texto',d:'Etiqueta, título y párrafo.',cls:'lc-sec',h:'<p class="eyebrow">Nueva sección</p><h2>Escribe aquí el <em>título</em>.</h2><p class="lead">Escribe aquí el texto de esta sección. Toca cualquier texto para cambiarlo, darle formato o agregar más párrafos debajo.</p>'},
-  split:{n:'Texto con imagen',d:'Texto a un lado e imagen al otro.',cls:'lc-sec',h:'<div class="lc-split"><div class="lc-body"><p class="eyebrow">Nueva sección</p><h2>Un título <em>claro</em>.</h2><p class="lead">Describe aquí la idea principal de esta sección en pocas líneas.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Comenzar Áurea Mentor</a></p></div><figure class="lc-media"><img src="'+LE_PH+'" alt=""></figure></div>'},
+  split:{n:'Texto con imagen',d:'Texto a un lado e imagen al otro.',cls:'lc-sec',h:'<div class="lc-split"><div class="lc-body"><p class="eyebrow">Nueva sección</p><h2>Un título <em>claro</em>.</h2><p class="lead">Describe aquí la idea principal de esta sección en pocas líneas.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Empezar el programa</a></p></div><figure class="lc-media"><img src="'+LE_PH+'" alt=""></figure></div>'},
   imagen:{n:'Imagen',d:'Una imagen grande con su descripción.',cls:'lc-sec lc-center',h:'<figure class="lc-media"><img src="'+LE_PH+'" alt=""><figcaption>Escribe una descripción breve de la imagen.</figcaption></figure>'},
   tarjetas:{n:'Tarjetas',d:'Título y tres tarjetas que puedes duplicar.',cls:'lc-sec',h:'<p class="eyebrow">Nueva sección</p><h2>Tres ideas <em>clave</em>.</h2><div class="lc-cards">'+[1,2,3].map(function(i){ return '<div class="lc-card"><h3>Idea '+i+'</h3><p>Texto breve de esta tarjeta.</p></div>'; }).join('')+'</div>'},
-  accion:{n:'Llamado a la acción',d:'Título centrado con un botón.',cls:'lc-sec lc-center',h:'<h2>Tu ruta comienza <em>hoy</em>.</h2><p class="lead">Una frase breve que invite a dar el primer paso.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Comenzar Áurea Mentor</a></p>'}
+  accion:{n:'Llamado a la acción',d:'Título centrado con un botón.',cls:'lc-sec lc-center',h:'<h2>Tu ruta comienza <em>hoy</em>.</h2><p class="lead">Una frase breve que invite a dar el primer paso.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Empezar el programa</a></p>'}
 };
 var LE_TPL_ICON={
   texto:'<svg viewBox="0 0 120 70"><rect x="10" y="12" width="30" height="5" rx="2" fill="currentColor" opacity=".5"/><rect x="10" y="24" width="80" height="9" rx="3" fill="currentColor"/><rect x="10" y="40" width="100" height="4" rx="2" fill="currentColor" opacity=".4"/><rect x="10" y="49" width="90" height="4" rx="2" fill="currentColor" opacity=".4"/></svg>',
@@ -3045,7 +3045,7 @@ function leInsert(kind){
   var d=LE.doc, el;
   if(kind==='p'){ el=d.createElement('p'); el.textContent='Escribe aquí tu texto.'; put(el); }
   else if(kind==='h'){ el=d.createElement('h3'); el.textContent='Nuevo título'; put(el); }
-  else if(kind==='btn'){ el=d.createElement('p'); el.className='lc-btns'; el.innerHTML='<a class="btn btn-primary" href="app.html">Comenzar Áurea Mentor</a>'; put(el); }
+  else if(kind==='btn'){ el=d.createElement('p'); el.className='lc-btns'; el.innerHTML='<a class="btn btn-primary" href="app.html">Empezar el programa</a>'; put(el); }
   else if(kind==='img') lePickImg(function(im){ el=d.createElement('img'); el.className='lc-img'; el.alt=''; leSetImgSrc(el,im); put(el); });
 }
 /* Imágenes */

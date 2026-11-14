@@ -495,7 +495,7 @@ nav.top .wrap>.btn{margin-left:auto}
         <span><i class="dot d-v"></i>Vitalidad</span>
       </div>
       <div class="hero-cta">
-        <a class="btn btn-primary" href="app.html" data-trial-cta>Comenzar Áurea Mentor</a>
+        <a class="btn btn-primary" href="app.html" data-trial-cta>Empezar el programa</a>
         <a class="btn btn-ghost" href="#metodo">Conocer el método</a>
       </div>
       <p class="hero-note">Prueba durante <span data-trial-days>15</span> días, sin compromiso y sin tarjetas.</p>
@@ -806,7 +806,7 @@ nav.top .wrap>.btn{margin-left:auto}
   <div class="wrap">
     <h2 class="rv">Tu ruta comienza <em>esta semana</em>.</h2>
     <p class="lead rv">Tres cápsulas, un mentor que te conoce y un diario para cada día. Tu primer paso en cada pilar de tu vida.</p>
-    <div class="hero-cta rv"><a class="btn btn-primary" href="app.html" data-trial-cta>Comenzar Áurea Mentor</a></div>
+    <div class="hero-cta rv"><a class="btn btn-primary" href="app.html" data-trial-cta>Empezar el programa</a></div>
   </div>
 </section>
 
@@ -1142,7 +1142,7 @@ nav.top .wrap>.btn{margin-left:auto}
   function all(sel,fn){ [].forEach.call(document.querySelectorAll(sel),fn); }
   var d=c.trialDays>0?Math.round(c.trialDays):15, mes=(d===30);
   all('[data-trial-days]',function(e){ e.textContent=d; });
-  all('[data-trial-cta]',function(e){ e.textContent=LEN?LEN.cta(mes):'Comenzar Áurea Mentor'; });
+  all('[data-trial-cta]',function(e){ e.textContent=LEN?LEN.cta(mes):'Empezar el programa'; });
   all('[data-trial-h2]',function(e){ e.textContent=LEN?LEN.h2(mes,d):mes?'Comienza con un mes de prueba.':'Comienza con '+d+(d===1?' día':' días')+' de prueba.'; });
   all('[data-trial-li]',function(e){ e.textContent=LEN?LEN.li(mes,d):mes?'Prueba de un mes para empezar':'Prueba de '+d+(d===1?' día':' días')+' para empezar'; });
   all('[data-trial-faq]',function(e){ e.textContent=LEN?LEN.faq(mes):mes?'¿Qué ocurre al terminar el mes de prueba?':'¿Qué ocurre al terminar el periodo de prueba?'; });
