@@ -1833,9 +1833,9 @@ function renderApp(t){
   var el=document.createElement('div'); el.className='app';
   el.innerHTML='<aside class="side"><div class="brand">'+wordmark(40,true)+'</div><nav class="snav" aria-label="'+LX('Secciones','Sections')+'">'+nav('snav-b')+'</nav>'+
       '<div class="side-lv"><div class="slv-top"><span>'+LX('Nivel ','Level ')+L.n+'</span><b>'+esc(L.name)+'</b></div><div class="slv-bar"><i style="width:'+lp+'%"></i></div><small>'+(N?LX('Siguiente: ','Next: ')+esc(N.name)+' · '+(N.w-w)+' '+((N.w-w)===1?LX('vuelta','turn'):LX('vueltas','turns')):LX('Nivel máximo alcanzado','Highest level reached'))+'</small></div>'+
-      '<button type="button" class="side-trial" id="sideSub">'+(S.subscribed?LX('Suscripción activa<small>Ver mi plan</small>','Active subscription<small>See my plan</small>'):(left>0?LX('Prueba gratuita · ','Free trial · ')+left+' '+(left===1?LX('día','day'):LX('días','days')):LX('Prueba gratuita terminada','Free trial ended'))+'<small>'+LX('Ver planes','See plans')+'</small>')+'</button></aside>'+
+      '<button type="button" class="side-trial" id="sideSub">'+(S.subscribed?LX('Suscripción activa<small>Ver mi plan</small>','Active subscription<small>See my plan</small>'):(left>0?LX('Periodo de prueba · ','Trial · ')+left+' '+(left===1?LX('día','day'):LX('días','days')):LX('Periodo de prueba terminado','Trial ended'))+'<small>'+LX('Ver planes','See plans')+'</small>')+'</button></aside>'+
     '<div class="shell"><header class="topbar gutter"><div class="brand tb-brand">'+wordmark(32)+'</div><span class="tb-date">'+esc(today.charAt(0).toUpperCase()+today.slice(1))+'</span>'+
-      '<div class="chips"><span class="chip pts"><i></i>'+points()+' pts</span><button type="button" class="chip tb-trial" id="chipSub">'+(S.subscribed?LX('Activa','Active'):(left>0?left+LX(' días gratis',left===1?' free day':' free days'):LX('Prueba terminada','Trial ended')))+'</button></div>'+
+      '<div class="chips"><span class="chip pts"><i></i>'+points()+' pts</span><button type="button" class="chip tb-trial" id="chipSub">'+(S.subscribed?LX('Activa','Active'):(left>0?left+LX(left===1?' día de prueba':' días de prueba',left===1?' trial day':' trial days'):LX('Prueba terminada','Trial ended')))+'</button></div>'+
       '<div class="tb-r">'+langPick()+'<div class="umenu"><button type="button" class="ubtn" id="ubtn" aria-haspopup="menu" aria-expanded="false"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><span class="uname">'+esc(tc(S.reg.name))+'</span><svg class="uchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>'+
       '<div class="udrop" id="udrop" role="menu" hidden><div class="ud-h"><span class="avatar" aria-hidden="true">'+esc((S.reg.name||'?').charAt(0).toUpperCase())+'</span><div><b>'+esc(tc(S.reg.name))+'</b><small>'+esc(S.reg.email)+'</small></div></div>'+
       '<button type="button" role="menuitem" data-u="perfil">'+uIc('M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0')+LX('Mi perfil','My profile')+'</button>'+
@@ -1965,7 +1965,7 @@ function viewProfile(main){
     '</div>'+
     '<section class="pcard psub"><div><h2>'+LX('Suscripción','Subscription')+'</h2>'+
       (S.subscribed?'<p><span class="pstat ok">'+LX('Activa','Active')+'</span> '+(S.plan==='anual'?LX('Plan anual · $'+fmtP(cfg().priceA)+' USD al año','Annual plan · $'+fmtP(cfg().priceA)+' USD a year'):LX('Plan mensual · $'+fmtP(cfg().priceM)+' USD al mes','Monthly plan · $'+fmtP(cfg().priceM)+' USD a month'))+'</p>'+(subEnd()?'<p class="note">'+(SUB&&SUB.autoRenew?LX('Se renueva sola el '+subEnd()+'.','Renews automatically on '+subEnd()+'.')+' <button type="button" class="pd-ed" id="subCancel">'+LX('Cancelar renovación','Cancel renewal')+'</button>':(SUB&&SUB.provider==='payphone'?LX('Pagado con Payphone. Vigente hasta el '+subEnd()+'. Este pago no se renueva solo: cuando se acerque la fecha, renuévalo aquí mismo.','Paid with Payphone. Valid until '+subEnd()+'. This payment does not renew on its own: when the date gets close, renew it right here.')+' <button type="button" class="pd-ed" id="subRenew">'+LX('Renovar ahora','Renew now')+'</button>':LX('Vigente hasta el '+subEnd()+'. La renovación automática está cancelada.','Valid until '+subEnd()+'. Automatic renewal is cancelled.')+' <button type="button" class="pd-ed" id="subRenew">'+LX('Volver a suscribirme','Subscribe again')+'</button>'))+'</p>':'')
-        :'<p><span class="pstat">'+LX('Prueba gratuita','Free trial')+'</span> '+LX('Te '+(left===1?'queda 1 día':'quedan '+left+' días')+' de prueba.',(left===1?'1 day':left+' days')+' of trial left.')+'</p><div class="ptrial"><i style="width:'+Math.round((cfg().trialDays-left)/cfg().trialDays*100)+'%"></i></div>')+
+        :'<p><span class="pstat">'+LX('Periodo de prueba','Trial period')+'</span> '+LX('Te '+(left===1?'queda 1 día':'quedan '+left+' días')+' de prueba.',(left===1?'1 day':left+' days')+' of trial left.')+'</p><div class="ptrial"><i style="width:'+Math.round((cfg().trialDays-left)/cfg().trialDays*100)+'%"></i></div>')+
       '</div>'+(S.subscribed?'':'<button class="btn btn-primary" id="seePlans" type="button">'+LX('Ver planes','See plans')+'</button>')+'</section>'+
     '<div class="plogout"><button type="button" id="chpw">'+LX('Cambiar contraseña','Change password')+'</button></div>';
   wireLang(main);
@@ -2088,10 +2088,10 @@ function viewMentor(main){
   }
   /* Conversación libre con la IA: la pregunta y la respuesta se escriben en su lugar, sin ventana de chat */
   function leftTxt(){ var L=aiLim(), tr=!S.subscribed;
-    if(LANG==='en'){ if(AI_LEFT) return AI_LEFT.day+' of '+L[0]+' conversations left today · '+AI_LEFT.month+(tr?' in your free trial':' this month');
-      return tr?'Your '+cfg().trialDays+'-day free trial includes '+L[0]+' conversations a day and '+L[1]+' in total.':'Your plan includes '+L[0]+' conversations a day and '+L[1]+' a month.'; }
-    if(AI_LEFT) return 'Te quedan '+AI_LEFT.day+' de '+L[0]+' conversaciones hoy · '+AI_LEFT.month+(tr?' en tu prueba gratuita':' este mes');
-    return tr?'Tu prueba gratuita de '+cfg().trialDays+' días incluye '+L[0]+' conversaciones al día y '+L[1]+' en total.':'Tu plan incluye '+L[0]+' conversaciones al día y '+L[1]+' al mes.'; }
+    if(LANG==='en'){ if(AI_LEFT) return AI_LEFT.day+' of '+L[0]+' conversations left today · '+AI_LEFT.month+(tr?' in your trial':' this month');
+      return tr?'Your '+cfg().trialDays+'-day trial includes '+L[0]+' conversations a day and '+L[1]+' in total.':'Your plan includes '+L[0]+' conversations a day and '+L[1]+' a month.'; }
+    if(AI_LEFT) return 'Te quedan '+AI_LEFT.day+' de '+L[0]+' conversaciones hoy · '+AI_LEFT.month+(tr?' en tu periodo de prueba':' este mes');
+    return tr?'Tu prueba de '+cfg().trialDays+' días incluye '+L[0]+' conversaciones al día y '+L[1]+' en total.':'Tu plan incluye '+L[0]+' conversaciones al día y '+L[1]+' al mes.'; }
   function ask(){
     if(!aiOn()){ say(LX('Mentor · Conversa con Áurea','Mentor · Talk with Áurea'),LX(['Muy pronto podrás conversar conmigo libremente, '+n+'.','Tu plan incluirá '+aiLim()[0]+' conversaciones al día. Mientras tanto, explora los temas que preparé para ti.'],['Very soon you will be able to talk with me freely, '+n+'.','Your plan will include '+aiLim()[0]+' conversations a day. In the meantime, explore the topics I prepared for you.']),null,[BACK]); return; }
     conv=[];
@@ -2385,7 +2385,7 @@ function openCap(id){
   ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
   document.addEventListener('keydown',function k(e){ if(e.key==='Escape'){ document.removeEventListener('keydown',k); if(ov.isConnected) close(); } });
   capText(id).then(function(t){ if(!t||!ov.isConnected) return; var a=ov.querySelector('#capTx'), b=ov.querySelector('#capPr'); if(a) a.innerHTML=capTxHTML(t); if(b&&t.practice) b.textContent=t.practice; })
-    .catch(function(e){ if(TX.body||!ov.isConnected) return; var a=ov.querySelector('#capTx'); if(a) a.innerHTML='<p class="muted">'+(String(e&&e.code||'').indexOf('permission')>=0?LX('Esta cápsula está disponible durante tu prueba gratuita o con tu suscripción.','This capsule is available during your free trial or with your subscription.'):LX('No pudimos cargar la cápsula. Revisa tu conexión e inténtalo de nuevo.','We could not load the capsule. Check your connection and try again.'))+'</p>'; });
+    .catch(function(e){ if(TX.body||!ov.isConnected) return; var a=ov.querySelector('#capTx'); if(a) a.innerHTML='<p class="muted">'+(String(e&&e.code||'').indexOf('permission')>=0?LX('Esta cápsula está disponible durante tu periodo de prueba o con tu suscripción.','This capsule is available during your trial or with your subscription.'):LX('No pudimos cargar la cápsula. Revisa tu conexión e inténtalo de nuevo.','We could not load the capsule. Check your connection and try again.'))+'</p>'; });
   ov.querySelector('#pr-'+id).onchange=function(e){ if(e.target.checked) S.practice[id]=true; else delete S.practice[id]; save(); };
   var orig=ov.querySelector('#orig'), act=ov.querySelector('#act');
   function showOrigin(){ var L=LEARN[c.id]||{tr:[]};
@@ -2434,7 +2434,7 @@ function paywall(){
       .catch(function(e){ b.disabled=false; b.innerHTML=b._h; er.textContent=LANG==='en'?'I could not open the payment. Please try again.':((e&&e.message)||'No pude abrir el pago. Intenta de nuevo.'); er.hidden=false; });
   };
   
-  var msg= ended ? LX(n+', tu prueba gratuita ha terminado. Completaste '+doneCount()+' cápsulas y llegaste al nivel '+level().name+'. Para continuar tu ruta, elige tu plan.',n+', your free trial has ended. You completed '+doneCount()+' capsules and reached the '+level().name+' level. To continue your path, choose your plan.') : LX(n+', estos son los planes para continuar tu ruta cuando termine tu prueba gratuita.',n+', these are the plans to continue your path when your free trial ends.');
+  var msg= ended ? LX(n+', tu periodo de prueba ha terminado. Completaste '+doneCount()+' cápsulas y llegaste al nivel '+level().name+'. Para continuar tu ruta, elige tu plan.',n+', your trial has ended. You completed '+doneCount()+' capsules and reached the '+level().name+' level. To continue your path, choose your plan.') : LX(n+', estos son los planes para continuar tu ruta cuando termine tu periodo de prueba.',n+', these are the plans to continue your path when your trial ends.');
   typeText(ov.querySelector('#pt'), up(msg), 22);
 }
 
@@ -2594,8 +2594,8 @@ function admSummary(m){
   var n=L.length||1;
   function bars(rows){ return rows.map(function(r){ return '<div class="ab"><span>'+r[0]+'</span><div class="ab-bar"><i style="width:'+Math.round(r[1]/n*100)+'%;'+(r[2]?'background:'+r[2]:'')+'"></i></div><b>'+r[1]+'</b></div>'; }).join(''); }
   var ct=Object.keys(ctry).sort(function(a,b){return ctry[b]-ctry[a];}).slice(0,6).map(function(k){return [esc(k),ctry[k]];});
-  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Resumen</h1></div><p class="adm-note">Prueba gratuita actual: <b>'+c.trialDays+' días</b> · Planes: <b>$'+fmtP(c.priceM)+'</b> al mes, <b>$'+fmtP(c.priceA)+'</b> al año</p></div>'+
-    '<div class="akpis"><div class="akpi"><span>Usuarios registrados</span><b>'+L.length+'</b></div><div class="akpi"><span>En prueba gratuita</span><b>'+st.trial+'</b></div><div class="akpi"><span>Suscritos</span><b>'+st.sub+'</b></div><div class="akpi"><span>Prueba terminada</span><b>'+st.end+'</b></div></div>'+
+  m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Resumen</h1></div><p class="adm-note">Periodo de prueba actual: <b>'+c.trialDays+' días</b> · Planes: <b>$'+fmtP(c.priceM)+'</b> al mes, <b>$'+fmtP(c.priceA)+'</b> al año</p></div>'+
+    '<div class="akpis"><div class="akpi"><span>Usuarios registrados</span><b>'+L.length+'</b></div><div class="akpi"><span>En periodo de prueba</span><b>'+st.trial+'</b></div><div class="akpi"><span>Suscritos</span><b>'+st.sub+'</b></div><div class="akpi"><span>Prueba terminada</span><b>'+st.end+'</b></div></div>'+
     (L.length?'<div class="agrid"><section class="pcard"><h2>Duración de ruta elegida</h2>'+bars([['3 meses',ruta[3]],['6 meses',ruta[6]],['12 meses',ruta[12]]])+'</section>'+
     '<section class="pcard"><h2>Pilar prioritario</h2>'+bars([['Espíritu',foc.s,'var(--spirit)'],['Prosperidad',foc.m,'var(--matter)'],['Vitalidad',foc.v,'var(--vital)']])+'</section>'+
     '<section class="pcard"><h2>Países</h2>'+bars(ct)+'</section></div>':'<section class="pcard aempty"><h2>Todavía no hay usuarios registrados.</h2><p>Cuando alguien cree su cuenta en la aplicación, aparecerá aquí con sus datos y sus respuestas.</p></section>')+
@@ -2850,7 +2850,7 @@ function admIA(m){
    '<div class="ia-sw"><input type="checkbox" id="ia-on"'+(a.aiEnabled?' checked':'')+'><label for="ia-on">Activar «Conversa con Áurea» en la pestaña Mentor</label></div>'+
    '<label><span>Modelo</span><select class="lfield" id="ia-model">'+AI_MODELS.map(function(x){ return '<option value="'+x[0]+'"'+(x[0]===a.aiModel?' selected':'')+'>'+esc(x[1])+' · '+x[2]+' por 1.000 consultas</option>'; }).join('')+'</select></label>'+
    nf('ia-tok','Largo máximo de cada respuesta (tokens, 400 a 4.000)',a.aiMaxTokens,4000)+
-   '<h3 class="ia-h">Prueba gratuita ('+cfg().trialDays+' días)</h3><div class="m2">'+nf('ia-td','Consultas por día',a.aiTrialDay,1000)+nf('ia-tm','Consultas en toda la prueba',a.aiTrialMonth,10000)+'</div>'+
+   '<h3 class="ia-h">Periodo de prueba ('+cfg().trialDays+' días)</h3><div class="m2">'+nf('ia-td','Consultas por día',a.aiTrialDay,1000)+nf('ia-tm','Consultas en toda la prueba',a.aiTrialMonth,10000)+'</div>'+
    '<h3 class="ia-h">Suscripción de pago</h3><div class="m2">'+nf('ia-pd','Consultas por día',a.aiPaidDay,1000)+nf('ia-pm','Consultas por mes',a.aiPaidMonth,10000)+'</div>'+
       '<h3 class="ia-h">Tope para toda la app</h3><div class="m2">'+nf('ia-gd','Consultas por día entre todos los usuarios',a.aiGlobalDay,100000)+'</div>'+
    '<p class="m-note">0 consultas bloquea el mentor con IA para ese plan. El costo aproximado incluye una pregunta y una respuesta de largo normal.</p><p class="err" id="ia1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar</button></div></form></section>'+
@@ -2881,10 +2881,10 @@ var LE_SW=['#FFFFFF','#F7F5F0','#EFEBE3','#D9D4C9','#5D6378','#141A2E','#111833'
 var LE_PH='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="#E9E5DC"/><path d="M600 400 a12 12 0 0 1 12 12 a24 24 0 0 1 -24 24 a36 36 0 0 1 -36 -36 a48 48 0 0 1 48 -48 a60 60 0 0 1 60 60 a72 72 0 0 1 -72 72 a84 84 0 0 1 -84 -84 a96 96 0 0 1 96 -96" fill="none" stroke="#B9B2A4" stroke-width="6" stroke-linecap="round"/><text x="600" y="640" text-anchor="middle" font-family="system-ui,sans-serif" font-size="34" fill="#8C8577">Toca la imagen para cambiarla</text></svg>');
 var LE_TPL={
   texto:{n:'Texto',d:'Etiqueta, título y párrafo.',cls:'lc-sec',h:'<p class="eyebrow">Nueva sección</p><h2>Escribe aquí el <em>título</em>.</h2><p class="lead">Escribe aquí el texto de esta sección. Toca cualquier texto para cambiarlo, darle formato o agregar más párrafos debajo.</p>'},
-  split:{n:'Texto con imagen',d:'Texto a un lado e imagen al otro.',cls:'lc-sec',h:'<div class="lc-split"><div class="lc-body"><p class="eyebrow">Nueva sección</p><h2>Un título <em>claro</em>.</h2><p class="lead">Describe aquí la idea principal de esta sección en pocas líneas.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Comenzar prueba gratuita</a></p></div><figure class="lc-media"><img src="'+LE_PH+'" alt=""></figure></div>'},
+  split:{n:'Texto con imagen',d:'Texto a un lado e imagen al otro.',cls:'lc-sec',h:'<div class="lc-split"><div class="lc-body"><p class="eyebrow">Nueva sección</p><h2>Un título <em>claro</em>.</h2><p class="lead">Describe aquí la idea principal de esta sección en pocas líneas.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Comenzar Áurea Mentor</a></p></div><figure class="lc-media"><img src="'+LE_PH+'" alt=""></figure></div>'},
   imagen:{n:'Imagen',d:'Una imagen grande con su descripción.',cls:'lc-sec lc-center',h:'<figure class="lc-media"><img src="'+LE_PH+'" alt=""><figcaption>Escribe una descripción breve de la imagen.</figcaption></figure>'},
   tarjetas:{n:'Tarjetas',d:'Título y tres tarjetas que puedes duplicar.',cls:'lc-sec',h:'<p class="eyebrow">Nueva sección</p><h2>Tres ideas <em>clave</em>.</h2><div class="lc-cards">'+[1,2,3].map(function(i){ return '<div class="lc-card"><h3>Idea '+i+'</h3><p>Texto breve de esta tarjeta.</p></div>'; }).join('')+'</div>'},
-  accion:{n:'Llamado a la acción',d:'Título centrado con un botón.',cls:'lc-sec lc-center',h:'<h2>Tu ruta comienza <em>hoy</em>.</h2><p class="lead">Una frase breve que invite a dar el primer paso.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Comenzar prueba gratuita</a></p>'}
+  accion:{n:'Llamado a la acción',d:'Título centrado con un botón.',cls:'lc-sec lc-center',h:'<h2>Tu ruta comienza <em>hoy</em>.</h2><p class="lead">Una frase breve que invite a dar el primer paso.</p><p class="lc-btns"><a class="btn btn-primary" href="app.html">Comenzar Áurea Mentor</a></p>'}
 };
 var LE_TPL_ICON={
   texto:'<svg viewBox="0 0 120 70"><rect x="10" y="12" width="30" height="5" rx="2" fill="currentColor" opacity=".5"/><rect x="10" y="24" width="80" height="9" rx="3" fill="currentColor"/><rect x="10" y="40" width="100" height="4" rx="2" fill="currentColor" opacity=".4"/><rect x="10" y="49" width="90" height="4" rx="2" fill="currentColor" opacity=".4"/></svg>',
@@ -3045,7 +3045,7 @@ function leInsert(kind){
   var d=LE.doc, el;
   if(kind==='p'){ el=d.createElement('p'); el.textContent='Escribe aquí tu texto.'; put(el); }
   else if(kind==='h'){ el=d.createElement('h3'); el.textContent='Nuevo título'; put(el); }
-  else if(kind==='btn'){ el=d.createElement('p'); el.className='lc-btns'; el.innerHTML='<a class="btn btn-primary" href="app.html">Comenzar prueba gratuita</a>'; put(el); }
+  else if(kind==='btn'){ el=d.createElement('p'); el.className='lc-btns'; el.innerHTML='<a class="btn btn-primary" href="app.html">Comenzar Áurea Mentor</a>'; put(el); }
   else if(kind==='img') lePickImg(function(im){ el=d.createElement('img'); el.className='lc-img'; el.alt=''; leSetImgSrc(el,im); put(el); });
 }
 /* Imágenes */
@@ -3342,12 +3342,12 @@ function lePublish(){
 function admConfig(m){
   var c=cfg();
   m.innerHTML='<div class="adm-h"><div><p class="eyebrow">Panel de administración</p><h1>Configuración</h1></div></div>'+
-    '<div class="agrid ag2"><section class="pcard"><h2>Prueba gratuita y planes</h2><form class="login mform" id="cf1" novalidate>'+
-      fld('cf-days','Días de prueba gratuita',c.trialDays,'number','min="1" max="365" inputmode="numeric"')+
+    '<div class="agrid ag2"><section class="pcard"><h2>Periodo de prueba y planes</h2><form class="login mform" id="cf1" novalidate>'+
+      fld('cf-days','Días de prueba',c.trialDays,'number','min="1" max="365" inputmode="numeric"')+
       '<div class="m2">'+fld('cf-pm','Plan mensual (USD)',fmtP(c.priceM),'text','inputmode="decimal"')+fld('cf-pa','Plan anual (USD)',fmtP(c.priceA),'text','inputmode="decimal"')+'</div>'+fld('cf-iva','IVA incluido en el precio (%)',c.payIva!=null?c.payIva:15,'number','min="0" max="30" inputmode="numeric"')+
       '<div class="ia-sw"><input type="checkbox" id="cf-pph"'+(c.payPayphone?' checked':'')+'><label for="cf-pph">Pago con tarjeta por Payphone (Ecuador)</label></div>'+
       '<div class="ia-sw"><input type="checkbox" id="cf-ppl"'+(c.payPaypal?' checked':'')+'><label for="cf-ppl">Pago con PayPal (otros países)</label></div>'+
-      '<p class="m-note">Los días de prueba se aplican a todos los usuarios, también a los que ya están en su prueba gratuita. Los precios se muestran en la pantalla de suscripción y se cobran con IVA incluido; si no cobras IVA, pon 0. Confírmalo con tu contador.</p><p class="err" id="cf1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar configuración</button></div></form></section>'+
+      '<p class="m-note">Los días de prueba se aplican a todos los usuarios, también a los que ya están en su periodo de prueba. Los precios se muestran en la pantalla de suscripción y se cobran con IVA incluido; si no cobras IVA, pon 0. Confírmalo con tu contador.</p><p class="err" id="cf1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar configuración</button></div></form></section>'+
     '<section class="pcard"><h2>Acceso de administrador</h2><form class="login mform" id="cf2" novalidate>'+fld('cf-am','Correo',c.admin?c.admin.email:'','email','maxlength="80" autocomplete="username"')+pwFld('cf-ac','Contraseña actual','current-password')+pwFld('cf-an','Contraseña nueva (opcional)','new-password')+
       '<p class="err" id="cf2e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Actualizar acceso</button></div></form></section></div>';
   wireEyes(m);
@@ -3394,12 +3394,12 @@ function aiCall(data){
 function aiErr(e){ var c=String((e&&e.code)||'').replace('functions/',''), sc0=e&&e.details&&e.details.scope;
   if(sc0==='verify'){ if(!aiVerSent&&fbUser){ aiVerSent=true; sendVerify(fbUser).catch(function(){}); }
     return LX('Confirma tu correo para conversar con Áurea. Te enviamos un enlace a '+(fbUser?fbUser.email:'tu correo')+'; ábrelo y vuelve a intentarlo.','Confirm your email to talk with Áurea. We sent a link to '+(fbUser?fbUser.email:'your email')+'; open it and try again.'); }
-  if(sc0==='trial-ended') return LX('Tu prueba gratuita terminó. Con la suscripción podrás seguir conversando con Áurea.','Your free trial has ended. With a subscription you can keep talking with Áurea.');
+  if(sc0==='trial-ended') return LX('Tu periodo de prueba terminó. Con la suscripción podrás seguir conversando con Áurea.','Your trial has ended. With a subscription you can keep talking with Áurea.');
   if(sc0==='global') return LX('Áurea recibió muchas consultas hoy. Mañana podrás seguir conversando.','Áurea received many questions today. You can keep talking tomorrow.');
   if(LANG==='en'){ var sc=e&&e.details&&e.details.scope;
-    return ({'resource-exhausted':sc==='trial'?'You have used all the conversations in your free trial. With a subscription you can keep talking with Áurea.':(sc==='month'?'You have reached this month’s conversations.':'You have reached today’s conversations. You can keep talking tomorrow.'),
+    return ({'resource-exhausted':sc==='trial'?'You have used all the conversations in your trial. With a subscription you can keep talking with Áurea.':(sc==='month'?'You have reached this month’s conversations.':'You have reached today’s conversations. You can keep talking tomorrow.'),
       'failed-precondition':'The mentor is turned off for now.','unavailable':'Áurea is receiving many questions. Try again in a moment.','invalid-argument':'Write your question.','unauthenticated':'Sign in to talk with Áurea.'})[c]||'Áurea could not answer right now. Check your connection and try again in a moment.'; }
-  if(c==='resource-exhausted'||c==='failed-precondition'||c==='unavailable'||c==='invalid-argument'||c==='unauthenticated') return (e&&e.message)||'Áurea no pudo responder ahora.';
+  if(c==='resource-exhausted'||c==='failed-precondition'||c==='unavailable'||c==='invalid-argument'||c==='unauthenticated') return String((e&&e.message)||'Áurea no pudo responder ahora.').replace(/prueba gratuita/g,'periodo de prueba');
   return 'Áurea no pudo responder ahora. Revisa tu conexión e inténtalo de nuevo en un momento.'; }
 function aiLim(){ var a=aiCfg(), paid=!!S.subscribed; return paid?[+a.aiPaidDay,+a.aiPaidMonth]:[+a.aiTrialDay,+a.aiTrialMonth]; }
 function aiTag(){ var a=aiCfg(); if(!a.aiEnabled||!cloud()) return LX('muy pronto','very soon'); if(AI_LEFT) return LX('te quedan '+AI_LEFT.day+' hoy',AI_LEFT.day+' left today'); return aiLim()[0]+LX(' conversaciones al día',' conversations a day'); }
