@@ -77,7 +77,7 @@ exports.mentor = onCall(
     const paid = sd.active === true && !(sd.currentPeriodEnd && sd.currentPeriodEnd < Date.now());
     const lim = paid ? [c.aiPaidDay, c.aiPaidMonth] : [c.aiTrialDay, c.aiTrialMonth];
     // Sin suscripción, la prueba debe estar vigente (la fecha de fin la calcula el servidor, no el navegador)
-    if (!paid && (await finPrueba(uid)) < Date.now()) throw new HttpsError("failed-precondition", "Tu prueba gratuita terminó. Con la suscripción podrás seguir conversando con Áurea.", { scope: "trial-ended" });
+    if (!paid && (await finPrueba(uid)) < Date.now()) throw new HttpsError("failed-precondition", "Tu periodo de prueba terminó. Con la suscripción podrás seguir conversando con Áurea.", { scope: "trial-ended" });
 
     // Reservar la consulta antes de llamar a la IA, para que nadie supere el límite con varias pestañas a la vez.
     const day = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
@@ -94,8 +94,8 @@ exports.mentor = onCall(
       const monN = u.month === month ? u.monN || 0 : 0;
       const totN = u.totN || 0; // total acumulado: en la prueba el límite es para toda la prueba
       const capN = paid ? monN : totN;
-      if (dayN >= lim[0]) throw new HttpsError("resource-exhausted", paid ? "Llegaste a tus consultas de hoy. Mañana podrás seguir conversando." : "Llegaste a las consultas de hoy de tu prueba gratuita. Mañana podrás seguir conversando.", { scope: "day" });
-      if (capN >= lim[1]) throw new HttpsError("resource-exhausted", paid ? "Llegaste a tus consultas de este mes." : "Ya usaste todas las conversaciones de tu prueba gratuita. Con la suscripción podrás seguir conversando con Áurea.", { scope: paid ? "month" : "trial" });
+      if (dayN >= lim[0]) throw new HttpsError("resource-exhausted", paid ? "Llegaste a tus consultas de hoy. Mañana podrás seguir conversando." : "Llegaste a las consultas de hoy de tu periodo de prueba. Mañana podrás seguir conversando.", { scope: "day" });
+      if (capN >= lim[1]) throw new HttpsError("resource-exhausted", paid ? "Llegaste a tus consultas de este mes." : "Ya usaste todas las conversaciones de tu periodo de prueba. Con la suscripción podrás seguir conversando con Áurea.", { scope: paid ? "month" : "trial" });
       used = { dayN: dayN + 1, capN: capN + 1 };
       t.set(usageRef, { day, dayN: dayN + 1, month, monN: monN + 1, totN: totN + 1, plan: paid ? "pago" : "prueba", updatedAt: Date.now() }, { merge: true });
       t.set(globalRef, { day, n: gN + 1 });
