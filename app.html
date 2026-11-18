@@ -972,6 +972,7 @@ body{background:var(--bg)}
 .pw-card:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 22px -12px color-mix(in srgb,var(--fg) 70%,transparent)}.pw-card:disabled{opacity:.7;cursor:default}
 .pw-pph{font-style:normal;font-weight:700;font-size:.78rem;letter-spacing:-.01em;padding:.2em .7em;border-radius:999px;background:color-mix(in srgb,var(--surface) 16%,transparent);opacity:.9}
 .pw-pay .pp-box{margin:0;min-height:48px}
+.pw-rec{margin:0;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;background:var(--surface);font-size:.82rem;line-height:1.55;color:var(--muted)}.pw-rec b{color:var(--fg);font-weight:600}.pw-rec a{color:var(--accent)}
 .pw-fine{display:flex;gap:8px;align-items:flex-start;margin:0;font-size:.78rem;line-height:1.5;color:var(--muted)}.pw-fine svg{flex:none;margin-top:2px}.pw-fine a{color:var(--accent)}
 @media (max-width:520px){.ov .pw-plans{grid-template-columns:1fr 1fr;gap:10px}.pw-plans .plan{padding:38px 12px 14px 14px}.pw-dot{left:14px;top:14px}.pw-plans .plan b{font-size:1.55rem}.pw-plans .plan small{font-size:.72rem}.pw-save{display:block;margin:4px 0 0;width:max-content}.pw-inc{flex-direction:column;gap:6px}}
 .pph-btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;margin-top:18px;padding:.85em 1.2em;border:0;border-radius:999px;background:#6A1BD1;color:#fff;font:inherit;cursor:pointer;transition:filter .2s,transform .2s}
@@ -1098,7 +1099,7 @@ var ANIM_DEF={typeSpeed:100,qhPause:0.35,paraPause:1.2,spinSpeed:100};
 var ANIM_KEYS=['typeSpeed','qhPause','paraPause','spinSpeed'];
 function anim(){ var c=jget(CKEY,{}), r={}; ANIM_KEYS.forEach(function(k){ var v=+c[k]; r[k]=(c[k]!=null && v>=0 && isFinite(v))?v:ANIM_DEF[k]; }); if(!(r.typeSpeed>0)) r.typeSpeed=100; return r; }
 var AN=null; function animNow(){ return AN||(AN=anim()); }
-function cfg(){ var c=jget(CKEY,{}); return {trialDays:c.trialDays>0?c.trialDays:15, priceM:c.priceM>0?c.priceM:9.99, priceA:c.priceA>0?c.priceA:79, payIva:c.payIva!=null?+c.payIva:15, payPayphone:!!c.payPayphone, payPaypal:!!c.payPaypal, admin:c.admin||null}; }
+function cfg(){ var c=jget(CKEY,{}); return {trialDays:c.trialDays>0?c.trialDays:15, priceM:c.priceM>0?c.priceM:9.99, priceA:c.priceA>0?c.priceA:79, payIva:c.payIva!=null?+c.payIva:15, payPayphone:!!c.payPayphone, payPayphoneRec:!!c.payPayphoneRec, payPaypal:!!c.payPaypal, admin:c.admin||null}; }
 function fmtP(n){ n=+n; return (Math.round(n*100)%100?n.toFixed(2):String(Math.round(n))).replace('.',','); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 /* Número seguro: los datos de otros usuarios (Administración) pueden traer cualquier cosa en lugar de un número */
@@ -2409,6 +2410,12 @@ function toast(msg){ var t=document.createElement('div'); t.className='toast'; t
 
 /* ---- Fin del mes gratuito ---- */
 function pwSave(){ var m=+cfg().priceM, a=+cfg().priceA; return m>0&&a>0?Math.max(0,Math.round((1-a/(m*12))*100)):0; }
+/* Aviso explícito de cobro recurrente (Payphone Suscripciones / PayPal): monto, frecuencia y cómo cancelar */
+function pwRecTxt(){ var c=cfg(), rp=c.payPaypal, rc=c.payPayphone&&c.payPayphoneRec; if(!rp&&!rc) return '';
+  var an=S.plan!=='mensual', amt='$'+fmtP(an?c.priceA:c.priceM)+' USD', both=rp&&rc;
+  var via=both?'':(rp?LX(' con PayPal',' with PayPal'):LX(' con tarjeta',' with a card'));
+  return LX('<b>Cobro recurrente.</b> Al suscribirte'+via+' aceptas un cobro automático de <b>'+amt+(an?' cada año':' cada mes')+'</b>, IVA incluido, hasta que canceles. Puedes cancelar cuando quieras desde Mi perfil → Suscripción o escribiendo a <a href="mailto:info@aureamentor.com">info@aureamentor.com</a>.',
+    '<b>Recurring charge.</b> By subscribing'+via+' you accept an automatic charge of <b>'+amt+(an?' every year':' every month')+'</b>, VAT included, until you cancel. You can cancel anytime from My profile → Subscription or by writing to <a href="mailto:info@aureamentor.com">info@aureamentor.com</a>.'); }
 function paywall(){
   if(document.querySelector('.ov.pay')) return;
   var n=S.reg.name, ended=trialLeft()<=0;
@@ -2423,12 +2430,12 @@ function paywall(){
       (cfg().payPayphone||cfg().payPaypal?'<p class="pw-lbl">'+LX('Forma de pago','Payment method')+'</p><div class="pw-pay">':'')+
       (cfg().payPayphone?'<button class="pw-card" id="sub" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg><span>'+LX('Tarjeta de crédito o débito','Credit or debit card')+'</span><i class="pw-pph">payphone</i></button>':'')+
       (cfg().payPaypal?'<div id="ppBtn" class="pp-box"><span class="pp-wait">'+LX('Cargando PayPal…','Loading PayPal…')+'</span></div>':'')+
-      (cfg().payPayphone||cfg().payPaypal?'</div><p class="pw-fine"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>'+LX('Pago seguro. Áurea no ve ni guarda los datos de tu tarjeta.','Secure payment. Áurea never sees or stores your card details.')+(cfg().payPayphone?LX(' Con tarjeta pagas el periodo elegido.',' With a card you pay for the chosen period.'):'')+(cfg().payPaypal?LX(' Con PayPal se renueva solo y puedes cancelar cuando quieras.',' With PayPal it renews automatically and you can cancel anytime.'):'')+' <a href="terminos.html" target="_blank" rel="noopener">'+LX('Términos','Terms')+'</a></span></p>':'<p class="note">'+LX('Muy pronto podrás suscribirte aquí con tarjeta o PayPal.','Very soon you will be able to subscribe here with a card or PayPal.')+'</p>')+
+      (cfg().payPayphone||cfg().payPaypal?'</div>'+(pwRecTxt()?'<p class="pw-rec" id="pwRec" role="note">'+pwRecTxt()+'</p>':'')+'<p class="pw-fine"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>'+LX('Pago seguro. Áurea no ve ni guarda los datos de tu tarjeta.','Secure payment. Áurea never sees or stores your card details.')+(cfg().payPayphone&&!cfg().payPayphoneRec?LX(' Con tarjeta pagas solo el periodo elegido, sin renovación automática.',' With a card you pay only for the chosen period, with no automatic renewal.'):'')+' <a href="terminos.html#'+LX('cobros-recurrentes','recurring-charges')+'" target="_blank" rel="noopener">'+LX('Términos y cobros recurrentes','Terms and recurring charges')+'</a></span></p>':'<p class="note">'+LX('Muy pronto podrás suscribirte aquí con tarjeta o PayPal.','Very soon you will be able to subscribe here with a card or PayPal.')+'</p>')+
       '<p class="note err" id="payErr" hidden></p>')+'</article>';
   document.body.appendChild(ov); document.body.style.overflow='hidden';
   
   var cl=ov.querySelector('.close'); if(cl) cl.onclick=function(){ ov.remove(); document.body.style.overflow=''; };
-  ov.querySelectorAll('.plan').forEach(function(b){ b.onclick=function(){ S.plan=b.dataset.p; save(); ov.querySelectorAll('.plan').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));}); }; });
+  ov.querySelectorAll('.plan').forEach(function(b){ b.onclick=function(){ S.plan=b.dataset.p; save(); ov.querySelectorAll('.plan').forEach(function(x){x.setAttribute('aria-pressed',String(x===b));}); var pr=ov.querySelector('#pwRec'); if(pr) pr.innerHTML=pwRecTxt(); }; });
   var ppb=ov.querySelector('#ppBtn');
   if(ppb) paypalMount(ppb,ov.querySelector('#payErr'),function(){ ov.remove(); document.body.style.overflow=''; renderApp(); toast(LX('Suscripción activa con PayPal. Tu ruta continúa.','Subscription active with PayPal. Your path continues.')); });
   var sb=ov.querySelector('#sub'); if(sb) sb.onclick=function(){
@@ -3381,6 +3388,7 @@ function admConfig(m){
       fld('cf-days','Días de prueba',c.trialDays,'number','min="1" max="365" inputmode="numeric"')+
       '<div class="m2">'+fld('cf-pm','Plan mensual (USD)',fmtP(c.priceM),'text','inputmode="decimal"')+fld('cf-pa','Plan anual (USD)',fmtP(c.priceA),'text','inputmode="decimal"')+'</div>'+fld('cf-iva','IVA incluido en el precio (%)',c.payIva!=null?c.payIva:15,'number','min="0" max="30" inputmode="numeric"')+
       '<div class="ia-sw"><input type="checkbox" id="cf-pph"'+(c.payPayphone?' checked':'')+'><label for="cf-pph">Pago con tarjeta por Payphone (Ecuador)</label></div>'+
+      '<div class="ia-sw"><input type="checkbox" id="cf-pphr"'+(c.payPayphoneRec?' checked':'')+'><label for="cf-pphr">Payphone con cobro recurrente (actívalo solo cuando Payphone apruebe Suscripciones)</label></div>'+
       '<div class="ia-sw"><input type="checkbox" id="cf-ppl"'+(c.payPaypal?' checked':'')+'><label for="cf-ppl">Pago con PayPal (otros países)</label></div>'+
       '<p class="m-note">Los días de prueba se aplican a todos los usuarios, también a los que ya están en su periodo de prueba. Los precios se muestran en la pantalla de suscripción y se cobran con IVA incluido; si no cobras IVA, pon 0. Confírmalo con tu contador.</p><p class="err" id="cf1e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Guardar configuración</button></div></form></section>'+
     '<section class="pcard"><h2>Acceso de administrador</h2><form class="login mform" id="cf2" novalidate>'+fld('cf-am','Correo',c.admin?c.admin.email:'','email','maxlength="80" autocomplete="username"')+pwFld('cf-ac','Contraseña actual','current-password')+pwFld('cf-an','Contraseña nueva (opcional)','new-password')+
@@ -3393,7 +3401,7 @@ function admConfig(m){
     if(!(pm>0)||!(pa>0)){ er.textContent='Escribe precios válidos, por ejemplo 9,99.'; return; }
     var iva=parseInt(m.querySelector('#cf-iva').value,10); if(!(iva>=0&&iva<=30)){ er.textContent='El IVA debe estar entre 0 y 30.'; return; }
     pm=Math.round(pm*100)/100; pa=Math.round(pa*100)/100;
-    if(cloud()){ cloudSaveSettings(d,pm,pa,iva,m.querySelector('#cf-pph').checked,m.querySelector('#cf-ppl').checked).then(function(){ er.textContent=''; toast('Configuración guardada para todos.'); }).catch(function(e){ er.textContent=fbErr(e); }); return; }
+    if(cloud()){ cloudSaveSettings(d,pm,pa,iva,m.querySelector('#cf-pph').checked,m.querySelector('#cf-ppl').checked,m.querySelector('#cf-pphr').checked).then(function(){ er.textContent=''; toast('Configuración guardada para todos.'); }).catch(function(e){ er.textContent=fbErr(e); }); return; }
     var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; cc.payIva=iva; jset(CKEY,cc); er.textContent=''; toast('Configuración guardada.'); };
   if(cloud()){ var sec=m.querySelector('#cf2'); sec.innerHTML='<label><span>Correo</span><input class="lfield" type="email" value="'+esc(fbUser.email)+'" disabled></label>'+pwFld('cf-ac','Contraseña actual','current-password')+pwFld('cf-an','Contraseña nueva','new-password')+'<p class="err" id="cf2e"></p><div class="m-act"><button class="btn btn-primary" type="submit">Cambiar contraseña</button></div>'; wireEyes(sec);
     sec.onsubmit=function(e){ e.preventDefault(); var er=m.querySelector('#cf2e'), cur=m.querySelector('#cf-ac').value, nw=m.querySelector('#cf-an').value, r=regRule('pw')(nw); if(r){ er.textContent=r; return; }
@@ -3559,7 +3567,7 @@ function payReturn(){
 }
 function loadSettings(){
   return FB.f.getDoc(FB.f.doc(FB.db,'settings','app')).then(function(d){ if(!d.exists()) return; var v=d.data(), cc=jget(CKEY,{});
-    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); if(v.payIva!=null) cc.payIva=+v.payIva; cc.payPayphone=!!v.payPayphone; cc.payPaypal=!!v.payPaypal; ANIM_KEYS.forEach(function(k){ if(v[k]!=null && +v[k]>=0) cc[k]=+v[k]; }); AI_KEYS.forEach(function(k){ if(v[k]!=null) cc[k]=v[k]; }); jset(CKEY,cc); AN=null; }).catch(function(){});
+    ['trialDays','priceM','priceA'].forEach(function(k){ if(+v[k]>0) cc[k]=+v[k]; }); if(v.payIva!=null) cc.payIva=+v.payIva; cc.payPayphone=!!v.payPayphone; cc.payPayphoneRec=!!v.payPayphoneRec; cc.payPaypal=!!v.payPaypal; ANIM_KEYS.forEach(function(k){ if(v[k]!=null && +v[k]>=0) cc[k]=+v[k]; }); AI_KEYS.forEach(function(k){ if(v[k]!=null) cc[k]=v[k]; }); jset(CKEY,cc); AN=null; }).catch(function(){});
 }
 function cloudInit(){
   if(!FBC) return Promise.resolve();
@@ -3671,9 +3679,9 @@ function adminLoginCloud(){
   };
   typeQA(q,'Acceso de administrador.',hint,'Ingresa con tu correo y tu contraseña de administrador.',function(){ ans.classList.remove('wait'); });
 }
-function cloudSaveSettings(d,pm,pa,iva,pph,ppl){
-  var v={trialDays:d,priceM:pm,priceA:pa,payIva:iva,payPayphone:!!pph,payPaypal:!!ppl,updatedAt:Date.now()};
-  return FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),v,{merge:true}).then(function(){ var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; cc.payIva=iva; cc.payPayphone=!!pph; cc.payPaypal=!!ppl; jset(CKEY,cc); });
+function cloudSaveSettings(d,pm,pa,iva,pph,ppl,pphr){
+  var v={trialDays:d,priceM:pm,priceA:pa,payIva:iva,payPayphone:!!pph,payPayphoneRec:!!pphr,payPaypal:!!ppl,updatedAt:Date.now()};
+  return FB.f.setDoc(FB.f.doc(FB.db,'settings','app'),v,{merge:true}).then(function(){ var cc=jget(CKEY,{}); cc.trialDays=d; cc.priceM=pm; cc.priceA=pa; cc.payIva=iva; cc.payPayphone=!!pph; cc.payPayphoneRec=!!pphr; cc.payPaypal=!!ppl; jset(CKEY,cc); });
 }
 
 /* ================= ARRANQUE ================= */
